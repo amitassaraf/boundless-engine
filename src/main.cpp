@@ -4,21 +4,40 @@
 
 #include <iostream>
 #include <string>
+#include <GLFW/glfw3.h>
 
-int main(int argc, char* argv[])
+void error_callback(int error, const char* description)
 {
-    HelloWorld helloWorld;
+    fprintf(stderr, "Error: %i %s\n", error, description);
+}
+
+int main()
+{
+    glfwSetErrorCallback(error_callback);
+
+    if (!glfwInit()) {
+        // Initialization failed
+        fprintf(stderr, "Couldn't initialize glfw\n");
+        return 1;
+    }
     
-    if (argc == 2 && std::string{ argv[1] } == "--version")
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "My Title", NULL, NULL);
+    if (!window)
     {
-        std::cout << "Project Name version " << VERSION << "\n";
-        std::cout << "Copyright information here\n";
-        std::cout << "More copyright details.\n\n";
+        // Window or OpenGL context creation failed
+        fprintf(stderr, "Window creations failed");
     }
-    else
-    {
-        std::cout << helloWorld.hello() << ", " << helloWorld.world() << "!\n";
-        std::cout << "Random number = " << helloWorld.generateRandomNumber() << "\n";
-        std::cout << "Factorial(5) = " << factorial(5) << "\n";
+
+    glfwMakeContextCurrent(window);
+
+
+    while (!glfwWindowShouldClose(window)) {
+            glfwPollEvents();
     }
+
+    glfwTerminate();
+    exit(EXIT_SUCCESS);
+
 }

@@ -60,12 +60,35 @@ set(LIBRARY_SOURCES
     ${LOD_SOURCE_FILES}
 )
 
+# Add boost, glew, glfw, glm
+FIND_PACKAGE( Boost 1.75 COMPONENTS system filesystem REQUIRED )
+if (Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIR})
+endif()
+
+FIND_PACKAGE( GLEW 2.2 REQUIRED)
+if (GLEW_FOUND)
+    include_directories(${GLEW_INCLUDE_DIRS})
+endif()
+
+FIND_PACKAGE( GLFW3 3.3 REQUIRED)
+if (GLFW3_FOUND)
+    include_directories(${GLFW3_INCLUDE_DIRS})
+endif()
+
+FIND_PACKAGE( GLM REQUIRED)
+if (GLM_FOUND)
+    include_directories(${GLM_INCLUDE_DIRS})
+endif()
+
+find_package(OpenGL REQUIRED)
+
 add_library(LeagueOfDwarves-lib ${LIBRARY_SOURCES}) # A library
 set_target_properties(LeagueOfDwarves-lib PROPERTIES PREFIX "") # Remove the lib prefix
 target_include_directories(LeagueOfDwarves-lib PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}/include)
 
 add_executable(LeagueOfDwarves src/main.cpp) # The main executable
-target_link_libraries(LeagueOfDwarves LeagueOfDwarves-lib) # Link our sources to the executable
+target_link_libraries(LeagueOfDwarves LINK_PUBLIC LeagueOfDwarves-lib ${GLM_LIBRARIES} ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} glfw) # Link our sources to the executable
 
 if (BUILD_TESTS)
     include(CTest)
