@@ -81,15 +81,23 @@ if (GLM_FOUND)
     include_directories(${GLM_INCLUDE_DIRS})
 endif()
 
+find_package(OpenCL REQUIRED)
 find_package(OpenGL REQUIRED)
+include_directories( ${OPENCL_INCLUDE_DIR})     
 
 add_library(LeagueOfDwarves-lib ${LIBRARY_SOURCES}) # A library
 set_target_properties(LeagueOfDwarves-lib PROPERTIES PREFIX "") # Remove the lib prefix
 target_include_directories(LeagueOfDwarves-lib PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}/include)
 
 add_executable(LeagueOfDwarves src/main.cpp) # The main executable
-target_link_libraries(LeagueOfDwarves LINK_PUBLIC LeagueOfDwarves-lib ${GLM_LIBRARIES}
-     ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} glfw) # Link our sources to the executable
+
+if(APPLE)
+    target_link_libraries(LeagueOfDwarves LINK_PUBLIC LeagueOfDwarves-lib ${GLM_LIBRARIES}
+         ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} glfw OpenCL::OpenCL "-framework OpenCL" ) 
+else()
+    target_link_libraries(LeagueOfDwarves LINK_PUBLIC LeagueOfDwarves-lib ${GLM_LIBRARIES}
+         ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} glfw OpenCL::OpenCL) 
+endif()
 
 if (BUILD_TESTS)
     include(CTest)

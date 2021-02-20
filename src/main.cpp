@@ -8,6 +8,12 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#ifdef __APPLE__ //Mac OSX has a different name for the header file
+#include <OpenCL/opencl.h>
+#else
+#include <CL/cl.h>
+#endif
+
 void error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error: %i %s\n", error, description);
