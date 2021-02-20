@@ -1,4 +1,4 @@
-#include <project-abbr/factorial.hpp>
+#include <league-of-dwarves/factorial.hpp>
 
 #include "doctest.h"
 

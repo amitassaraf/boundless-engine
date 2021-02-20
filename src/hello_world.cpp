@@ -1,4 +1,4 @@
-#include <project-abbr/hello_world.hpp>
+#include <league-of-dwarves/hello_world.hpp>
 
 HelloWorld::HelloWorld() :
     hello_{ "Hello" },

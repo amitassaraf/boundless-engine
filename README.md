@@ -29,26 +29,26 @@ In order to use this project, all you have to do is follow a few (Ok, more than 
    notification_email: arnavborborah11@gmail.com
    ```
 4. In `./CMakeLists.txt`, modify:
-    1. `Project-Name` to match your project name.
-    2. `Project-Name_VERSION_MAJOR`, `Project-Name_VERSION_MINOR`, and `Project-Name_VERSION_PATCH` to match the versioning of your project. Make sure to modify the names of the variables as well!
+    1. `LeagueOfDwarves` to match your project name.
+    2. `LeagueOfDwarves_VERSION_MAJOR`, `LeagueOfDwarves_VERSION_MINOR`, and `LeagueOfDwarves_VERSION_PATCH` to match the versioning of your project. Make sure to modify the names of the variables as well!
     3. Modify `PROJ_NAME` to be the name of your project.
     4. Do the same for `PROJECT_DESCRIPTION`.
     5. If you are building just a library, then remove `${CMAKE_SOURCE_DIR}/src/main.cpp` from `COVERAGE_EXCLUDES`.
     6. Modify the `LIBRARY_SOURCES` variable to match your project sources. Exclude `main.cpp`, if it exists.
     7. If you are building a standalone library, then remove the following lines:
        ```
-       add_executable(Project-Name main.cpp) # The main executable
-       target_link_libraries(Project-Name Project-Name-lib) # Link our sources to the executable
+       add_executable(LeagueOfDwarves main.cpp) # The main executable
+       target_link_libraries(LeagueOfDwarves LeagueOfDwarves-lib) # Link our sources to the executable
        ```
        And later on in the file, remove:
        ```
        # Install the built library and executable into the appropriate directory
-       install(TARGETS Project-Name DESTINATION bin)
+       install(TARGETS LeagueOfDwarves DESTINATION bin)
        ```
-    8. Change the name `Project-Name` and `Project-Name-lib` to match your project name.
+    8. Change the name `LeagueOfDwarves` and `LeagueOfDwarves-lib` to match your project name.
     9. Change:
        ```
-       install(FILES ${CMAKE_BINARY_DIR}/include/project-abbr/config.hpp DESTINATION include/project-abbr) # Install our configuration file
+       install(FILES ${CMAKE_BINARY_DIR}/include/league-of-dwarves/config.hpp DESTINATION include/league-of-dwarves) # Install our configuration file
        ```
        to match the new folder name for your project, as described in step 8.
 5. Modify `LICENSE` to match your software license.
@@ -57,12 +57,12 @@ In order to use this project, all you have to do is follow a few (Ok, more than 
     1. Delete all the markdown pages from this directory and replace them with your own.
     2. If a main page is needed, it needs to be in a file called `main_page.md`.
 8. Open the folder `include`. Then:
-    1. Change the name of the folder `project-abbr` to something that matches your project (name or abbreviation). Delete all the files _except_ `config.hpp.in` in this directory and replace them with your public include files, if they exist.
+    1. Change the name of the folder `league-of-dwarves` to something that matches your project (name or abbreviation). Delete all the files _except_ `config.hpp.in` in this directory and replace them with your public include files, if they exist.
 9. Open the folder `src`. Then:
     1. Remove all of the `.cpp` files in this folder and replace them with your source files and private includes.
 10. Open the folder `test`. Then:
     1. Replace all the files in this directory _except_ for `test_runner.cpp` with your doctest unit testing files.
-    2. In `test/CMakeLists.txt`, change `Project-Name-lib` to match the new name of your library. In addition, modify the `TEST_SOURCES` variable to match your new test files.
+    2. In `test/CMakeLists.txt`, change `LeagueOfDwarves-lib` to match the new name of your library. In addition, modify the `TEST_SOURCES` variable to match your new test files.
 11. Delete the _by default hidden_ `.git` folder and then run `git init` to get a new repository!
 
 For details on how to set up the various continuous integration tools used in this project, check the [documentation](https://codedocs.xyz/arnavb/cpp14-project-template/setting_up_documentation.html).

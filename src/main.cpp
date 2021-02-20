@@ -1,6 +1,6 @@
-#include <project-abbr/config.hpp>
-#include <project-abbr/factorial.hpp>
-#include <project-abbr/hello_world.hpp>
+#include <league-of-dwarves/config.hpp>
+#include <league-of-dwarves/factorial.hpp>
+#include <league-of-dwarves/hello_world.hpp>
 
 #include <iostream>
 #include <string>

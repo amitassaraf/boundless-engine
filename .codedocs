@@ -31,8 +31,8 @@ TAGLINKS =
 #---------------------------------------------------------------------------
 
 # These variables have to be redefined since codedocs cannot run CMake
-PROJECT_NAME = "Project Name"
-PROJECT_NUMBER = 0.1.0
+PROJECT_NAME = "League of Dwarves"
+PROJECT_NUMBER = 0.0.1
 PROJECT_BRIEF = "A cross-platform C++14 project template"
 OUTPUT_DIRECTORY = doc/
 INPUT = doc/ include/

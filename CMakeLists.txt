@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.1)
 
-project(Project-Name)
+project(LeagueOfDwarves)
 
-set(Project-Name_VERSION_MAJOR 0)
-set(Project-Name_VERSION_MINOR 1)
-set(Project-Name_VERSION_PATCH 0)
-set(Project-Name_VERSION "${Project-Name_VERSION_MAJOR}.${Project-Name_VERSION_MINOR}.${Project-Name_VERSION_PATCH}")
+set(LeagueOfDwarves_VERSION_MAJOR 0)
+set(LeagueOfDwarves_VERSION_MINOR 1)
+set(LeagueOfDwarves_VERSION_PATCH 0)
+set(LeagueOfDwarves_VERSION "${LeagueOfDwarves_VERSION_MAJOR}.${LeagueOfDwarves_VERSION_MINOR}.${LeagueOfDwarves_VERSION_PATCH}")
 
-set(PROJ_NAME "\"Project Name\"") # PROJECT_NAME is a predefined variable
+set(PROJ_NAME "\"League Of Dwarves\"") # PROJECT_NAME is a predefined variable
 set(PROJECT_DESCRIPTION "\"A cross-platform C++14 project template\"")
 
-configure_file(include/project-abbr/config.hpp.in
-    ${CMAKE_BINARY_DIR}/include/project-abbr/config.hpp
+configure_file(include/league-of-dwarves/config.hpp.in
+    ${CMAKE_BINARY_DIR}/include/league-of-dwarves/config.hpp
 )
 
 set(CMAKE_CXX_STANDARD 14)
@@ -52,17 +52,20 @@ else (ENABLE_COVERAGE AND NOT CMAKE_CONFIGURATION_TYPES)
     endif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif (ENABLE_COVERAGE AND NOT CMAKE_CONFIGURATION_TYPES)
 
-set(LIBRARY_SOURCES
-    src/factorial.cpp
-    src/hello_world.cpp
+file(GLOB LOD_SOURCE_FILES
+     "src/*.cpp"
 )
 
-add_library(Project-Name-lib ${LIBRARY_SOURCES}) # A library
-set_target_properties(Project-Name-lib PROPERTIES PREFIX "") # Remove the lib prefix
-target_include_directories(Project-Name-lib PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}/include)
+set(LIBRARY_SOURCES
+    ${LOD_SOURCE_FILES}
+)
 
-add_executable(Project-Name src/main.cpp) # The main executable
-target_link_libraries(Project-Name Project-Name-lib) # Link our sources to the executable
+add_library(LeagueOfDwarves-lib ${LIBRARY_SOURCES}) # A library
+set_target_properties(LeagueOfDwarves-lib PROPERTIES PREFIX "") # Remove the lib prefix
+target_include_directories(LeagueOfDwarves-lib PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}/include)
+
+add_executable(LeagueOfDwarves src/main.cpp) # The main executable
+target_link_libraries(LeagueOfDwarves LeagueOfDwarves-lib) # Link our sources to the executable
 
 if (BUILD_TESTS)
     include(CTest)
@@ -75,8 +78,8 @@ if (GEN_DOCS)
 endif (GEN_DOCS)
 
 # Install the built library and executable into the appropriate directory
-install(TARGETS Project-Name DESTINATION bin)
-install(TARGETS Project-Name-lib
+install(TARGETS LeagueOfDwarves DESTINATION bin)
+install(TARGETS LeagueOfDwarves-lib
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
@@ -84,7 +87,7 @@ install(TARGETS Project-Name-lib
 
 # Install the project header files into the appropriate directory
 install(DIRECTORY include/ DESTINATION include PATTERN "config.hpp.in" EXCLUDE) # Install our main header files
-install(FILES ${CMAKE_BINARY_DIR}/include/project-abbr/config.hpp DESTINATION include/project-abbr) # Install our configuration file
+install(FILES ${CMAKE_BINARY_DIR}/include/league-of-dwarves/config.hpp DESTINATION include/league-of-dwarves) # Install our configuration file
 
 # Install the project's extra files
-install(FILES README.md LICENSE DESTINATION share/project-abbr)
+install(FILES README.md LICENSE DESTINATION share/league-of-dwarves)

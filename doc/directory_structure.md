@@ -2,7 +2,7 @@
 
 Ignoring all extraneous files, this is the structure that this project uses: 
 
-    project-name/
+    LeagueOfDwarves/
     ├── CMakeLists.txt
     ├── cmake/
     │   └── Modules/
@@ -14,7 +14,7 @@ Ignoring all extraneous files, this is the structure that this project uses:
     │   ├── main_page.md
     │   └── ...
     ├── include/
-    │   └── project-abbr/
+    │   └── league-of-dwarves/
     │       ├── config.hpp.in
     │       ├── factorial.hpp
     │       └── hello_world.hpp
