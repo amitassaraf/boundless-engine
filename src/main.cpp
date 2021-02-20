@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <string>
+
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 void error_callback(int error, const char* description)
@@ -32,6 +34,14 @@ int main()
 
     glfwMakeContextCurrent(window);
 
+
+	GLenum err = glewInit();
+	if (GLEW_OK != err)
+	{
+		std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
+		glfwTerminate();
+		return -1;
+	}
 
     while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
