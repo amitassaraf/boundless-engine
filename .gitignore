@@ -54,3 +54,5 @@ CMakeDoxyfile.in
 CMakeDoxygenDefaults.cmake
 
 LeagueOfDwarves
+
+.vscode/
