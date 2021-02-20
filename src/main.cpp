@@ -8,6 +8,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <AL/al.h>
+
 #ifdef __APPLE__ //Mac OSX has a different name for the header file
 #include <OpenCL/opencl.h>
 #else
