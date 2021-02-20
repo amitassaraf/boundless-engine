@@ -47,6 +47,7 @@ int main()
             glfwPollEvents();
     }
 
+    glfwDestroyWindow(window);
     glfwTerminate();
     exit(EXIT_SUCCESS);
 
