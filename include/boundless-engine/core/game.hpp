@@ -1,6 +1,6 @@
 #pragma once
-#ifndef BND_GAME_HPP_
-#define BND_GAME_HPP_
+#ifndef BD_GAME_HPP_
+#define BD_GAME_HPP_
 
 namespace Boundless {
 
@@ -20,4 +20,4 @@ namespace Boundless {
 
 }
 
-#endif // !BND_GAME_HPP_
+#endif // !BD_GAME_HPP_

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef BND_LOGGER_HPP_
-#define BND_LOGGER_HPP_
+#ifndef BD_LOGGER_HPP_
+#define BD_LOGGER_HPP_
 
 #include <memory>
 #include "spdlog/spdlog.h"
@@ -21,4 +21,18 @@ namespace Boundless {
 }
 
 
-#endif // !BND_LOGGER_HPP_
+#define BD_CORE_ERROR(...) ::Boundless::Logger::getCoreLogger()->error(__VA_ARGS__)
+#define BD_CORE_FATAL(...) ::Boundless::Logger::getCoreLogger()->fatal(__VA_ARGS__)
+#define BD_CORE_WARN(...)  ::Boundless::Logger::getCoreLogger()->warn(__VA_ARGS__)
+#define BD_CORE_INFO(...)  ::Boundless::Logger::getCoreLogger()->info(__VA_ARGS__)
+#define BD_CORE_TRACE(...) ::Boundless::Logger::getCoreLogger()->trace(__VA_ARGS__)
+
+
+#define BD_GAME_ERROR(...) ::Boundless::Logger::getGameLogger()->error(__VA_ARGS__)
+#define BD_GAME_FATAL(...) ::Boundless::Logger::getGameLogger()->fatal(__VA_ARGS__)
+#define BD_GAME_WARN(...)  ::Boundless::Logger::getGameLogger()->warn(__VA_ARGS__)
+#define BD_GAME_INFO(...)  ::Boundless::Logger::getGameLogger()->info(__VA_ARGS__)
+#define BD_GAME_TRACE(...) ::Boundless::Logger::getGameLogger()->trace(__VA_ARGS__)
+
+
+#endif // !BD_LOGGER_HPP_

@@ -1,10 +1,10 @@
 #pragma once
-#ifndef LOD_CONFIG_HPP_
-#define LOD_CONFIG_HPP_
+#ifndef LD_CONFIG_HPP_
+#define LD_CONFIG_HPP_
 
 #define VERSION_MAJOR "@LeagueOfDwarves_VERSION_MAJOR@"
 #define VERSION_MINOR "@LeagueOfDwarves_VERSION_MINOR@"
 #define VERSION_PATCH "@LeagueOfDwarves_VERSION_PATCH@"
 #define VERSION "@LeagueOfDwarves_VERSION@"
 
-#endif // !LOD_CONFIG_HPP_
+#endif // !LD_CONFIG_HPP_

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef BND_ENTRYPOINT_HPP_
-#define BND_ENTRYPOINT_HPP_
+#ifndef BD_ENTRYPOINT_HPP_
+#define BD_ENTRYPOINT_HPP_
 
 #include "game.hpp"
 
@@ -21,4 +21,4 @@ int main() {
     return returnValue;
 }
 
-#endif // !BND_ENTRYPOINT_HPP_
+#endif // !BD_ENTRYPOINT_HPP_
