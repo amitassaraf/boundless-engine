@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/third_party/cotire/CMake")
+
+include(cotire)
+
 project(LeagueOfDwarves)
 
 set(LeagueOfDwarves_VERSION_MAJOR 0)
@@ -92,7 +96,12 @@ endif()
 
 find_package(OpenCL REQUIRED)
 find_package(OpenGL REQUIRED)
-include_directories( ${OPENCL_INCLUDE_DIR})     
+include_directories( ${OPENCL_INCLUDE_DIR})    
+
+find_package(GameNetworkingSockets REQUIRED)
+if (GLM_FOUND)
+    include_directories(${GameNetworkingSockets_INCLUDE_DIRS})
+endif()
 
 find_package(OpenAL REQUIRED)
 if(APPLE)
@@ -104,6 +113,11 @@ endif()
 
 find_package(spdlog REQUIRED)
 
+# Third party includes
+# EventPP
+include_directories("third_party/eventpp/include/")
+
+
 add_library(BoundlessEngine ${LIBRARY_SOURCES}) # A library
 set_target_properties(BoundlessEngine PROPERTIES PREFIX "") # Remove the lib prefix
 target_include_directories(BoundlessEngine PUBLIC ${CMAKE_SOURCE_DIR}/include/boundless-engine ${CMAKE_BINARY_DIR}/include/boundless-engine)
@@ -111,14 +125,17 @@ target_include_directories(BoundlessEngine PUBLIC ${CMAKE_SOURCE_DIR}/include/bo
 if(APPLE)
     target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
          ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} glfw OpenCL::OpenCL 
-         "-framework OpenCL" spdlog::spdlog) 
+         "-framework OpenCL" spdlog::spdlog ${GameNetworkingSockets_LIBRARIES}) 
 else()
     target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
-         ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} glfw OpenCL::OpenCL spdlog::spdlog) 
+         ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} glfw OpenCL::OpenCL 
+         spdlog::spdlog ${GameNetworkingSockets_LIBRARIES}) 
 endif()
+cotire(BoundlessEngine)
 
 add_executable(LeagueOfDwarves ${GAME_SOURCES}) # The main game executable
 target_link_libraries(LeagueOfDwarves LINK_PUBLIC BoundlessEngine) 
+cotire(LeagueOfDwarves)
 
 if (BUILD_TESTS)
     include(CTest)

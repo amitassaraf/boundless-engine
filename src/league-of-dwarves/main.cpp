@@ -1,6 +1,5 @@
 #include <boundless.h>
 
-
 class LeagueOfDwarves : public Boundless::Game {
 
 public:
@@ -14,7 +13,8 @@ public:
 
 };
 
-
-Boundless::Game* Boundless::create_boundless_game() {
+namespace Boundless {
+    Game* create_boundless_game() {
     return new LeagueOfDwarves();
+    }
 }
