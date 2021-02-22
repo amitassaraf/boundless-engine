@@ -38,7 +38,7 @@ if (ENABLE_COVERAGE AND NOT CMAKE_CONFIGURATION_TYPES)
     include(CodeCoverage)
     
     append_coverage_compiler_flags()
-    set(COVERAGE_EXCLUDES "/usr/include/\\*;${CMAKE_SOURCE_DIR}/src/main.cpp;${CMAKE_SOURCE_DIR}/test/*;${CMAKE_SOURCE_DIR}/third_party/doctest/*")
+    set(COVERAGE_EXCLUDES "/usr/include/\\*;${CMAKE_SOURCE_DIR}/src/league-of-dwarves/main.cpp;${CMAKE_SOURCE_DIR}/test/*;${CMAKE_SOURCE_DIR}/third_party/doctest/*")
     
     setup_target_for_coverage(NAME coverage EXECUTABLE ctest DEPENDENCIES coverage)
 else (ENABLE_COVERAGE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -52,11 +52,20 @@ else (ENABLE_COVERAGE AND NOT CMAKE_CONFIGURATION_TYPES)
     endif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif (ENABLE_COVERAGE AND NOT CMAKE_CONFIGURATION_TYPES)
 
-file(GLOB LOD_SOURCE_FILES
-     "src/*.cpp"
+file(GLOB_RECURSE ENGINE_SOURCE_FILES
+     "src/boundless-engine/*.cpp"
 )
 
+file(GLOB_RECURSE LOD_SOURCE_FILES
+     "src/league-of-dwarves/*.cpp"
+)
+
+
 set(LIBRARY_SOURCES
+    ${ENGINE_SOURCE_FILES}
+)
+
+set(GAME_SOURCES
     ${LOD_SOURCE_FILES}
 )
 
@@ -93,20 +102,23 @@ else()
     include_directories( ${OpenAL_INCLUDE_DIR})
 endif()
 
-add_library(LeagueOfDwarves-lib ${LIBRARY_SOURCES}) # A library
-set_target_properties(LeagueOfDwarves-lib PROPERTIES PREFIX "") # Remove the lib prefix
-target_include_directories(LeagueOfDwarves-lib PUBLIC ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}/include)
+find_package(spdlog REQUIRED)
 
-add_executable(LeagueOfDwarves src/main.cpp) # The main executable
+add_library(BoundlessEngine ${LIBRARY_SOURCES}) # A library
+set_target_properties(BoundlessEngine PROPERTIES PREFIX "") # Remove the lib prefix
+target_include_directories(BoundlessEngine PUBLIC ${CMAKE_SOURCE_DIR}/include/boundless-engine ${CMAKE_BINARY_DIR}/include/boundless-engine)
 
 if(APPLE)
-    target_link_libraries(LeagueOfDwarves LINK_PUBLIC LeagueOfDwarves-lib ${GLM_LIBRARIES}
+    target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
          ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} glfw OpenCL::OpenCL 
-         "-framework OpenCL") 
+         "-framework OpenCL" spdlog::spdlog) 
 else()
-    target_link_libraries(LeagueOfDwarves LINK_PUBLIC LeagueOfDwarves-lib ${GLM_LIBRARIES}
-         ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} glfw OpenCL::OpenCL) 
+    target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
+         ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} glfw OpenCL::OpenCL spdlog::spdlog) 
 endif()
+
+add_executable(LeagueOfDwarves ${GAME_SOURCES}) # The main game executable
+target_link_libraries(LeagueOfDwarves LINK_PUBLIC BoundlessEngine) 
 
 if (BUILD_TESTS)
     include(CTest)
@@ -120,7 +132,7 @@ endif (GEN_DOCS)
 
 # Install the built library and executable into the appropriate directory
 install(TARGETS LeagueOfDwarves DESTINATION bin)
-install(TARGETS LeagueOfDwarves-lib
+install(TARGETS BoundlessEngine
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
