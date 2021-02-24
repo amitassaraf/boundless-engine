@@ -3,6 +3,8 @@
 #define BD_LAYER_STACK_HPP_
 
 #include <vector>
+#include <memory>
+#include "layer.hpp"
 
 namespace Boundless {
 
@@ -11,16 +13,17 @@ namespace Boundless {
             LayerStack();
             ~LayerStack();
 
-            virtual void onAttach() {};
-            virtual void onDetach() {};
-            virtual void onUpdate() {};
-            virtual void onEvent() {};
+            void pushLayer(Layer* layer);
+            void popLayer(Layer* layer);
+            void pushOverlay(Layer* layer);
+            void popOverlay(Layer* layer);
 
-            inline const std::string& getName() const { return m_layerName; }
+            std::vector< Layer* >::iterator begin() { return m_layers.begin(); }
+            std::vector< Layer* >::iterator end() { return m_layers.end(); }
         protected:
-            const std::string& m_layerName;
-    }
-
+            std::vector< Layer* > m_layers;
+            std::vector< Layer* >::iterator m_layersInsert;
+    };
 }
 
 

@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 
-set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/third_party/cotire/CMake")
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/cotire/CMake")
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/entityx/cmake")
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/bullet3")
+
 
 include(cotire)
 
@@ -113,9 +116,15 @@ endif()
 
 find_package(spdlog REQUIRED)
 
-# Third party includes
-# EventPP
-include_directories("third_party/eventpp/include/")
+FIND_PACKAGE( entityx REQUIRED)
+if (entityx_FOUND)
+    include_directories(${entityx_INCLUDE_DIRS})
+endif()
+
+FIND_PACKAGE( Bullet REQUIRED)
+if (Bullet_FOUND)
+    include_directories(${Bullet_INCLUDE_DIRS})
+endif()
 
 
 add_library(BoundlessEngine ${LIBRARY_SOURCES}) # A library
@@ -125,11 +134,11 @@ target_include_directories(BoundlessEngine PUBLIC ${CMAKE_SOURCE_DIR}/include/bo
 if(APPLE)
     target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
          ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} glfw OpenCL::OpenCL 
-         "-framework OpenCL" spdlog::spdlog ${GameNetworkingSockets_LIBRARIES}) 
+         "-framework OpenCL" spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${entityx_LIBRARIES} ${Bullet_LIBRARIES}) 
 else()
     target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
          ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} glfw OpenCL::OpenCL 
-         spdlog::spdlog ${GameNetworkingSockets_LIBRARIES}) 
+         spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${entityx_LIBRARIES} ${Bullet_LIBRARIES}) 
 endif()
 cotire(BoundlessEngine)
 

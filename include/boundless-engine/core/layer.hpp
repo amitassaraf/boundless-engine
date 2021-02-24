@@ -19,7 +19,7 @@ namespace Boundless {
             inline const std::string& getName() const { return m_layerName; }
         protected:
             const std::string& m_layerName;
-    }
+    };
 
 }
 

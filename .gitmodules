@@ -7,3 +7,9 @@
 [submodule "third_party/cotire"]
 	path = third_party/cotire
 	url = https://github.com/sakra/cotire.git
+[submodule "third_party/entityx"]
+	path = third_party/entityx
+	url = https://github.com/alecthomas/entityx.git
+[submodule "third_party/bullet3"]
+	path = third_party/bullet3
+	url = https://github.com/bulletphysics/bullet3.git
