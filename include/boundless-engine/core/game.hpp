@@ -3,6 +3,7 @@
 #define BD_GAME_HPP_
 
 #include "core/layer_stack.hpp"
+#include "core/scene.hpp"
 #include "event_manager.hpp"
 
 namespace Boundless {
@@ -26,6 +27,7 @@ namespace Boundless {
 
         protected:
             std::unique_ptr<LayerStack> m_layerStack;
+            std::unique_ptr<Scene> m_currentScene;
             EventManager m_eventManager;
             bool m_gameClosed = false;
         

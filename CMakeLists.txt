@@ -118,7 +118,7 @@ find_package(spdlog REQUIRED)
 
 FIND_PACKAGE( entityx REQUIRED)
 if (entityx_FOUND)
-    include_directories(${entityx_INCLUDE_DIRS})
+    include_directories(${ENTITYX_INCLUDE_DIRS})
 endif()
 
 FIND_PACKAGE( Bullet REQUIRED)
@@ -136,11 +136,11 @@ target_include_directories(BoundlessEngine PUBLIC ${CMAKE_SOURCE_DIR}/include/bo
 if(APPLE)
     target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
          ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} glfw OpenCL::OpenCL 
-         "-framework OpenCL" spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${entityx_LIBRARIES} ${Bullet_LIBRARIES}) 
+         "-framework OpenCL" spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${ENTITYX_LIBRARIES} ${Bullet_LIBRARIES}) 
 else()
     target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
          ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} glfw OpenCL::OpenCL 
-         spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${entityx_LIBRARIES} ${Bullet_LIBRARIES}) 
+         spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${ENTITYX_LIBRARIES} ${Bullet_LIBRARIES}) 
 endif()
 # cotire(BoundlessEngine)
 

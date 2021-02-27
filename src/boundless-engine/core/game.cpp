@@ -60,6 +60,9 @@ namespace Boundless {
             for (Layer* layer : *m_layerStack) {
                 layer->onUpdate();
             }
+            if (m_currentScene != nullptr) {
+                m_currentScene->update(0.1);
+            }
         }
 
         for (Layer* layer : *m_layerStack) {
