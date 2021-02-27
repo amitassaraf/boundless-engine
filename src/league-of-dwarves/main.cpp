@@ -4,7 +4,7 @@ class LeagueOfDwarves : public Boundless::Game {
 
 public:
     LeagueOfDwarves() {
-
+        this->pushLayer(new Boundless::WindowLayer(m_eventManager));
     }
 
     ~LeagueOfDwarves() {

@@ -14,6 +14,7 @@ namespace Boundless {
         GAME_TICK, GAME_UPDATE, GAME_RENDER, 
         KEY_PRESSED, KEY_RELEASED,
         MOUSE_BUTTON_PRESSED, MOUSE_BUTTON_RELEASED, MOUSE_MOVED, MOUSE_SCROLLED,
+        POP_LAYER, PUSH_LAYER, GAME_CLOSED
     };
 
     enum class EventCategory {
@@ -29,17 +30,17 @@ namespace Boundless {
     class Event {
         public:
             Event() {};
-            virtual ~Event();
+            virtual ~Event() {};
 
-            virtual EventType getEventType() const = 0;
-            virtual int getCategoryFlags() const = 0;
+            virtual EventType getEventType() const { return EventType::NONE; };
+            virtual int getCategoryFlags() const { return 0; };
 
             virtual std::string toString() const {
                 return "Event";
             };
 
             inline bool inCategory(EventCategory category) {
-                return getCategoryFlags() & category;
+                return getCategoryFlags() & enumToInt(category);
             }
         protected:
             bool m_handled = false;
@@ -52,6 +53,6 @@ namespace Boundless {
 #define EVENT_TYPE(type) inline static EventType getEventTypeStatic()  { return type; }\
                          inline virtual EventType getEventType() const override { return getEventTypeStatic(); }
 
-#define EVENT_CATEGORY(category) inline virtual int getCategoryFlags() const override { return category; }
+#define EVENT_CATEGORY(category) inline virtual int getCategoryFlags() const override { return enumToInt(category); }
 
 #endif // !BD_EVENT_HPP_

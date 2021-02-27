@@ -1,5 +1,6 @@
 #include "core/layer_stack.hpp"
 #include <algorithm>
+#include "logging/logger.hpp"
 
 
 namespace Boundless {
@@ -22,9 +23,10 @@ namespace Boundless {
         m_layers.emplace_back(overlay);
     }
 
-    void LayerStack::popLayer(Layer*layer) {
+    void LayerStack::popLayer(Layer* layer) {
         auto it = std::find(m_layers.begin(), m_layers.end(), layer);
         if (it != m_layers.end()) {
+            (*it)->onDetach();
             m_layers.erase(it);
             m_layersInsert--;
         }

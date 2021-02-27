@@ -3,6 +3,7 @@
 #define BD_ENTRYPOINT_HPP_
 
 #include "game.hpp"
+#include "logging/logger.hpp"
 
 namespace Boundless { 
 
@@ -14,6 +15,8 @@ namespace Boundless {
 }
 
 int main() {
+    Boundless::Logger::init();
+
     Boundless::Game* boundless_game = Boundless::create_boundless_game();
     int returnValue = boundless_game->run();
     delete boundless_game;

@@ -3,12 +3,13 @@
 #define BD_LAYER_HPP_
 
 #include <string>
+#include "event_manager.hpp"
 
 namespace Boundless {
 
     class Layer {
         public:
-            Layer(const std::string& name = "Layer");
+            Layer(EventManager& eventManager, const std::string& name = "Layer");
             virtual ~Layer();
 
             virtual void onAttach() {};
@@ -18,7 +19,8 @@ namespace Boundless {
 
             inline const std::string& getName() const { return m_layerName; }
         protected:
-            const std::string& m_layerName;
+            std::string m_layerName;
+            EventManager& m_eventManager;
     };
 
 }

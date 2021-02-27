@@ -6,7 +6,7 @@
 
 namespace Boundless {
 
-    class BaseKeyEvent : Event {
+    class BaseKeyEvent : public Event {
         public:
             EVENT_CATEGORY(EventCategory::KEYBOARD_EVENTS | EventCategory::INPUT_EVENTS)
         protected:
@@ -16,7 +16,7 @@ namespace Boundless {
             int m_keyCode;
     };
 
-    class KeyPressedEvent : Event {
+    class KeyPressedEvent : public Event {
         public:
             std::string toString() const override {
                 return "KeyPressedEvent";
@@ -26,7 +26,7 @@ namespace Boundless {
     };
 
 
-    class KeyReleasedEvent : Event {
+    class KeyReleasedEvent :public Event {
         public:
             std::string toString() const override {
                 return "KeyReleasedEvent";

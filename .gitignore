@@ -56,3 +56,5 @@ CMakeDoxygenDefaults.cmake
 LeagueOfDwarves
 
 .vscode/
+
+.DS_Store
