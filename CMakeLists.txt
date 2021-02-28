@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/entityx/cmake")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/bullet3")
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/SimplexNoise")
 
 # Disabled cotire due to issues with GL includes, renable later if needed
 # set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/cotire/CMake")
@@ -126,7 +127,9 @@ if (Bullet_FOUND)
     include_directories(${Bullet_INCLUDE_DIRS})
 endif()
 
+
 # Add third party libaries
+add_subdirectory("third_party/SimplexNoise")
 include_directories("third_party/eventpp/include")
 
 add_library(BoundlessEngine ${LIBRARY_SOURCES}) # A library

@@ -4,13 +4,15 @@
 
 #include <cstdint>
 #include <cstddef>
+#include "voxel.hpp"
 
 namespace Boundless {
 
     class OctreeNode {
         public:
+            Voxel voxel;
             std::size_t getDepth();
-            std::uint64_t m_locationalCode;
+            std::uint32_t m_locationalCode;
             std::uint8_t m_childrenMask;
     };
 

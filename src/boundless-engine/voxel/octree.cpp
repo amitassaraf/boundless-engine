@@ -2,7 +2,7 @@
 
 namespace Boundless {
 
-    OctreeNode* Octree::getParentNode(OctreeNode* node) {
+    OctreeNode* Octree::(OctreeNode* node) {
         const uint64_t locCodeParent = node->m_locationalCode>>3;
         return lookupNode(locCodeParent);
     }

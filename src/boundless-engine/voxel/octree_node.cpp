@@ -8,7 +8,7 @@ namespace Boundless {
         }
 
     #if defined(__GNUC__)
-        return (63-__builtin_clz(m_locationalCode))/3;
+        return (31-__builtin_clz(m_locationalCode))/3;
     #elif defined(_MSC_VER)
         long msb;
         _BitScanReverse(&msb, m_locationalCode);
@@ -16,6 +16,6 @@ namespace Boundless {
     #endif
     }
 
-    
+
 
 }
