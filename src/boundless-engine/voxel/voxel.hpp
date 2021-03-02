@@ -16,7 +16,7 @@ namespace Boundless {
 
         private:
             uint32_t m_localLocation;
-            std::byte m_lighting;
+            // std::byte m_lighting;
 
     
     };

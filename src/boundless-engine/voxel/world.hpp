@@ -4,15 +4,17 @@
 
 #include <cstdint>
 #include <cstddef>
+#include "voxel/octree.hpp"
 
 namespace Boundless {
 
     class World {
-
+        public:
+            World();
+            ~World();
+            void generateWorld();
         private:
-            uint32_t m_localLocation;
-            std::byte m_lighting;
-    
+            Octree* m_octree;
     };
 
 }

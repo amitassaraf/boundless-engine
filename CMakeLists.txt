@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.1)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/entityx/cmake")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/bullet3")
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/SimplexNoise")
 
 # Disabled cotire due to issues with GL includes, renable later if needed
 # set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/cotire/CMake")
@@ -18,11 +17,11 @@ set(LeagueOfDwarves_VERSION "${LeagueOfDwarves_VERSION_MAJOR}.${LeagueOfDwarves_
 set(PROJ_NAME "\"League Of Dwarves\"") # PROJECT_NAME is a predefined variable
 set(PROJECT_DESCRIPTION "\"A cross-platform C++14 project template\"")
 
-configure_file(include/league-of-dwarves/config.hpp.in
-    ${CMAKE_BINARY_DIR}/include/league-of-dwarves/config.hpp
+configure_file(src/league-of-dwarves/config.hpp.in
+    ${CMAKE_BINARY_DIR}/src/league-of-dwarves/config.hpp
 )
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -129,20 +128,24 @@ endif()
 
 
 # Add third party libaries
-add_subdirectory("third_party/SimplexNoise")
 include_directories("third_party/eventpp/include")
+include_directories("third_party/SimplexNoise/src")
 
-add_library(BoundlessEngine ${LIBRARY_SOURCES}) # A library
+set(SIMPLEX_NOISE
+    "third_party/SimplexNoise/src/SimplexNoise.cpp"
+)
+
+add_library(BoundlessEngine ${LIBRARY_SOURCES} ${SIMPLEX_NOISE}) # A library
 set_target_properties(BoundlessEngine PROPERTIES PREFIX "") # Remove the lib prefix
-target_include_directories(BoundlessEngine PUBLIC ${CMAKE_SOURCE_DIR}/include/boundless-engine ${CMAKE_BINARY_DIR}/include/boundless-engine)
+target_include_directories(BoundlessEngine PUBLIC ${CMAKE_SOURCE_DIR}/src/boundless-engine ${CMAKE_BINARY_DIR}/src/boundless-engine)
 
 if(APPLE)
     target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
-         ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} glfw OpenCL::OpenCL 
+         ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} GLEW::GLEW glfw OpenCL::OpenCL 
          "-framework OpenCL" spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${ENTITYX_LIBRARIES} ${Bullet_LIBRARIES}) 
 else()
     target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
-         ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} glfw OpenCL::OpenCL 
+         ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} GLEW::GLEW glfw OpenCL::OpenCL 
          spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${ENTITYX_LIBRARIES} ${Bullet_LIBRARIES}) 
 endif()
 # cotire(BoundlessEngine)
@@ -170,8 +173,8 @@ install(TARGETS BoundlessEngine
 )
 
 # Install the project header files into the appropriate directory
-install(DIRECTORY include/ DESTINATION include PATTERN "config.hpp.in" EXCLUDE) # Install our main header files
-install(FILES ${CMAKE_BINARY_DIR}/include/league-of-dwarves/config.hpp DESTINATION include/league-of-dwarves) # Install our configuration file
+install(DIRECTORY src/ DESTINATION src PATTERN "config.hpp.in" EXCLUDE) # Install our main header files
+install(FILES ${CMAKE_BINARY_DIR}/src/league-of-dwarves/config.hpp DESTINATION src/league-of-dwarves) # Install our configuration file
 
 # Install the project's extra files
 install(FILES README.md LICENSE DESTINATION share/league-of-dwarves)

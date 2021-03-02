@@ -1,25 +1,47 @@
 #include "voxel/octree_node.hpp"
+#include "voxel/octree.hpp"
+#include "logging/logger.hpp"
+#include <bitset>
 
 namespace Boundless {
+    Octree::Octree(uint32_t octreeSize) {
+        m_nodes[1] = new OctreeNode(1, octreeSize); // Root Node
+    }
 
-    OctreeNode* Octree::(OctreeNode* node) {
-        const uint64_t locCodeParent = node->m_locationalCode>>3;
+    OctreeNode* Octree::getRootNode() {
+        return m_nodes[1];
+    }
+
+    OctreeNode* Octree::getParentNode(OctreeNode* node) {
+        const uint32_t locCodeParent = node->m_locationalCode>>3;
         return lookupNode(locCodeParent);
     }
 
-    OctreeNode* Octree::lookupNode(uint64_t locationalCode) {
-        const auto iter = m_nodes.find(locationalCode);
-        return (iter == m_nodes.end() ? nullptr : &(*iter));
+    OctreeNode* Octree::lookupNode(uint32_t locationalCode) {
+        return m_nodes[locationalCode];
     }
 
-    void Octree::visitAll(OctreeNode *node) {
+    void Octree::divide(OctreeNode* node) {
+        uint32_t newSize = node->m_nodeSize / 2u;
+        for (int i=0; i<8; i++)
+        {
+            node->m_childrenMask = node->m_childrenMask | (1<<i);
+            BD_CORE_TRACE("Dividing Locational code: {}, size {}", std::bitset<32>(node->m_locationalCode).to_string(), newSize);
+            uint32_t childLocationalCode = (node->m_locationalCode << 3) | i;
+            auto* child = new OctreeNode(childLocationalCode, newSize); 
+            m_nodes[childLocationalCode] = child;
+        }
+    }
+
+    void Octree::visitAll(OctreeNode* node, std::function< void(uint32_t nodeLocationalCode, OctreeNode* node) > lambda) {
         for (int i=0; i<8; i++)
         {
             if (node->m_childrenMask&(1<<i))
             {
                 const uint32_t locCodeChild = (node->m_locationalCode<<3)|i;
-                const auto *child = lookupNode(locCodeChild);
-                visitAll(child);
+                auto* child = lookupNode(locCodeChild);
+                lambda(locCodeChild, child);
+                visitAll(child, lambda);
             }
         }
     }

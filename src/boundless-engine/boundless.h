@@ -6,6 +6,7 @@
 
 #include "core/game.hpp"
 #include "layers/window_layer.hpp"
+#include "voxel/world.hpp"
 
 /************** Entrypoint *************/
 #include "core/entrypoint.hpp"

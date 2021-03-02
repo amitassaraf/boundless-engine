@@ -16,8 +16,10 @@ namespace Boundless {
 
 int main() {
     Boundless::Logger::init();
-
+    BD_CORE_INFO("Boundless Engine Initialized.");
+    BD_CORE_INFO("Creating game..");
     Boundless::Game* boundless_game = Boundless::create_boundless_game();
+    
     int returnValue = boundless_game->run();
     delete boundless_game;
 
