@@ -2,6 +2,9 @@
 #ifndef BD_SHADER_HPP_
 #define BD_SHADER_HPP_
 
+#include <string>
+#include "core/core.hpp"
+
 namespace Boundless {
 
     class Shader {
