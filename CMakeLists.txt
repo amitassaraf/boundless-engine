@@ -102,7 +102,7 @@ find_package(OpenGL REQUIRED)
 include_directories( ${OPENCL_INCLUDE_DIR})    
 
 find_package(GameNetworkingSockets REQUIRED)
-if (GLM_FOUND)
+if (GameNetworkingSockets_FOUND)
     include_directories(${GameNetworkingSockets_INCLUDE_DIRS})
 endif()
 

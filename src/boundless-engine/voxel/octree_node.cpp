@@ -9,7 +9,7 @@ namespace Boundless {
 
     }
 
-    glm::vec3 OctreeNode::getChunkOffset() {
+    glm::vec3 OctreeNode::getChunkOffset() const {
         uint32_t locationalCode = m_locationalCode;
         glm::vec3 chunkOffset(0, 0, 0);
         uint8_t count = 0;
@@ -56,7 +56,7 @@ namespace Boundless {
         return chunkOffset;
     }
 
-    std::size_t OctreeNode::getDepth() {
+    std::size_t OctreeNode::getDepth() const {
         if (m_locationalCode == 0) {
             throw std::runtime_error("No depth.");
         }

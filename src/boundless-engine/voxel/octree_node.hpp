@@ -12,8 +12,8 @@ namespace Boundless {
         public:
             OctreeNode(uint32_t locationalCode, uint32_t nodeSize);
 
-            std::size_t getDepth();
-            glm::vec3 getChunkOffset();
+            std::size_t getDepth() const;
+            glm::vec3 getChunkOffset() const;
     
             // Voxel voxel;
             std::uint32_t m_locationalCode;

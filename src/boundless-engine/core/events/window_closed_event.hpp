@@ -1,6 +1,6 @@
 #pragma once
-#ifndef BD_KEY_EVENT_HPP_
-#define BD_KEY_EVENT_HPP_
+#ifndef BD_WINDOW_CLOSED_EVENT_HPP_
+#define BD_WINDOW_CLOSED_EVENT_HPP_
 
 #include "../event.hpp"
 
@@ -22,4 +22,4 @@ namespace Boundless {
 }
 
 
-#endif // !BD_KEY_EVENT_HPP_
+#endif // !BD_WINDOW_CLOSED_EVENT_HPP_
