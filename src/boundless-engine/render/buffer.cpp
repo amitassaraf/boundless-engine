@@ -21,14 +21,14 @@ namespace Boundless {
         return nullptr;
     }
 
-    IndexBuffer* IndexBuffer::create(uint32_t* indicies, uint32_t size) {
+    IndexBuffer* IndexBuffer::create(uint32_t* indicies, uint32_t count) {
         switch (Renderer::getApi()) {
             case RendererAPI::NONE:
                 BD_CORE_ERROR("Renderer API None is not supported");
                 throw std::runtime_error("Renderer API None is not supported.");
                 break;
             case RendererAPI::OPEN_GL:
-                return new OpenGLIndexBuffer(indicies, size);
+                return new OpenGLIndexBuffer(indicies, count);
                 break;
             
             default:

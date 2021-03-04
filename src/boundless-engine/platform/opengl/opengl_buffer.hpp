@@ -24,13 +24,15 @@ namespace Boundless {
 
     class OpenGLIndexBuffer : public IndexBuffer {
         public:
-            OpenGLIndexBuffer(uint32_t* indicies, uint32_t size);
+            OpenGLIndexBuffer(uint32_t* indicies, uint32_t count);
             virtual ~OpenGLIndexBuffer();
 
             virtual void bind() const override;
             virtual void unbind() const override;
+            virtual uint32_t getCount() const { return m_count; }
         private:
             uint32_t m_rendererId;
+            uint32_t m_count;
     };
 
 }
