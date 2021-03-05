@@ -19,6 +19,7 @@ namespace Boundless {
 
             virtual void bind() const override;
             virtual void unbind() const override;
+            static unsigned int shaderDataTypeToNativeType(ShaderDataType type);
     };
 
 }

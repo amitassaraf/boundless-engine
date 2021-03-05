@@ -78,4 +78,26 @@ namespace Boundless {
         glUseProgram(0);
     }
 
+    unsigned int OpenGLShader::shaderDataTypeToNativeType(ShaderDataType type) {
+        switch (type)
+        {
+            case ShaderDataType::VEC1:      return GL_FLOAT;
+            case ShaderDataType::VEC2:      return GL_FLOAT;
+            case ShaderDataType::VEC3:      return GL_FLOAT;
+            case ShaderDataType::VEC4:      return GL_FLOAT;
+            case ShaderDataType::MAT3:      return GL_FLOAT;
+            case ShaderDataType::MAT4:      return GL_FLOAT;
+            case ShaderDataType::IVEC1:     return GL_INT;
+            case ShaderDataType::IVEC2:     return GL_INT;
+            case ShaderDataType::IVEC3:     return GL_INT;
+            case ShaderDataType::IVEC4:     return GL_INT;
+            case ShaderDataType::BOOL:      return GL_BOOL;
+            case ShaderDataType::NONE:      break;
+        }
+
+        BD_CORE_ERROR("Unknown Shader Data Type.");
+        throw std::runtime_error("Unknown Shader Data Type.");
+        return 0;
+    }
+
 }
