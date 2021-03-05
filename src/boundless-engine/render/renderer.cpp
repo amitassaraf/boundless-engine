@@ -1,7 +1,18 @@
 #include "renderer.hpp"
+#include "render_command.hpp"
 
 namespace Boundless {
 
-    RendererAPI Renderer::s_renderApi = RendererAPI::OPEN_GL;
+    void Renderer::beginScene() {
 
+    }
+    
+    void Renderer::endScene() {
+
+    }
+
+    void submit(const Ref<VertexArray>& vertexArray) {
+        vertexArray->bind();
+        RenderCommand::drawIndexed(vertexArray);
+    }
 }

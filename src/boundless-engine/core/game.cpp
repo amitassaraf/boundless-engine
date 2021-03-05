@@ -46,12 +46,12 @@ namespace Boundless {
 
     int Game::run() {
         BD_CORE_TRACE("Game loop starting..");
-        m_eventManager.appendListener(EventType::POP_LAYER, [&](const std::shared_ptr<Event> event) {
-            std::shared_ptr<PopLayerEvent> popLayerEvent = std::dynamic_pointer_cast<PopLayerEvent> (event);
+        m_eventManager.appendListener(EventType::POP_LAYER, [&](const Ref<Event> event) {
+            Ref<PopLayerEvent> popLayerEvent = std::dynamic_pointer_cast<PopLayerEvent> (event);
             m_layerStack->popLayer(popLayerEvent->getLayerToPop());
         });
 
-        m_eventManager.appendListener(EventType::GAME_CLOSED, [&](const std::shared_ptr<Event> event) {
+        m_eventManager.appendListener(EventType::GAME_CLOSED, [&](const Ref<Event> event) {
             BD_CORE_TRACE("Game Close Requested.");
             UNUSED(event);
             m_gameClosed = true;

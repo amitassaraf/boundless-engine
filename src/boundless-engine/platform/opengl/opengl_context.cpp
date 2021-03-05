@@ -12,8 +12,8 @@ namespace Boundless {
     OpenGLContext::~OpenGLContext() {}
 
     void OpenGLContext::init() {
-        m_eventManager.appendListener(EventType::WINDOW_RESIZE, [&](const std::shared_ptr<Event> event) {
-            std::shared_ptr<WindowResizeEvent> windowResizeEvent = std::dynamic_pointer_cast<WindowResizeEvent> (event);
+        m_eventManager.appendListener(EventType::WINDOW_RESIZE, [&](const Ref<Event> event) {
+            Ref<WindowResizeEvent> windowResizeEvent = std::dynamic_pointer_cast<WindowResizeEvent> (event);
             glViewport(0, 0, windowResizeEvent->getWidth(), windowResizeEvent->getHeight());
         });
 

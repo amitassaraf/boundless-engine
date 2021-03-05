@@ -1,17 +1,17 @@
 #include "buffer.hpp"
 #include "logging/logger.hpp"
 #include "platform/opengl/opengl_buffer.hpp"
-#include "renderer.hpp"
+#include "renderer_api.hpp"
 
 namespace Boundless {
 
     VertexBuffer* VertexBuffer::create(float* verticies, uint32_t size) {
-        switch (Renderer::getApi()) {
-            case RendererAPI::NONE:
+        switch (RendererAPI::getApi()) {
+            case RenderAPI::NONE:
                 BD_CORE_ERROR("Renderer API None is not supported");
                 throw std::runtime_error("Renderer API None is not supported.");
                 break;
-            case RendererAPI::OPEN_GL:
+            case RenderAPI::OPEN_GL:
                 return new OpenGLVertexBuffer(verticies, size);
                 break;
         }
@@ -22,12 +22,12 @@ namespace Boundless {
     }
 
     IndexBuffer* IndexBuffer::create(uint32_t* indicies, uint32_t count) {
-        switch (Renderer::getApi()) {
-            case RendererAPI::NONE:
+        switch (RendererAPI::getApi()) {
+            case RenderAPI::NONE:
                 BD_CORE_ERROR("Renderer API None is not supported");
                 throw std::runtime_error("Renderer API None is not supported.");
                 break;
-            case RendererAPI::OPEN_GL:
+            case RenderAPI::OPEN_GL:
                 return new OpenGLIndexBuffer(indicies, count);
                 break;
             

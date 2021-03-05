@@ -28,7 +28,7 @@ namespace Boundless {
 
     void WindowLayer::resizeCallback(GLFWwindow* window, int width, int height) {
         UNUSED(window);
-        WindowLayer::s_eventManager->enqueue(EventType::WINDOW_RESIZE, std::shared_ptr<Event>(new WindowResizeEvent(width, height)));
+        WindowLayer::s_eventManager->enqueue(EventType::WINDOW_RESIZE, Ref<Event>(new WindowResizeEvent(width, height)));
     }  
 
     void WindowLayer::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -36,9 +36,9 @@ namespace Boundless {
         UNUSED(scancode);
         UNUSED(mods);
         if (action == GLFW_PRESS) {
-            WindowLayer::s_eventManager->enqueue(EventType::KEY_PRESSED, std::shared_ptr<Event>(new KeyPressedEvent(key)));
+            WindowLayer::s_eventManager->enqueue(EventType::KEY_PRESSED, Ref<Event>(new KeyPressedEvent(key)));
         } else if (GLFW_RELEASE) {
-            WindowLayer::s_eventManager->enqueue(EventType::KEY_RELEASED, std::shared_ptr<Event>(new KeyReleasedEvent(key)));
+            WindowLayer::s_eventManager->enqueue(EventType::KEY_RELEASED, Ref<Event>(new KeyReleasedEvent(key)));
         }
     }
 
@@ -70,7 +70,7 @@ namespace Boundless {
         m_context = new OpenGLContext(m_window, m_eventManager);
         m_context->init();
 
-        m_eventManager.enqueue(EventType::WINDOW_RESIZE, std::shared_ptr<Event>(new WindowResizeEvent(m_width, m_height)));
+        m_eventManager.enqueue(EventType::WINDOW_RESIZE, Ref<Event>(new WindowResizeEvent(m_width, m_height)));
     }
 
     void WindowLayer::onDetach() {
@@ -83,15 +83,13 @@ namespace Boundless {
 
     void WindowLayer::onUpdate() {
         if (!glfwWindowShouldClose(m_window)) {
-            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
-
+            
             m_context->swapBuffers();
             glfwPollEvents();
         } else {
             // Send event to detach window
-            m_eventManager.enqueue(EventType::POP_LAYER, std::shared_ptr<Event>(new PopLayerEvent(this)));
-            m_eventManager.enqueue(EventType::GAME_CLOSED, std::shared_ptr<Event>(new GameCloseEvent()));
+            m_eventManager.enqueue(EventType::POP_LAYER, Ref<Event>(new PopLayerEvent(this)));
+            m_eventManager.enqueue(EventType::GAME_CLOSED, Ref<Event>(new GameCloseEvent()));
         }
     }
 

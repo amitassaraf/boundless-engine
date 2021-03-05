@@ -21,7 +21,7 @@ namespace Boundless {
         glBindVertexArray(0);
     }
 
-    void OpenGLVertexArray::addVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer) {
+    void OpenGLVertexArray::addVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) {
         const auto& layout = vertexBuffer->getLayout();
         if (layout.getElements().size() == 0) {
             BD_CORE_ERROR("Vertex buffer layout was not set.");
@@ -46,7 +46,7 @@ namespace Boundless {
         m_vertexBuffers.push_back(vertexBuffer);
     }
 
-    void OpenGLVertexArray::setIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer) {
+    void OpenGLVertexArray::setIndexBuffer(const Ref<IndexBuffer>& indexBuffer) {
         this->bind();
         indexBuffer->bind();
         

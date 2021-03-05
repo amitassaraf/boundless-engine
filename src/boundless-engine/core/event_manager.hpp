@@ -12,18 +12,18 @@
 namespace Boundless {
 
     struct EventQueuePolicy {
-        static int getEvent(const std::shared_ptr<Boundless::Event> e) {
+        static int getEvent(const Ref<Boundless::Event> e) {
             return enumToInt(e->getEventType());
         }
     };
 
-    class EventManager : public eventpp::EventQueue<int, void(const std::shared_ptr<Boundless::Event>)>
+    class EventManager : public eventpp::EventQueue<int, void(const Ref<Boundless::Event>)>
     {
     public:
         EventManager();
         ~EventManager();
 
-        void enqueue(EventType type, const std::shared_ptr<Boundless::Event> event);
+        void enqueue(EventType type, const Ref<Boundless::Event> event);
         void appendListener(EventType type, const Callback & callback);
     };
 

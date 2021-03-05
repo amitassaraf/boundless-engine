@@ -2,19 +2,17 @@
 #ifndef BD_RENDERER_HPP_
 #define BD_RENDERER_HPP_
 
+#include <memory>
+#include "vertex_array.hpp"
 
 namespace Boundless {
 
-    enum class RendererAPI {
-        NONE = 0,
-        OPEN_GL,
-    };
 
     class Renderer {
         public:
-            inline static RendererAPI getApi() { return s_renderApi; }
-        private:
-            static RendererAPI s_renderApi;
+            static void beginScene();
+            static void endScene();
+            static void submit(const Ref<VertexArray>& vertexArray);
     };
 
 }
