@@ -83,7 +83,6 @@ namespace Boundless {
 
     void WindowLayer::onUpdate() {
         if (!glfwWindowShouldClose(m_window)) {
-            
             m_context->swapBuffers();
             glfwPollEvents();
         } else {

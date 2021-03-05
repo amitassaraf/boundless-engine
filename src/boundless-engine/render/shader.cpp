@@ -1,4 +1,8 @@
 #include "shader.hpp"
+#include "platform/opengl/opengl_shader.hpp"
+#include "renderer_api.hpp"
+#include <fstream>
+
 
 namespace Boundless {
 
@@ -60,5 +64,34 @@ namespace Boundless {
         UNUSED(fragmentSrc);
     }
     Shader::~Shader() {}
+
+
+    Shader* Shader::create(const std::string& filepath) {
+        std::ifstream fragmentSourceFile( filepath + "/fragment.glsl");
+        std::ifstream vertexSourceFile( filepath + "/vertex.glsl");
+
+        std::string fragmentSrc( (std::istreambuf_iterator<char>(fragmentSourceFile) ), (std::istreambuf_iterator<char>()    ) );
+        std::string vertexSrc( (std::istreambuf_iterator<char>(vertexSourceFile) ), (std::istreambuf_iterator<char>()    ) );
+
+        vertexSourceFile.seekg(0, std::ios::end);   
+        vertexSrc.reserve(vertexSourceFile.tellg());
+        vertexSourceFile.seekg(0, std::ios::beg);
+
+        vertexSrc.assign((std::istreambuf_iterator<char>(vertexSourceFile)), std::istreambuf_iterator<char>());
+
+        switch (RendererAPI::getApi()) {
+            case RenderAPI::NONE:
+                BD_CORE_ERROR("Renderer API None is not supported");
+                throw std::runtime_error("Renderer API None is not supported.");
+                break;
+            case RenderAPI::OPEN_GL:
+                return new OpenGLShader(vertexSrc, fragmentSrc);
+                break;
+        }
+
+        BD_CORE_ERROR("No Renderer API was found");
+        throw std::runtime_error("No Renderer API was found");
+        return nullptr;
+    }
 
 }

@@ -24,6 +24,8 @@ namespace Boundless {
             void popLayer(Layer* layer);
             void pushOverlay(Layer* layer);
             void popOverlay(Layer* layer);
+            virtual void onUpdate();
+            virtual void initialize();
 
         protected:
             std::unique_ptr<LayerStack> m_layerStack;

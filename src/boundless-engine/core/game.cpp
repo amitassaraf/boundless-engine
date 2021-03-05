@@ -44,6 +44,14 @@ namespace Boundless {
         m_layerStack->popOverlay(overlay);
     }
 
+    void Game::onUpdate() {
+
+    }
+
+    void Game::initialize() {
+
+    }
+
     int Game::run() {
         BD_CORE_TRACE("Game loop starting..");
         m_eventManager.appendListener(EventType::POP_LAYER, [&](const Ref<Event> event) {
@@ -61,7 +69,10 @@ namespace Boundless {
             layer->onAttach();
         }
 
+        this->initialize();
+
         while (!m_gameClosed) {
+            this->onUpdate();
             m_eventManager.process();
             for (Layer* layer : *m_layerStack) {
                 layer->onUpdate();

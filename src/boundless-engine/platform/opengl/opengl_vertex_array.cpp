@@ -2,10 +2,12 @@
 #include "opengl_shader.hpp"
 #include "logging/logger.hpp"
 
+#define INT2VOIDP(i) (void*)(uintptr_t)(i)
+
 namespace Boundless {
 
     OpenGLVertexArray::OpenGLVertexArray() {
-        glCreateVertexArrays(1, &m_rendererId);
+        glGenVertexArrays(1, &m_rendererId);
     }
 
     OpenGLVertexArray::~OpenGLVertexArray() {
@@ -33,13 +35,13 @@ namespace Boundless {
         uint32_t index = 0;
         
         for (const auto& element : layout) {
-            glEnableVertexAttribArray(index);
             glVertexAttribPointer(index,
                 getShaderDataTypeCount(element.type),
                 OpenGLShader::shaderDataTypeToNativeType(element.type),
                 element.normalized ? GL_TRUE : GL_FALSE,
                 layout.getStride(),
-                (const void *)&element.offset);
+                INT2VOIDP(element.offset));
+            glEnableVertexAttribArray(index);
             index++;
         }
 

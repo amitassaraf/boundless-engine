@@ -17,7 +17,7 @@ namespace Boundless {
         bool normalized;
 
         BufferElement() {}
-        BufferElement(const std::string& name, ShaderDataType type, bool normalized = false) :
+        BufferElement(ShaderDataType type, const std::string& name, bool normalized = false) :
             name(name), type(type), size(getShaderDataTypeSize(type)),  offset(0), normalized(normalized) {
 
             }

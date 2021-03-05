@@ -11,7 +11,7 @@ namespace Boundless {
 
     }
 
-    void submit(const Ref<VertexArray>& vertexArray) {
+    void Renderer::submit(const Ref<VertexArray>& vertexArray) {
         vertexArray->bind();
         RenderCommand::drawIndexed(vertexArray);
     }

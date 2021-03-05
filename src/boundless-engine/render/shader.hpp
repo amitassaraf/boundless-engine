@@ -24,6 +24,8 @@ namespace Boundless {
             virtual void bind() const = 0;
             virtual void unbind() const = 0;
             static unsigned int shaderDataTypeToNativeType(ShaderDataType type);
+
+            static Shader* create(const std::string& filepath);
         protected:
             uint32_t m_rendererId;
     };
