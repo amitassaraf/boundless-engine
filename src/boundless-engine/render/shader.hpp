@@ -5,6 +5,7 @@
 #include <string>
 #include "core/core.hpp"
 #include "logging/logger.hpp"
+#include <glm/glm.hpp>
 
 namespace Boundless {
 
@@ -23,6 +24,9 @@ namespace Boundless {
 
             virtual void bind() const = 0;
             virtual void unbind() const = 0;
+            virtual void setUniform(const std::string& uniformName, glm::mat4& uniform) const = 0;
+            virtual void setUniform(const std::string& uniformName, glm::vec4& uniform) const = 0;
+            virtual void setUniform(const std::string& uniformName, glm::vec3& uniform) const = 0;
             static unsigned int shaderDataTypeToNativeType(ShaderDataType type);
 
             static Shader* create(const std::string& filepath);

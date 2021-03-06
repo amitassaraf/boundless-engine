@@ -1,4 +1,5 @@
 #include "opengl_shader.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
 namespace Boundless {
 
@@ -76,6 +77,21 @@ namespace Boundless {
 
     void OpenGLShader::unbind() const {
         glUseProgram(0);
+    }
+
+    void OpenGLShader::setUniform(const std::string& uniformName, glm::mat4& uniform) const {
+        unsigned int uniformLocation = glGetUniformLocation(m_rendererId, uniformName.c_str());
+        glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(uniform));
+    }
+
+    void OpenGLShader::setUniform(const std::string& uniformName, glm::vec4& uniform) const {
+        unsigned int uniformLocation = glGetUniformLocation(m_rendererId, uniformName.c_str());
+        glUniform4fv(uniformLocation, 1, glm::value_ptr(uniform));
+    }
+
+    void OpenGLShader::setUniform(const std::string& uniformName, glm::vec3& uniform) const {
+        unsigned int uniformLocation = glGetUniformLocation(m_rendererId, uniformName.c_str());
+        glUniform3fv(uniformLocation, 1, glm::value_ptr(uniform));
     }
 
     unsigned int OpenGLShader::shaderDataTypeToNativeType(ShaderDataType type) {
