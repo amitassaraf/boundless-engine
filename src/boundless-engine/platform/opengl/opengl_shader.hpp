@@ -18,9 +18,9 @@ namespace Boundless {
 
             virtual void bind() const override;
             virtual void unbind() const override;
-            virtual void setUniform(const std::string& uniformName, glm::mat4& uniform) const override;
-            virtual void setUniform(const std::string& uniformName, glm::vec4& uniform) const override;
-            virtual void setUniform(const std::string& uniformName, glm::vec3& uniform) const override;
+            virtual void setUniform(const std::string& uniformName, const glm::mat4& uniform) const override;
+            virtual void setUniform(const std::string& uniformName, const glm::vec4& uniform) const override;
+            virtual void setUniform(const std::string& uniformName, const glm::vec3& uniform) const override;
             static unsigned int shaderDataTypeToNativeType(ShaderDataType type);
     };
 

@@ -3,6 +3,7 @@
  #include "core/events/pop_layer_event.hpp"
  #include "core/events/window_closed_event.hpp"
  #include "core/events/game_close_event.hpp"
+ #include "core/events/mouse_event.hpp"
  #include "core/events/key_event.hpp"
  #include "logging/logger.hpp"
  #include <memory>
@@ -31,13 +32,17 @@ namespace Boundless {
         WindowLayer::s_eventManager->enqueue(EventType::WINDOW_RESIZE, Ref<Event>(new WindowResizeEvent(width, height)));
     }  
 
+    void WindowLayer::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+                UNUSED(window);
+        WindowLayer::s_eventManager->enqueue(EventType::MOUSE_MOVED, Ref<Event>(new MouseMovedEvent(xpos, ypos)));
+    }
     void WindowLayer::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
         UNUSED(window);
         UNUSED(scancode);
         UNUSED(mods);
         if (action == GLFW_PRESS) {
             WindowLayer::s_eventManager->enqueue(EventType::KEY_PRESSED, Ref<Event>(new KeyPressedEvent(key)));
-        } else if (GLFW_RELEASE) {
+        } else if (action == GLFW_RELEASE) {
             WindowLayer::s_eventManager->enqueue(EventType::KEY_RELEASED, Ref<Event>(new KeyReleasedEvent(key)));
         }
     }
@@ -66,6 +71,8 @@ namespace Boundless {
 
         glfwSetFramebufferSizeCallback(m_window, WindowLayer::resizeCallback);  
         glfwSetKeyCallback(m_window, WindowLayer::keyCallback);
+        glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
+        glfwSetCursorPosCallback(m_window, WindowLayer::mouseCallback);  
 
         m_context = new OpenGLContext(m_window, m_eventManager);
         m_context->init();

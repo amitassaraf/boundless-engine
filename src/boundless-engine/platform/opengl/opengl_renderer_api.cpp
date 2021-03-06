@@ -13,7 +13,7 @@ namespace Boundless {
     }
 
     void OpenGLRendererAPI::drawIndexed(const Ref<VertexArray>& vertexArray) {
-        glDrawElements(GL_TRIANGLE_STRIP, vertexArray->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, vertexArray->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
     }
 
     void OpenGLRendererAPI::wireframeMode() {

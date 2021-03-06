@@ -12,6 +12,7 @@
 #include "render/render_command.hpp"
 #include "render/buffer.hpp"
 #include "render/buffer_layout.hpp"
+#include "layers/perspective_camera.hpp"
 
 /************** Entrypoint *************/
 #include "core/entrypoint.hpp"

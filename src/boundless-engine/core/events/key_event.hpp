@@ -9,6 +9,8 @@ namespace Boundless {
     class BaseKeyEvent : public Event {
         public:
             EVENT_CATEGORY(EventCategory::INPUT_EVENTS)
+
+            inline int getKeyCode() const { return m_keyCode; }
         protected:
             
             BaseKeyEvent(int keyCode) : m_keyCode(keyCode) {}

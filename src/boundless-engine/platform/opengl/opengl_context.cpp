@@ -28,6 +28,7 @@ namespace Boundless {
         }
 
         glEnable(GL_DEPTH_TEST);
+        glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
     }
 
     void OpenGLContext::swapBuffers() {

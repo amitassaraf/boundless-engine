@@ -1,5 +1,6 @@
 #include "core/game.hpp"
 #include "core/events/pop_layer_event.hpp"
+#include "core/events/key_event.hpp"
 #include "logging/logger.hpp"
 
 #include <iostream>
@@ -57,6 +58,14 @@ namespace Boundless {
         m_eventManager.appendListener(EventType::POP_LAYER, [&](const Ref<Event> event) {
             Ref<PopLayerEvent> popLayerEvent = std::dynamic_pointer_cast<PopLayerEvent> (event);
             m_layerStack->popLayer(popLayerEvent->getLayerToPop());
+        });
+
+        m_eventManager.appendListener(EventType::KEY_PRESSED, [&](const Ref<Event> event) {
+            Ref<KeyPressedEvent> keyPressedEvent = std::dynamic_pointer_cast<KeyPressedEvent> (event);
+            
+            if (keyPressedEvent->getKeyCode() == 256) {
+                m_gameClosed = true;
+            }
         });
 
         m_eventManager.appendListener(EventType::GAME_CLOSED, [&](const Ref<Event> event) {
