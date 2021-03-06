@@ -26,6 +26,8 @@ namespace Boundless {
             BD_CORE_ERROR("{}", reinterpret_cast<const char*>(glewGetErrorString(err)));
             throw std::runtime_error("Failed initializing GLEW.");
         }
+
+        glEnable(GL_DEPTH_TEST);
     }
 
     void OpenGLContext::swapBuffers() {

@@ -20,15 +20,30 @@ public:
 
         m_va.reset(Boundless::VertexArray::create());
 
-        float verticies [3 * 4] = {
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            0.5f, 0.5f, 0.0f,
-            -0.5f, 0.5f, 0.0f
+        float cubeVertices [] = {
+            -1.0, -1.0,  1.0,
+            1.0, -1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            1.0,  1.0,  1.0,
+            -1.0, -1.0, -1.0,
+            1.0, -1.0, -1.0,
+            -1.0,  1.0, -1.0,
+            1.0,  1.0, -1.0,
         };
 
+        uint32_t cubeIndices [] = {
+            0, 1, 2, 3, 7, 1, 5, 4, 7, 6, 2, 4, 0, 1
+        };
+
+        // float verticies [3 * 4] = {
+        //     -0.5f, -0.5f, 0.0f,
+        //     0.5f, -0.5f, 0.0f,
+        //     0.5f, 0.5f, 0.0f,
+        //     -0.5f, 0.5f, 0.0f
+        // };
+
         Boundless::Ref<Boundless::VertexBuffer> m_vb;
-        m_vb.reset(Boundless::VertexBuffer::create(verticies, sizeof(verticies)));
+        m_vb.reset(Boundless::VertexBuffer::create(cubeVertices, sizeof(cubeVertices)));
 
         Boundless::BufferLayout layout = {
             { Boundless::ShaderDataType::VEC3, "a_Pos" },
@@ -36,12 +51,12 @@ public:
         m_vb->setLayout(layout);
         m_va->addVertexBuffer(m_vb);
 
-        uint32_t indicies[6] = {
-            0, 1, 2, 2, 3, 0
-        };
+        // uint32_t indicies[6] = {
+        //     0, 1, 2, 2, 3, 0
+        // };
 
         Boundless::Ref<Boundless::IndexBuffer> m_ib;
-        m_ib.reset(Boundless::IndexBuffer::create(indicies, sizeof(indicies) / sizeof(uint32_t)));
+        m_ib.reset(Boundless::IndexBuffer::create(cubeIndices, sizeof(cubeIndices) / sizeof(uint32_t)));
         m_va->setIndexBuffer(m_ib);
 
         m_shader.reset(Boundless::Shader::create("/Users/amitassaraf/workspace/league_of_dwarves/assets/shaders/opengl"));
