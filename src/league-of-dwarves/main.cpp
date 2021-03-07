@@ -27,12 +27,12 @@ public:
             UNUSED(nodeLocationalCode);
             glm::vec3 origin = node->getChunkOffset();
 
-            if (!node->isLeaf()) {
-                airChunks.push_back(std::make_pair(glm::vec3(origin.x, -origin.y, origin.z), node->getSize()));
+            if (!node->isLeaf() || !node->m_solid) {
+                airChunks.push_back(std::make_pair(origin, node->getSize()));
                 return;
             }
 
-            chunks.push_back(std::make_pair(glm::vec3(origin.x, -origin.y, origin.z), node->getSize()));
+            chunks.push_back(std::make_pair(origin, node->getSize()));
         });
         // BD_CORE_TRACE("SIZE: {}", world.m_octree->getRootNode()->getSize());
         // chunks.push_back(std::make_pair(world.m_octree->getRootNode()->getChunkOffset(), world.m_octree->getRootNode()->getSize()));

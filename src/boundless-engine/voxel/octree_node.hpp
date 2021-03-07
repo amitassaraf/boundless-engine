@@ -21,6 +21,7 @@ namespace Boundless {
             std::uint32_t m_locationalCode;
             std::uint8_t m_childrenMask;
             std::uint32_t m_nodeSize;
+            bool m_solid = true;
     };
 
 }

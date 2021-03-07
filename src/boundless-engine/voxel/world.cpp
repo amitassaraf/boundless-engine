@@ -7,10 +7,21 @@
 
 float scale     = 100.f;
 float lacunarity    = 1.99f;
-float persistance   = 0.5f;
+float persistance   = 0.1f;
 
 SimplexNoise noise(0.1f/scale, 0.5f, lacunarity, persistance);
 const int octaves = static_cast<int>(3 + std::log(scale)); // Estimate number of octaves needed for the current scale
+
+const float min = -1.0f;
+const float max = 1.0f;
+float normalize(float input)
+{
+    float average      = (min + max) / 2.0f;
+    float range        = (max - min) / 2.0f;
+    float normalized_x = (input - average) / range;
+    return (normalized_x + 1.0f) / 2.0f;
+}
+
         
 namespace Boundless {
     World::World() {
@@ -22,22 +33,25 @@ namespace Boundless {
         delete m_octree;
     }
 
-    bool shouldDivide(glm::vec3 chunkOffset, uint32_t nodeSize) {
-        if (nodeSize <= 1) {
-            return false;
-        } 
+    int shouldDivide(glm::vec3 chunkOffset, uint32_t nodeSize) {
+        int above = 1;
         
         for (int x = chunkOffset.x; x < chunkOffset.x + nodeSize; x++) {
             for (int z = chunkOffset.z; z < chunkOffset.z + nodeSize; z++) {
                 float yValue = noise.fractal(octaves, x, z);
-                float normalized = (128/2) * ((yValue - 2) + 2);
-                normalized = floor(normalized);
-                if (normalized > chunkOffset.y && normalized < chunkOffset.y + nodeSize) {
-                    return true;
+                BD_CORE_TRACE("T: {}", yValue);
+                float normalized = floor(normalize(yValue) * 128.0f);
+                BD_CORE_TRACE("TN: {}", normalized);
+                if (nodeSize > 1 && normalized >= chunkOffset.y && normalized < chunkOffset.y + nodeSize) {
+                    return 0;
+                } else if (normalized >= chunkOffset.y + nodeSize) {
+                    above = 1;
+                } else if (normalized < chunkOffset.y) {
+                    above = -1;
                 }
             }
         }
-        return false;
+        return above;
     }
 
     void World::generateWorld() {
@@ -52,10 +66,15 @@ namespace Boundless {
             BD_CORE_TRACE("Visting node.. {}", std::bitset<32>(nodeLocationalCode).to_string());
             glm::vec3 offset = node->getChunkOffset();
             BD_CORE_TRACE("Node offset: X:{} Z:{} Y:{}", offset.x, offset.z, offset.y);
-            if (shouldDivide(offset, node->m_nodeSize)) {
+            int aboveBelowOrDivide = shouldDivide(offset, node->m_nodeSize);
+            if (aboveBelowOrDivide == 0) {
                 BD_CORE_TRACE("Dividing node node..");
                 m_octree->divide(node);
                 totalNodes +=8;
+            } else if (aboveBelowOrDivide == 1) {
+                node->m_solid = true;
+            } else if (aboveBelowOrDivide == -1) {
+                node->m_solid = false;
             }
         });
 
