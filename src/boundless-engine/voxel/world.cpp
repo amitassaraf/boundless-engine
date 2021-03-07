@@ -25,23 +25,21 @@ float normalize(float input)
         
 namespace Boundless {
     World::World() {
-        uint32_t size = 128u;
-        m_octree = new Octree(size);
+        m_size = 128u;
+        m_octree = new Octree(m_size);
     }
 
     World::~World() {
         delete m_octree;
     }
 
-    int shouldDivide(glm::vec3 chunkOffset, uint32_t nodeSize) {
+    int World::shouldDivide(const glm::vec3& chunkOffset, uint32_t nodeSize) {
         int above = 1;
         
         for (int x = chunkOffset.x; x < chunkOffset.x + nodeSize; x++) {
             for (int z = chunkOffset.z; z < chunkOffset.z + nodeSize; z++) {
                 float yValue = noise.fractal(octaves, x, z);
-                BD_CORE_TRACE("T: {}", yValue);
-                float normalized = floor(normalize(yValue) * 128.0f);
-                BD_CORE_TRACE("TN: {}", normalized);
+                float normalized = floor(normalize(yValue) * m_size);
                 if (nodeSize > 1 && normalized >= chunkOffset.y && normalized < chunkOffset.y + nodeSize) {
                     return 0;
                 } else if (normalized >= chunkOffset.y + nodeSize) {
@@ -63,12 +61,9 @@ namespace Boundless {
         
         m_octree->visitAll(rootNode, [&](uint32_t nodeLocationalCode, OctreeNode* node) {
             UNUSED(nodeLocationalCode);
-            BD_CORE_TRACE("Visting node.. {}", std::bitset<32>(nodeLocationalCode).to_string());
             glm::vec3 offset = node->getChunkOffset();
-            BD_CORE_TRACE("Node offset: X:{} Z:{} Y:{}", offset.x, offset.z, offset.y);
-            int aboveBelowOrDivide = shouldDivide(offset, node->m_nodeSize);
+            int aboveBelowOrDivide = this->shouldDivide(offset, node->m_nodeSize);
             if (aboveBelowOrDivide == 0) {
-                BD_CORE_TRACE("Dividing node node..");
                 m_octree->divide(node);
                 totalNodes +=8;
             } else if (aboveBelowOrDivide == 1) {

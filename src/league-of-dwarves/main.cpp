@@ -34,9 +34,6 @@ public:
 
             chunks.push_back(std::make_pair(origin, node->getSize()));
         });
-        // BD_CORE_TRACE("SIZE: {}", world.m_octree->getRootNode()->getSize());
-        // chunks.push_back(std::make_pair(world.m_octree->getRootNode()->getChunkOffset(), world.m_octree->getRootNode()->getSize()));
-        BD_CORE_TRACE("LENGTH: {}", chunks.size());
 
         m_va.reset(Boundless::VertexArray::create());
 

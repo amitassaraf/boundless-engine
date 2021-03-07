@@ -13,7 +13,9 @@ namespace Boundless {
             World();
             ~World();
             void generateWorld();
+            int shouldDivide(const glm::vec3& chunkOffset, uint32_t nodeSize);
             Octree* m_octree;
+            uint32_t m_size;
     };
 
 }

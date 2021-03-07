@@ -26,7 +26,6 @@ namespace Boundless {
         for (int i=0; i<8; i++)
         {
             node->m_childrenMask = node->m_childrenMask | (1<<i);
-            BD_CORE_TRACE("Dividing Locational code: {}, size {}", std::bitset<32>(node->m_locationalCode).to_string(), newSize);
             uint32_t childLocationalCode = (node->m_locationalCode << 3) | i;
             auto* child = new OctreeNode(childLocationalCode, newSize); 
             m_nodes[childLocationalCode] = child;
@@ -40,8 +39,10 @@ namespace Boundless {
             {
                 const uint32_t locCodeChild = (node->m_locationalCode<<3)|i;
                 auto* child = lookupNode(locCodeChild);
-                lambda(locCodeChild, child);
-                visitAll(child, lambda);
+                if (!!child) {
+                    lambda(locCodeChild, child);
+                    visitAll(child, lambda);
+                }
             }
         }
     }
