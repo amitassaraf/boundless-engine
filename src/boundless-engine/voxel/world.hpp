@@ -13,7 +13,6 @@ namespace Boundless {
             World();
             ~World();
             void generateWorld();
-        private:
             Octree* m_octree;
     };
 

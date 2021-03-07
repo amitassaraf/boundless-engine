@@ -1,6 +1,7 @@
 #include "voxel/octree_node.hpp"
 #include "core/core.hpp"
 #include "logging/logger.hpp"
+#include <bitset>
 
 namespace Boundless {
 
@@ -9,13 +10,18 @@ namespace Boundless {
 
     }
 
+    bool OctreeNode::isLeaf() const {
+        return m_childrenMask == 0;
+    }
+
     glm::vec3 OctreeNode::getChunkOffset() const {
         uint32_t locationalCode = m_locationalCode;
         glm::vec3 chunkOffset(0, 0, 0);
-        uint8_t count = 0;
+        uint32_t size = m_nodeSize;
+
         while (locationalCode > 1) {
             uint8_t localCode = locationalCode & 7u;
-            float locationalDifference = m_nodeSize * (2u * count);
+            float locationalDifference = size;
             switch (localCode) {
                 case BOTTOM_LEFT_BACK:
                     // Root Node, always at 0
@@ -51,9 +57,13 @@ namespace Boundless {
             }
 
             locationalCode >>= 3;
-            count++;
+            size *= 2;
         }
         return chunkOffset;
+    }
+
+    std::uint32_t OctreeNode::getSize() const {
+        return m_nodeSize;
     }
 
     std::size_t OctreeNode::getDepth() const {

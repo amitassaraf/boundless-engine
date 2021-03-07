@@ -10,9 +10,9 @@ namespace Boundless {
     }
 
     LayerStack::~LayerStack() {
-        for (Layer* layer : m_layers) {
-            delete layer;
-        }
+        // for (Layer* layer : m_layers) {
+        //     delete layer;
+        // }
     }
 
     void LayerStack::pushLayer(Layer* layer) {

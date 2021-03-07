@@ -5,6 +5,8 @@ public:
     Boundless::Ref<Boundless::VertexArray> m_va;
     Boundless::Ref<Boundless::Shader> m_shader;
     Boundless::Ref<Boundless::PerspectiveCamera> m_camera;
+    std::vector<std::pair<glm::vec3, uint32_t> > chunks;
+    std::vector<std::pair<glm::vec3, uint32_t> > airChunks;
 
     LeagueOfDwarves() {
         BD_GAME_INFO("Starting league of dwarves.");
@@ -18,20 +20,35 @@ public:
     }
 
     void initialize() override {
-        // Boundless::World world;
-        // world.generateWorld();
+        Boundless::World world;
+        world.generateWorld();
+
+        world.m_octree->visitAll(world.m_octree->getRootNode(), [&](uint32_t nodeLocationalCode, Boundless::OctreeNode* node) {
+            UNUSED(nodeLocationalCode);
+            glm::vec3 origin = node->getChunkOffset();
+
+            if (!node->isLeaf()) {
+                airChunks.push_back(std::make_pair(glm::vec3(origin.x, -origin.y, origin.z), node->getSize()));
+                return;
+            }
+
+            chunks.push_back(std::make_pair(glm::vec3(origin.x, -origin.y, origin.z), node->getSize()));
+        });
+        // BD_CORE_TRACE("SIZE: {}", world.m_octree->getRootNode()->getSize());
+        // chunks.push_back(std::make_pair(world.m_octree->getRootNode()->getChunkOffset(), world.m_octree->getRootNode()->getSize()));
+        BD_CORE_TRACE("LENGTH: {}", chunks.size());
 
         m_va.reset(Boundless::VertexArray::create());
 
         float cubeVertices[3 * 8 * 2] = {
-            -1, -1, -1,   0, -1,  0,  // 0, nv front
-            -1, -1,  1,   0,  0,  1,  // 1, nv top
-            1, -1, -1,   0,  0,  0,  // 2
-            1, -1,  1,   1,  0,  0,  // 3, nv right
-            1,  1, -1,   0,  1,  0,  // 4, nv back
+            0, 0, 0,   0, -1,  0,  // 0, nv front
+            0, 0,  1,   0,  0,  1,  // 1, nv top
+            1, 0, 0,   0,  0,  0,  // 2
+            1, 0,  1,   1,  0,  0,  // 3, nv right
+            1,  1, 0,   0,  1,  0,  // 4, nv back
             1,  1,  1,   0,  0,  0,  // 5
-            -1,  1, -1,   0,  0, -1,  // 6, nv bottom
-            -1,  1,  1,  -1,  0,  0,  // 7, nv left 
+            0,  1, 0,   0,  0, -1,  // 6, nv bottom
+            0,  1,  1,  -1,  0,  0,  // 7, nv left 
         };
 
         uint32_t cubeIndices[6 * 3 * 2] = {
@@ -63,20 +80,35 @@ public:
     void onUpdate() override {
         Boundless::RenderCommand::setClearColor({ 0.1f, 0.3f, 0.1f, 1.0f });
         Boundless::RenderCommand::clear();
-        // Boundless::RenderCommand::wireframeMode();
 
         Boundless::Renderer::beginScene();
 
         m_shader->bind();
         
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3( 0.0f,  0.0f,  0.0f));
-
-        m_shader->setUniform("model", model);
-        m_shader->setUniform("lightPos", glm::vec3( 5.0f,  5.0f,  5.0f));
+        m_shader->setUniform("lightPos", glm::vec3( -100.0f,  100.0f,  -100.0f));
         m_shader->setUniform("view", m_camera->getViewMatrix());
         m_shader->setUniform("projection", m_camera->getProjectionMatrix());
-        Boundless::Renderer::submit(m_va);
+        
+        Boundless::RenderCommand::fillMode();
+
+        m_va->bind();
+        for (std::pair<glm::vec3, uint32_t> chunkPair : chunks) {
+            glm::mat4 model = glm::mat4(1.0f);
+            glm::vec3 scale = glm::vec3(chunkPair.second, chunkPair.second, chunkPair.second);
+            m_shader->setUniform("modelScale", glm::scale(model, scale));
+            m_shader->setUniform("modelTrans", glm::translate(model, chunkPair.first));
+            Boundless::Renderer::submit(m_va);
+        }
+
+        // Boundless::RenderCommand::wireframeMode();
+
+        // for (std::pair<glm::vec3, uint32_t> chunkPair : airChunks) {
+        //     glm::mat4 model = glm::mat4(1.0f);
+        //     glm::vec3 scale = glm::vec3(chunkPair.second, chunkPair.second, chunkPair.second);
+        //     m_shader->setUniform("modelScale", glm::scale(model, scale));
+        //     m_shader->setUniform("modelTrans", glm::translate(model, chunkPair.first));
+        //     Boundless::Renderer::submit(m_va);
+        // }
         
         Boundless::Renderer::endScene();
 
