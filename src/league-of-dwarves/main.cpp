@@ -23,11 +23,11 @@ public:
         Boundless::World world;
         world.generateWorld();
 
-        world.m_octree->visitAll(world.m_octree->getRootNode(), [&](uint32_t nodeLocationalCode, Boundless::OctreeNode* node) {
+        world.getOctree()->visitAll(world.getOctree()->getRootNode(), [&](uint32_t nodeLocationalCode, Boundless::Ref<Boundless::OctreeNode>& node) {
             UNUSED(nodeLocationalCode);
             glm::vec3 origin = node->getChunkOffset();
 
-            if (!node->isLeaf() || !node->m_solid) {
+            if (!node->isLeaf() || !node->getVoxelData().isSolid()) {
                 airChunks.push_back(std::make_pair(origin, node->getSize()));
                 return;
             }

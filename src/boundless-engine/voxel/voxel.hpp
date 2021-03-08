@@ -11,14 +11,14 @@ namespace Boundless {
     class Voxel {
 
         public:
-            
-            glm::vec3 getChunkLocalLocation() const;
+            Voxel() {}
+            Voxel(bool is_solid) : m_solid(is_solid) {}
+            ~Voxel() {}
 
+            inline bool isSolid() const { return m_solid; }
+            inline void setSolid(bool solid) { m_solid = solid; }
         private:
-            uint32_t m_localLocation;
-            // std::byte m_lighting;
-
-    
+            bool m_solid = false;
     };
 
 }

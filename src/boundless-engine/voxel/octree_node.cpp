@@ -6,7 +6,7 @@
 namespace Boundless {
 
     OctreeNode::OctreeNode(uint32_t locationalCode, uint32_t nodeSize) 
-    : m_locationalCode(locationalCode), m_nodeSize(nodeSize) {
+    : m_voxel(false), m_locationalCode(locationalCode), m_nodeSize(nodeSize) {
 
     }
 
@@ -78,6 +78,26 @@ namespace Boundless {
         _BitScanReverse(&msb, m_locationalCode);
         return msb/3;
     #endif
+    }
+
+    Voxel& OctreeNode::getVoxelData() {
+        return m_voxel;
+    }
+
+    std::uint32_t OctreeNode::getLocationalCode() const {
+        return m_locationalCode;
+    }
+
+    std::uint8_t OctreeNode::getChildrenMask() const {
+        return m_childrenMask;
+    }
+
+    void OctreeNode::setChildrenMask(std::uint8_t childMask) {
+        m_childrenMask = childMask;
+    }
+
+    std::uint32_t OctreeNode::getLOD() const {
+        return m_lod;
     }
 
 
