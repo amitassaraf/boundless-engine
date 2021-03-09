@@ -24,7 +24,7 @@ float normalize(float input)
         
 namespace Boundless {
     World::World() : m_noise(SimplexNoise(0.1f/scale, 0.5f, lacunarity, persistance)) {
-        m_size = 128u;
+        m_size = 32u;
         m_octree = new Octree(m_size);
     }
 
@@ -70,6 +70,11 @@ namespace Boundless {
             } else if (aboveBelowOrDivide == -1) {
                 node->getVoxelData().setSolid(false);
             }
+        });
+
+        m_octree->visitAll(rootNode, [&](uint32_t nodeLocationalCode, Ref<OctreeNode>& node) {
+            UNUSED(nodeLocationalCode);
+            m_octree->calculateFaceMask(node);
         });
 
         BD_CORE_TRACE("TOTAL NODES: {}", totalNodes);

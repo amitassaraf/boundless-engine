@@ -16,10 +16,17 @@ namespace Boundless {
 
     Ref<OctreeNode>& Octree::getParentNode(Ref<OctreeNode>& node) {
         const uint32_t locCodeParent = node->getLocationalCode()>>3;
-        return lookupNode(locCodeParent);
+        return getNodeAt(locCodeParent);
     }
 
-    Ref<OctreeNode>& Octree::lookupNode(uint32_t locationalCode) {
+    bool Octree::nodeExists(uint32_t locationalCode) const { 
+        if (m_nodes.find(locationalCode) == m_nodes.end()) {
+            return false; 
+        }
+        return true; 
+    } 
+
+    Ref<OctreeNode>& Octree::getNodeAt(uint32_t locationalCode) {
         return m_nodes.at(locationalCode);
     }
 
@@ -33,11 +40,137 @@ namespace Boundless {
         }
     }
 
+    uint32_t calculateSibling(uint32_t startLocation, uint8_t mask, uint8_t whileThis, bool backwardIsOr) {
+        uint32_t target = startLocation;
+        uint32_t path = 0u;
+        uint8_t count = 0u;
+        while ((target & mask) == whileThis && target != 0u) {
+            if (backwardIsOr) {
+                path = path | (((target & 7u) | mask) << (3u * count));
+            } else {
+                path = path | (((target & 7u) ^ mask) << (3u * count));
+            }
+            target = target >> 3u;
+            count += 1u;
+        }
+        if (backwardIsOr) {
+            target = target ^ mask;
+        } else {
+            target = target | mask;
+        }
+        target = target << (3u * count);
+        target = target | path;
+        return target;
+    }
+
+    bool checkIfSiblingIsSolid(Octree* octree, uint32_t siblingLocationalCode, uint32_t faceBitsTestMask, uint32_t testMaskExpectedResult) {
+        while (siblingLocationalCode > 1u) {
+            if (octree->nodeExists(siblingLocationalCode)) {
+                Ref<OctreeNode>& sibling = octree->getNodeAt(siblingLocationalCode);
+                if (!sibling->isLeaf()) {
+                    // Find its smaller children that might be obscuring our view
+                    bool solidFlag = true;
+                    octree->visitAll(sibling, [&](uint32_t nodeLocationalCode, Ref<OctreeNode>& node) {
+                        uint8_t depth = node->getDepth() - sibling->getDepth();
+                        uint32_t hyperLocalCode = ((nodeLocationalCode >> (3u * depth)) << (3u * depth)) ^ nodeLocationalCode;
+                        
+                        if ((hyperLocalCode & faceBitsTestMask) == testMaskExpectedResult) {
+                            if (node->isLeaf() && !node->getVoxelData().isSolid() && node->getLocationalCode() != 1) {
+                                solidFlag = false;
+                            }
+                        }
+                    });
+                    if (!solidFlag) {
+                        return false;
+                    }
+                } else if (!sibling->getVoxelData().isSolid() && sibling->getLocationalCode() != 1) {
+                    return false;
+                }
+                return true;
+            }
+
+            siblingLocationalCode = siblingLocationalCode >> 3u;
+        }
+
+        // Couldn't find surface
+        return true;
+    }
+
+    void Octree::calculateFaceMask(Ref<OctreeNode>& node) {
+        node->setFaceMask(0);
+        if (!node->getVoxelData().isSolid()) {
+            return;
+        }
+
+        // First we need to get the locations of all our neighbours
+        uint32_t left = 0;
+        uint32_t right = 0;
+        uint32_t back = 0;
+        uint32_t front = 0;
+        uint32_t north = 0;
+        uint32_t south = 0;
+        if ((node->getLocationalCode() & 4u) == 4u) { // Are we a top node
+            north = calculateSibling(node->getLocationalCode(), 4u, 4u, false);
+            
+            south = node->getLocationalCode() ^ 4u;
+        } else { // We are a bottom node
+            south = calculateSibling(node->getLocationalCode(), 4u, 0u, true);
+            
+            north = node->getLocationalCode() | 4u;
+        }
+        // Get left and right
+        if ((node->getLocationalCode() & 1u) == 0u) { // Are we a left node?
+            right = node->getLocationalCode() | 1u;
+
+            left = calculateSibling(node->getLocationalCode(), 1u, 0u, true);
+        } else { // We are a right node
+            left = node->getLocationalCode() ^ 1u;
+
+            right = calculateSibling(node->getLocationalCode(), 1u, 1u, false);
+        }
+
+        // Get back and front
+        if ((node->getLocationalCode() & 2u) == 2u) { // Are we a back node?
+            front = node->getLocationalCode() ^ 2u;
+
+            back = calculateSibling(node->getLocationalCode(), 2u, 2u, false);
+        } else { // We are a front node
+            back = node->getLocationalCode() | 2u;
+
+            front = calculateSibling(node->getLocationalCode(), 2u, 0u, true);
+        }
+
+
+        if (!checkIfSiblingIsSolid(this, left, LEFT_RIGHT_FACE_BITS_TEST, 1u)) {
+            node->setFaceMask(node->getFaceMask() | FACE_LEFT);
+        }
+
+        if (!checkIfSiblingIsSolid(this, right, LEFT_RIGHT_FACE_BITS_TEST, 0u)) {
+            node->setFaceMask(node->getFaceMask() | FACE_RIGHT);
+        }
+
+        if (!checkIfSiblingIsSolid(this, north, TOP_BOTTOM_FACE_BITS_TEST, 0u)) {
+            node->setFaceMask(node->getFaceMask() | FACE_TOP);
+        }
+
+        if (!checkIfSiblingIsSolid(this, south, TOP_BOTTOM_FACE_BITS_TEST, 1u)) {
+            node->setFaceMask(node->getFaceMask() | FACE_BOTTOM);
+        }
+
+        // if (!checkIfSiblingIsSolid(this, back, FRONT_BACK_FACE_BITS_TEST, 0u)) {
+        //     node->setFaceMask(node->getFaceMask() | FACE_BACK);
+        // }
+
+        // if (!checkIfSiblingIsSolid(this, front, FRONT_BACK_FACE_BITS_TEST, 1u)) {
+        //     node->setFaceMask(node->getFaceMask() | FACE_FRONT);
+        // }
+    }
+
     void Octree::visitAll(Ref<OctreeNode>& node, std::function< void(uint32_t nodeLocationalCode, Ref<OctreeNode>& node) > lambda) {
         for (int i=0; i<8; i++) {
             if (node->getChildrenMask()&(1<<i)) {
                 const uint32_t locCodeChild = (node->getLocationalCode()<<3)|i;
-                Ref<OctreeNode>& child = lookupNode(locCodeChild);
+                Ref<OctreeNode>& child = getNodeAt(locCodeChild);
                 lambda(locCodeChild, child);
                 visitAll(child, lambda);
             }

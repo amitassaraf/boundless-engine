@@ -96,6 +96,14 @@ namespace Boundless {
         m_childrenMask = childMask;
     }
 
+    std::uint8_t OctreeNode::getFaceMask() const {
+        return m_faceMask;
+    }
+
+    void OctreeNode::setFaceMask(std::uint8_t faceMask) {
+        m_faceMask = faceMask;
+    }
+
     std::uint32_t OctreeNode::getLOD() const {
         return m_lod;
     }
