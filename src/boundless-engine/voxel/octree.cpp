@@ -67,15 +67,17 @@ namespace Boundless {
         while (siblingLocationalCode > 1u) {
             if (octree->nodeExists(siblingLocationalCode)) {
                 Ref<OctreeNode>& sibling = octree->getNodeAt(siblingLocationalCode);
-                if (!sibling->isLeaf()) {
+                if (sibling->getLocationalCode() != 1 && !sibling->isLeaf()) {
                     // Find its smaller children that might be obscuring our view
                     bool solidFlag = true;
                     octree->visitAll(sibling, [&](uint32_t nodeLocationalCode, Ref<OctreeNode>& node) {
+                        if (!node->isLeaf())
+                            return;
                         uint8_t depth = node->getDepth() - sibling->getDepth();
                         uint32_t hyperLocalCode = ((nodeLocationalCode >> (3u * depth)) << (3u * depth)) ^ nodeLocationalCode;
                         
                         if ((hyperLocalCode & faceBitsTestMask) == testMaskExpectedResult) {
-                            if (node->isLeaf() && !node->getVoxelData().isSolid() && node->getLocationalCode() != 1) {
+                            if (!node->getVoxelData().isSolid() && nodeLocationalCode != 1) {
                                 solidFlag = false;
                             }
                         }
@@ -98,7 +100,7 @@ namespace Boundless {
 
     void Octree::calculateFaceMask(Ref<OctreeNode>& node) {
         node->setFaceMask(0);
-        if (!node->getVoxelData().isSolid()) {
+        if (!node->getVoxelData().isSolid() || !node->isLeaf()) {
             return;
         }
 
@@ -147,6 +149,14 @@ namespace Boundless {
 
         if (!checkIfSiblingIsSolid(this, right, LEFT_RIGHT_FACE_BITS_TEST, 0u)) {
             node->setFaceMask(node->getFaceMask() | FACE_RIGHT);
+        } else {
+            if (node->getSize() == 1) {
+                BD_CORE_TRACE("Found {} for {}, result", std::bitset<32>(right).to_string(), std::bitset<32>(node->getLocationalCode()).to_string());
+                if (this->nodeExists(right)) {
+                    BD_CORE_TRACE("Solid? {}", this->getNodeAt(right)->getVoxelData().isSolid());
+                }
+                
+            }
         }
 
         if (!checkIfSiblingIsSolid(this, north, TOP_BOTTOM_FACE_BITS_TEST, 0u)) {

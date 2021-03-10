@@ -125,16 +125,16 @@ public:
             Boundless::Renderer::submit(m_faceMaskToMesh[chunk->getFaceMask()]);
         }
 
-        // Boundless::RenderCommand::wireframeMode();
+        Boundless::RenderCommand::wireframeMode();
 
-        // for (Boundless::Ref<Boundless::OctreeNode> chunk : airChunks) {
-        //     m_faceMaskToMesh[63]->bind();
-        //     glm::mat4 model = glm::mat4(1.0f);
-        //     glm::vec3 scale = glm::vec3(chunk->getSize(), chunk->getSize(), chunk->getSize());
-        //     m_shader->setUniform("modelScale", glm::scale(model, scale));
-        //     m_shader->setUniform("modelTrans", glm::translate(model, chunk->getChunkOffset()));
-        //     Boundless::Renderer::submit(m_faceMaskToMesh[63]);
-        // }
+        for (Boundless::Ref<Boundless::OctreeNode> chunk : airChunks) {
+            m_faceMaskToMesh[63]->bind();
+            glm::mat4 model = glm::mat4(1.0f);
+            glm::vec3 scale = glm::vec3(chunk->getSize(), chunk->getSize(), chunk->getSize());
+            m_shader->setUniform("modelScale", glm::scale(model, scale));
+            m_shader->setUniform("modelTrans", glm::translate(model, chunk->getChunkOffset()));
+            Boundless::Renderer::submit(m_faceMaskToMesh[63]);
+        }
         
         Boundless::Renderer::endScene();
 

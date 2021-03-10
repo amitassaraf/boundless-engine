@@ -65,6 +65,7 @@ namespace Boundless {
             if (aboveBelowOrDivide == 0) {
                 m_octree->divide(node);
                 totalNodes +=8;
+                node->getVoxelData().setSolid(false);
             } else if (aboveBelowOrDivide == 1) {
                 node->getVoxelData().setSolid(true);
             } else if (aboveBelowOrDivide == -1) {
