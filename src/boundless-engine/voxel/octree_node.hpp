@@ -26,6 +26,7 @@ namespace Boundless {
             std::uint32_t getLOD() const;
             std::uint8_t getFaceMask() const;
             void setFaceMask(std::uint8_t faceMask);
+            void setLOD(std::uint32_t lod);
 
         private:
             Voxel m_voxel;

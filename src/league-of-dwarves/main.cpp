@@ -13,6 +13,7 @@ public:
     Boundless::Ref<Boundless::LocatedUniform> modelTrans;
     Boundless::Ref<Boundless::LocatedUniform> view;
     Boundless::Ref<Boundless::LocatedUniform> projection;
+    // ThreadPool pool(std::thread::hardware_concurrency());
 
     LeagueOfDwarves() {
         BD_GAME_INFO("Starting league of dwarves.");
@@ -25,10 +26,9 @@ public:
 
     }
 
-    void initialize() override {
-        Boundless::World world;
-        world.generateWorld();
-
+    void calcRenderNodes(Boundless::World& world) {
+        chunks.clear();
+        airChunks.clear();
         world.getOctree()->visitAll(world.getOctree()->getRootNode(), [&](uint32_t nodeLocationalCode, Boundless::Ref<Boundless::OctreeNode>& node) {
             UNUSED(nodeLocationalCode);
 
@@ -40,6 +40,14 @@ public:
             chunks.push_back(node);
         });
         
+    }
+
+    void initialize() override {
+        Boundless::World world;
+        world.generateWorld();
+
+        calcRenderNodes(world);
+
         float cubeVertices[3 * 8 * 2] = {
             0, 0, 0,   0, -1,  0,  // 0, nv front
             0, 0,  1,   0,  0,  1,  // 1, nv top
@@ -115,12 +123,24 @@ public:
 
 
         m_shader->bind();
-        m_shader->setUniform("lightPos", glm::vec3( -100.0f,  100.0f,  -100.0f));
-        
+        m_shader->setUniform("lightPos", glm::vec3( 0,  256,  0));
+
         modelScale.reset(m_shader->locateUniform("modelScale"));
         modelTrans.reset(m_shader->locateUniform("modelTrans"));
         view.reset(m_shader->locateUniform("view"));
         projection.reset(m_shader->locateUniform("projection"));
+
+        m_eventManager.appendListener(Boundless::EventType::KEY_PRESSED, [&](const Boundless::Ref<Boundless::Event> event) {
+            Boundless::Ref<Boundless::KeyPressedEvent> keyPressedEvent = std::dynamic_pointer_cast<Boundless::KeyPressedEvent> (event);
+            
+            if (keyPressedEvent->getKeyCode() == 84) {
+                auto random_it = std::next(std::begin(chunks), rand() % chunks.size());
+                uint32_t lod = std::pow(2, rand() % 8 + 1);
+                BD_CORE_TRACE("Changing to LOD: {}",lod);
+                world.changeLOD((*random_it), lod);
+                calcRenderNodes(world);
+            }
+        });
     }
 
     void onUpdate() override {

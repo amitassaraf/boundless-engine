@@ -16,6 +16,7 @@ namespace Boundless {
             ~World();
             void generateWorld();
             int shouldDivide(const glm::vec3& chunkOffset, uint32_t nodeSize, uint32_t lod);
+            void changeLOD(Ref<OctreeNode>& node, uint32_t lod);
             inline Octree* getOctree() { return m_octree; }
         private:
             Octree* m_octree;

@@ -16,3 +16,6 @@
 [submodule "third_party/SimplexNoise"]
 	path = third_party/SimplexNoise
 	url = https://github.com/SRombauts/SimplexNoise.git
+[submodule "third_party/ThreadPool"]
+	path = third_party/ThreadPool
+	url = https://github.com/progschj/ThreadPool.git

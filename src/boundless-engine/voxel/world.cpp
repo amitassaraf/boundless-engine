@@ -81,4 +81,44 @@ namespace Boundless {
         BD_CORE_TRACE("TOTAL NODES: {}", totalNodes);
     }
 
+    void World::changeLOD(Ref<OctreeNode>& lodNode, uint32_t lod) {
+        uint32_t currentLod = lodNode->getLOD();
+        if (currentLod < lod) {
+            lodNode->setLOD(lod);
+            m_octree->visitAllBottomUp(lodNode, [&](uint32_t nodeLocationalCode, Ref<OctreeNode>& node) {
+                UNUSED(nodeLocationalCode);
+                
+                if (node->getSize() < lod) {
+                    Ref<OctreeNode>& parent = m_octree->getParentNode(node);
+                    parent->setChildrenMask(parent->getChildrenMask() ^ (nodeLocationalCode & 7u));
+                    if (!parent->getVoxelData().isSolid()) {
+                        parent->getVoxelData().setSolid(node->getVoxelData().isSolid());
+                    }
+                    m_octree->erase(nodeLocationalCode);
+                }
+            });
+        } else if (lod < currentLod) {
+            lodNode->setLOD(lod);
+            m_octree->visitAllBottomUp(lodNode, [&](uint32_t nodeLocationalCode, Ref<OctreeNode>& node) {
+                UNUSED(nodeLocationalCode);
+                
+                if (node->isLeaf() && node->getSize() > lod) {
+                    glm::vec3 offset = node->getChunkOffset();
+                    int aboveBelowOrDivide = this->shouldDivide(offset, node->getSize(), node->getLOD());
+                    if (aboveBelowOrDivide == 0) {
+                        m_octree->divide(node);
+                        node->getVoxelData().setSolid(false);
+                    } else if (aboveBelowOrDivide == 1) {
+                        node->getVoxelData().setSolid(true);
+                    } else if (aboveBelowOrDivide == -1) {
+                        node->getVoxelData().setSolid(false);
+                    }
+                    node->getVoxelData().setSolid(false);
+                }
+            });
+        }
+        
+        // m_octree->calculateFaceMask(node);
+    }
+
 }

@@ -108,6 +108,10 @@ namespace Boundless {
         return m_lod;
     }
 
+    void OctreeNode::setLOD(std::uint32_t lod) {
+        m_lod = lod;
+    }
+
 
 
 }

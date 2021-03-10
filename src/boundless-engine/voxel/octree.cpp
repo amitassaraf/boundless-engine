@@ -11,7 +11,11 @@ namespace Boundless {
     }
 
     Ref<OctreeNode>& Octree::getRootNode() {
-        return m_nodes[1];
+        return m_nodes.at(1);
+    }
+
+    void Octree::erase(uint32_t locationalCode) {
+        m_nodes.erase(locationalCode);
     }
 
     Ref<OctreeNode>& Octree::getParentNode(Ref<OctreeNode>& node) {
@@ -32,8 +36,7 @@ namespace Boundless {
 
     void Octree::divide(Ref<OctreeNode>& node) {
         uint32_t newSize = node->getSize() / 2u;
-        for (int i=0; i<8; i++)
-        {
+        for (int i=0; i<8; i++) {
             node->setChildrenMask(node->getChildrenMask() | (1<<i));
             uint32_t childLocationalCode = (node->getLocationalCode() << 3) | i;
             m_nodes[childLocationalCode] = Ref<OctreeNode>(new OctreeNode(childLocationalCode, newSize));
@@ -186,6 +189,18 @@ namespace Boundless {
                 Ref<OctreeNode>& child = getNodeAt(locCodeChild);
                 lambda(locCodeChild, child);
                 visitAll(child, lambda);
+            }
+        }
+    }
+
+
+    void Octree::visitAllBottomUp(Ref<OctreeNode>& node, std::function< void(uint32_t nodeLocationalCode, Ref<OctreeNode>& node) > lambda) {
+        for (int i=0; i<8; i++) {
+            if (node->getChildrenMask()&(1<<i)) {
+                const uint32_t locCodeChild = (node->getLocationalCode()<<3)|i;
+                Ref<OctreeNode>& child = getNodeAt(locCodeChild);
+                visitAll(child, lambda);
+                lambda(locCodeChild, child);
             }
         }
     }

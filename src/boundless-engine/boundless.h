@@ -13,6 +13,7 @@
 #include "render/buffer.hpp"
 #include "render/buffer_layout.hpp"
 #include "layers/perspective_camera.hpp"
+#include "core/events/key_event.hpp"
 
 /************** Entrypoint *************/
 #include "core/entrypoint.hpp"

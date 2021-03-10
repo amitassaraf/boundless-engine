@@ -129,6 +129,7 @@ endif()
 
 # Add third party libaries
 include_directories("third_party/eventpp/include")
+include_directories("third_party/ThreadPool")
 include_directories("third_party/SimplexNoise/src")
 
 set(SIMPLEX_NOISE
