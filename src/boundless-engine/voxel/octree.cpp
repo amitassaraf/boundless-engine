@@ -45,7 +45,7 @@ namespace Boundless {
         uint32_t path = 0u;
         uint8_t count = 0u;
         uint8_t latest = 0u;
-        while ((target & mask) == whileThis && target > 1u) {
+        while ((target & mask) == whileThis && target != 0u) {
             latest = target & 7u;
             if (backwardIsOr) {
                 path = path | ((latest | mask) << (3u * count));
@@ -54,10 +54,6 @@ namespace Boundless {
             }
             target = target >> 3u;
             count += 1u;
-        }
-        if (target == 1u) {
-            target = target << 3u;
-            target = target | latest;
         }
 
         if (backwardIsOr) {
