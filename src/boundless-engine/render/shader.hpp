@@ -15,6 +15,13 @@ namespace Boundless {
 
     uint32_t getShaderDataTypeSize(ShaderDataType type);
     uint32_t getShaderDataTypeCount(ShaderDataType type);
+
+    struct LocatedUniform {
+        std::string name;
+        unsigned int location;
+        LocatedUniform() {}
+        LocatedUniform(const std::string& name, unsigned int location) : name(name), location(location) {}
+    };
     
     class Shader {
         public:
@@ -24,6 +31,8 @@ namespace Boundless {
 
             virtual void bind() const = 0;
             virtual void unbind() const = 0;
+            virtual LocatedUniform* locateUniform(const std::string& uniformName) const = 0;
+            virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const glm::mat4& uniform) const = 0;
             virtual void setUniform(const std::string& uniformName, const glm::mat4& uniform) const = 0;
             virtual void setUniform(const std::string& uniformName, const glm::vec4& uniform) const = 0;
             virtual void setUniform(const std::string& uniformName, const glm::vec3& uniform) const = 0;

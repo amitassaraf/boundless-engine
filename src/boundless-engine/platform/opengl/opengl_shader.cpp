@@ -79,6 +79,15 @@ namespace Boundless {
         glUseProgram(0);
     }
 
+    LocatedUniform* OpenGLShader::locateUniform(const std::string& uniformName) const {
+        unsigned int uniformLocation = glGetUniformLocation(m_rendererId, uniformName.c_str());
+        return new LocatedUniform(uniformName, uniformLocation);
+    }
+
+    void OpenGLShader::setUniform(const Ref<LocatedUniform>& uniformLocation, const glm::mat4& uniform) const {
+        glUniformMatrix4fv(uniformLocation->location, 1, GL_FALSE, glm::value_ptr(uniform));
+    }
+
     void OpenGLShader::setUniform(const std::string& uniformName, const glm::mat4& uniform) const {
         unsigned int uniformLocation = glGetUniformLocation(m_rendererId, uniformName.c_str());
         glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(uniform));

@@ -7,6 +7,12 @@ public:
     Boundless::Ref<Boundless::PerspectiveCamera> m_camera;
     std::vector<Boundless::Ref<Boundless::OctreeNode> > chunks;
     std::vector<Boundless::Ref<Boundless::OctreeNode> > airChunks;
+    double lastTime = 0;
+    int nbFrames = 0;
+    Boundless::Ref<Boundless::LocatedUniform> modelScale;
+    Boundless::Ref<Boundless::LocatedUniform> modelTrans;
+    Boundless::Ref<Boundless::LocatedUniform> view;
+    Boundless::Ref<Boundless::LocatedUniform> projection;
 
     LeagueOfDwarves() {
         BD_GAME_INFO("Starting league of dwarves.");
@@ -105,19 +111,34 @@ public:
         // };
 
         m_shader.reset(Boundless::Shader::create("/Users/amitassaraf/workspace/league_of_dwarves/assets/shaders/opengl"));
+
+
+        m_shader->bind();
+        m_shader->setUniform("lightPos", glm::vec3( -100.0f,  100.0f,  -100.0f));
+        modelScale.reset(m_shader->locateUniform("modelScale"));
+        modelTrans.reset(m_shader->locateUniform("modelTrans"));
+        view.reset(m_shader->locateUniform("view"));
+        projection.reset(m_shader->locateUniform("projection"));
     }
 
     void onUpdate() override {
+        // Measure speed
+        double currentTime = glfwGetTime();
+        nbFrames++;
+        if ( currentTime - lastTime >= 1.0 ){ // If last prinf() was more than 1 sec ago
+            // printf and reset timer
+            printf("%f ms/frame\n", 1000.0/double(nbFrames));
+            nbFrames = 0;
+            lastTime += 1.0;
+        }
+
         Boundless::RenderCommand::setClearColor({ 0.1f, 0.3f, 0.1f, 1.0f });
         Boundless::RenderCommand::clear();
 
         Boundless::Renderer::beginScene();
 
-        m_shader->bind();
-        
-        m_shader->setUniform("lightPos", glm::vec3( -100.0f,  100.0f,  -100.0f));
-        m_shader->setUniform("view", m_camera->getViewMatrix());
-        m_shader->setUniform("projection", m_camera->getProjectionMatrix());
+        m_shader->setUniform(view, m_camera->getViewMatrix());
+        m_shader->setUniform(projection, m_camera->getProjectionMatrix());
         
         Boundless::RenderCommand::fillMode();
 
@@ -130,8 +151,8 @@ public:
             
             glm::mat4 model = glm::mat4(1.0f);
             glm::vec3 scale = glm::vec3(chunk->getSize(), chunk->getSize(), chunk->getSize());
-            m_shader->setUniform("modelScale", glm::scale(model, scale));
-            m_shader->setUniform("modelTrans", glm::translate(model, chunk->getChunkOffset()));
+            m_shader->setUniform(modelScale, glm::scale(model, scale));
+            m_shader->setUniform(modelTrans, glm::translate(model, chunk->getChunkOffset()));
             Boundless::Renderer::submit(m_faceMaskToMesh[boundMask]);
         }
         m_faceMaskToMesh[boundMask]->unbind();
