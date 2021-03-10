@@ -2,7 +2,7 @@
 
 class LeagueOfDwarves : public Boundless::Game {
 public:
-    std::unordered_map<uint32_t, Boundless::Ref<Boundless::VertexArray> > m_faceMaskToMesh;
+    std::unordered_map<uint8_t, Boundless::Ref<Boundless::VertexArray> > m_faceMaskToMesh;
     Boundless::Ref<Boundless::Shader> m_shader;
     Boundless::Ref<Boundless::PerspectiveCamera> m_camera;
     std::vector<Boundless::Ref<Boundless::OctreeNode> > chunks;
@@ -90,6 +90,11 @@ public:
             m_faceMaskToMesh[faceMask]->setIndexBuffer(m_ib);
         }
 
+        std::sort(chunks.begin(), chunks.end(), 
+        [](Boundless::Ref<Boundless::OctreeNode> const &a, Boundless::Ref<Boundless::OctreeNode> const &b) {
+            return a->getFaceMask() < b->getFaceMask(); 
+        });
+
         // uint32_t cubeIndices[6 * 3 * 2] = {
         //     0, 2, 3,   0, 3, 1, // bottom
         //     4, 6, 7,   4, 7, 5, // top
@@ -116,14 +121,20 @@ public:
         
         Boundless::RenderCommand::fillMode();
 
+        uint8_t boundMask = 0;
         for (Boundless::Ref<Boundless::OctreeNode> chunk : chunks) {
-            m_faceMaskToMesh[chunk->getFaceMask()]->bind();
+            if (boundMask != chunk->getFaceMask()) {
+                boundMask = chunk->getFaceMask();
+                m_faceMaskToMesh[boundMask]->bind();
+            }
+            
             glm::mat4 model = glm::mat4(1.0f);
             glm::vec3 scale = glm::vec3(chunk->getSize(), chunk->getSize(), chunk->getSize());
             m_shader->setUniform("modelScale", glm::scale(model, scale));
             m_shader->setUniform("modelTrans", glm::translate(model, chunk->getChunkOffset()));
-            Boundless::Renderer::submit(m_faceMaskToMesh[chunk->getFaceMask()]);
+            Boundless::Renderer::submit(m_faceMaskToMesh[boundMask]);
         }
+        m_faceMaskToMesh[boundMask]->unbind();
 
         // Boundless::RenderCommand::wireframeMode();
 
