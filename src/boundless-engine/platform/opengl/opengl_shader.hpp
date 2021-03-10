@@ -20,6 +20,8 @@ namespace Boundless {
             virtual void unbind() const override;
             virtual LocatedUniform* locateUniform(const std::string& uniformName) const override;
             virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const glm::mat4& uniform) const override;
+            virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const glm::vec4& uniform) const override;
+            virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const glm::vec3& uniform) const override;
             virtual void setUniform(const std::string& uniformName, const glm::mat4& uniform) const override;
             virtual void setUniform(const std::string& uniformName, const glm::vec4& uniform) const override;
             virtual void setUniform(const std::string& uniformName, const glm::vec3& uniform) const override;

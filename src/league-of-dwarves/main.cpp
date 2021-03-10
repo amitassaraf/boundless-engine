@@ -75,19 +75,20 @@ public:
             }
 
             if ((faceMask & FACE_LEFT) == FACE_LEFT) {
-                cubeIndices.insert(cubeIndices.end(), {3, 2, 4,   3, 4, 5});
-            }
-
-            if ((faceMask & FACE_RIGHT) == FACE_RIGHT) {
-                cubeIndices.insert(cubeIndices.end(), {7, 6, 0,   7, 0, 1});
-            }
-            
-            if ((faceMask & FACE_FRONT) == FACE_FRONT) {
                 cubeIndices.insert(cubeIndices.end(), {6, 4, 2,   6, 2, 0});
             }
 
-            if ((faceMask & FACE_BACK) == FACE_BACK) {
+            if ((faceMask & FACE_RIGHT) == FACE_RIGHT) {
                 cubeIndices.insert(cubeIndices.end(), {1, 3, 5,   1, 5, 7});
+            }
+            
+            if ((faceMask & FACE_FRONT) == FACE_FRONT) {
+                cubeIndices.insert(cubeIndices.end(), {3, 2, 4,   3, 4, 5});
+            }
+
+            if ((faceMask & FACE_BACK) == FACE_BACK) {
+                
+                cubeIndices.insert(cubeIndices.end(), {7, 6, 0,   7, 0, 1});
             }
 
             uint32_t* indicies = &cubeIndices[0];
@@ -115,6 +116,7 @@ public:
 
         m_shader->bind();
         m_shader->setUniform("lightPos", glm::vec3( -100.0f,  100.0f,  -100.0f));
+        
         modelScale.reset(m_shader->locateUniform("modelScale"));
         modelTrans.reset(m_shader->locateUniform("modelTrans"));
         view.reset(m_shader->locateUniform("view"));
@@ -156,19 +158,19 @@ public:
             m_shader->setUniform(modelTrans, glm::translate(model, chunk->getChunkOffset()));
             Boundless::Renderer::submit(m_faceMaskToMesh[boundMask]);
         }
-        m_faceMaskToMesh[boundMask]->unbind();
+        // m_faceMaskToMesh[boundMask]->unbind();
 
         // Boundless::RenderCommand::wireframeMode();
 
-        m_faceMaskToMesh[63]->bind();
-        for (Boundless::Ref<Boundless::OctreeNode> chunk : airChunks) {
-            glm::mat4 model = glm::mat4(1.0f);
-            glm::vec3 scale = glm::vec3(0.1f, 0.1f, 0.1f);
-            glm::vec3 offset = chunk->getChunkOffset();
-            m_shader->setUniform(modelScale, glm::scale(model, scale));
-            m_shader->setUniform(modelTrans, glm::translate(model, glm::vec3(offset.x + chunk->getSize()/2.0f, offset.y + chunk->getSize() /2.0f, offset.z + chunk->getSize() /2.0f)));
-            Boundless::Renderer::submit(m_faceMaskToMesh[63]);
-        }
+        // m_faceMaskToMesh[63]->bind();
+        // for (Boundless::Ref<Boundless::OctreeNode> chunk : airChunks) {
+        //     glm::mat4 model = glm::mat4(1.0f);
+        //     glm::vec3 scale = glm::vec3(0.1f, 0.1f, 0.1f);
+        //     glm::vec3 offset = chunk->getChunkOffset();
+        //     m_shader->setUniform(modelScale, glm::scale(model, scale));
+        //     m_shader->setUniform(modelTrans, glm::translate(model, glm::vec3(offset.x + chunk->getSize()/2.0f, offset.y + chunk->getSize() /2.0f, offset.z + chunk->getSize() /2.0f)));
+        //     Boundless::Renderer::submit(m_faceMaskToMesh[63]);
+        // }
         
         Boundless::Renderer::endScene();
 

@@ -33,6 +33,8 @@ namespace Boundless {
             virtual void unbind() const = 0;
             virtual LocatedUniform* locateUniform(const std::string& uniformName) const = 0;
             virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const glm::mat4& uniform) const = 0;
+            virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const glm::vec4& uniform) const = 0;
+            virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const glm::vec3& uniform) const = 0;
             virtual void setUniform(const std::string& uniformName, const glm::mat4& uniform) const = 0;
             virtual void setUniform(const std::string& uniformName, const glm::vec4& uniform) const = 0;
             virtual void setUniform(const std::string& uniformName, const glm::vec3& uniform) const = 0;

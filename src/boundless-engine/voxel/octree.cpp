@@ -45,7 +45,7 @@ namespace Boundless {
         uint32_t path = 0u;
         uint8_t count = 0u;
         uint8_t latest = 0u;
-        while ((target & mask) == whileThis && target != 0u) {
+        while ((target & mask) == whileThis && target > 1u) {
             latest = target & 7u;
             if (backwardIsOr) {
                 path = path | ((latest | mask) << (3u * count));
@@ -55,7 +55,10 @@ namespace Boundless {
             target = target >> 3u;
             count += 1u;
         }
-
+        if (target == 1u) {
+            return 1u;
+        } 
+        
         if (backwardIsOr) {
             target = target ^ mask;
         } else {
@@ -70,17 +73,22 @@ namespace Boundless {
         while (siblingLocationalCode > 1u) {
             if (octree->nodeExists(siblingLocationalCode)) {
                 Ref<OctreeNode>& sibling = octree->getNodeAt(siblingLocationalCode);
-                if (sibling->getLocationalCode() != 1 && !sibling->isLeaf()) {
+                if (!sibling->isLeaf()) {
                     // Find its smaller children that might be obscuring our view
                     bool solidFlag = true;
                     octree->visitAll(sibling, [&](uint32_t nodeLocationalCode, Ref<OctreeNode>& node) {
                         if (!node->isLeaf())
                             return;
+                        
                         uint8_t depth = node->getDepth() - sibling->getDepth();
                         uint32_t hyperLocalCode = ((nodeLocationalCode >> (3u * depth)) << (3u * depth)) ^ nodeLocationalCode;
+                        uint32_t hyperFaceBitsTestMask = faceBitsTestMask;
+                        for (uint8_t i = 0u; i < depth - 1u; i++) {
+                            hyperFaceBitsTestMask = (hyperFaceBitsTestMask << 3u) | faceBitsTestMask;
+                        }
                         
-                        if ((hyperLocalCode & faceBitsTestMask) == testMaskExpectedResult) {
-                            if (!node->getVoxelData().isSolid() && nodeLocationalCode != 1) {
+                        if ((hyperLocalCode & hyperFaceBitsTestMask) == testMaskExpectedResult) {
+                            if (!node->getVoxelData().isSolid() && nodeLocationalCode != 1u) {
                                 solidFlag = false;
                             }
                         }
@@ -88,7 +96,7 @@ namespace Boundless {
                     if (!solidFlag) {
                         return false;
                     }
-                } else if (!sibling->getVoxelData().isSolid() && sibling->getLocationalCode() != 1) {
+                } else if (!sibling->getVoxelData().isSolid()) {
                     return false;
                 }
 
