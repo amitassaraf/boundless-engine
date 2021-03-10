@@ -70,7 +70,7 @@ namespace Boundless {
         return target;
     }
 
-    bool checkIfSiblingIsSolid(Octree* octree, uint32_t siblingLocationalCode, uint32_t faceBitsTestMask, uint32_t testMaskExpectedResult, uint32_t size) {
+    bool checkIfSiblingIsSolid(Octree* octree, uint32_t siblingLocationalCode, uint32_t faceBitsTestMask, uint32_t testMaskExpectedResult) {
         while (siblingLocationalCode > 1u) {
             if (octree->nodeExists(siblingLocationalCode)) {
                 Ref<OctreeNode>& sibling = octree->getNodeAt(siblingLocationalCode);
