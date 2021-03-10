@@ -121,43 +121,27 @@ namespace Boundless {
             north = node->getLocationalCode() | 4u;
         }
         // Get left and right
-        if ((node->getLocationalCode() & 1u) == 0u) { // Are we a left node?
-            right = node->getLocationalCode() | 1u;
-
-            left = calculateSibling(node->getLocationalCode(), 1u, 0u, true);
-        } else { // We are a right node
-            left = node->getLocationalCode() ^ 1u;
-
+        if ((node->getLocationalCode() & 1u) == 1u) { // Are we a right node?
             right = calculateSibling(node->getLocationalCode(), 1u, 1u, false);
+
+            left = node->getLocationalCode() ^ 1u;
+        } else { // We are a right node
+            left = calculateSibling(node->getLocationalCode(), 1u, 0u, true);
+
+            right = node->getLocationalCode() | 1u;
         }
 
         // Get back and front
         if ((node->getLocationalCode() & 2u) == 2u) { // Are we a back node?
-            front = node->getLocationalCode() ^ 2u;
-
             back = calculateSibling(node->getLocationalCode(), 2u, 2u, false);
+
+            front = node->getLocationalCode() ^ 2u;
         } else { // We are a front node
-            back = node->getLocationalCode() | 2u;
-
             front = calculateSibling(node->getLocationalCode(), 2u, 0u, true);
+
+            back = node->getLocationalCode() | 2u;
         }
 
-
-        if (!checkIfSiblingIsSolid(this, left, LEFT_RIGHT_FACE_BITS_TEST, 1u)) {
-            node->setFaceMask(node->getFaceMask() | FACE_LEFT);
-        }
-
-        if (!checkIfSiblingIsSolid(this, right, LEFT_RIGHT_FACE_BITS_TEST, 0u)) {
-            node->setFaceMask(node->getFaceMask() | FACE_RIGHT);
-        } else {
-            if (node->getSize() == 1) {
-                BD_CORE_TRACE("Found {} for {}, result", std::bitset<32>(right).to_string(), std::bitset<32>(node->getLocationalCode()).to_string());
-                if (this->nodeExists(right)) {
-                    BD_CORE_TRACE("Solid? {}", this->getNodeAt(right)->getVoxelData().isSolid());
-                }
-                
-            }
-        }
 
         if (!checkIfSiblingIsSolid(this, north, TOP_BOTTOM_FACE_BITS_TEST, 0u)) {
             node->setFaceMask(node->getFaceMask() | FACE_TOP);
@@ -167,13 +151,21 @@ namespace Boundless {
             node->setFaceMask(node->getFaceMask() | FACE_BOTTOM);
         }
 
-        // if (!checkIfSiblingIsSolid(this, back, FRONT_BACK_FACE_BITS_TEST, 0u)) {
-        //     node->setFaceMask(node->getFaceMask() | FACE_BACK);
-        // }
+        if (!checkIfSiblingIsSolid(this, back, FRONT_BACK_FACE_BITS_TEST, 0u)) {
+            node->setFaceMask(node->getFaceMask() | FACE_BACK);
+        }
 
-        // if (!checkIfSiblingIsSolid(this, front, FRONT_BACK_FACE_BITS_TEST, 1u)) {
-        //     node->setFaceMask(node->getFaceMask() | FACE_FRONT);
-        // }
+        if (!checkIfSiblingIsSolid(this, front, FRONT_BACK_FACE_BITS_TEST, 1u)) {
+            node->setFaceMask(node->getFaceMask() | FACE_FRONT);
+        }
+
+        if (!checkIfSiblingIsSolid(this, left, LEFT_RIGHT_FACE_BITS_TEST, 1u)) {
+            node->setFaceMask(node->getFaceMask() | FACE_LEFT);
+        }
+
+        if (!checkIfSiblingIsSolid(this, right, LEFT_RIGHT_FACE_BITS_TEST, 0u)) {
+            node->setFaceMask(node->getFaceMask() | FACE_RIGHT);
+        }
     }
 
     void Octree::visitAll(Ref<OctreeNode>& node, std::function< void(uint32_t nodeLocationalCode, Ref<OctreeNode>& node) > lambda) {
