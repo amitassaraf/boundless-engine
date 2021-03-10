@@ -122,6 +122,8 @@ public:
     }
 
     void onUpdate() override {
+        glm::mat4 model = glm::mat4(1.0f);
+
         // Measure speed
         double currentTime = glfwGetTime();
         nbFrames++;
@@ -149,7 +151,6 @@ public:
                 m_faceMaskToMesh[boundMask]->bind();
             }
             
-            glm::mat4 model = glm::mat4(1.0f);
             glm::vec3 scale = glm::vec3(chunk->getSize(), chunk->getSize(), chunk->getSize());
             m_shader->setUniform(modelScale, glm::scale(model, scale));
             m_shader->setUniform(modelTrans, glm::translate(model, chunk->getChunkOffset()));
@@ -159,14 +160,15 @@ public:
 
         // Boundless::RenderCommand::wireframeMode();
 
-        // for (Boundless::Ref<Boundless::OctreeNode> chunk : airChunks) {
-        //     m_faceMaskToMesh[63]->bind();
-        //     glm::mat4 model = glm::mat4(1.0f);
-        //     glm::vec3 scale = glm::vec3(chunk->getSize(), chunk->getSize(), chunk->getSize());
-        //     m_shader->setUniform("modelScale", glm::scale(model, scale));
-        //     m_shader->setUniform("modelTrans", glm::translate(model, chunk->getChunkOffset()));
-        //     Boundless::Renderer::submit(m_faceMaskToMesh[63]);
-        // }
+        m_faceMaskToMesh[63]->bind();
+        for (Boundless::Ref<Boundless::OctreeNode> chunk : airChunks) {
+            glm::mat4 model = glm::mat4(1.0f);
+            glm::vec3 scale = glm::vec3(0.1f, 0.1f, 0.1f);
+            glm::vec3 offset = chunk->getChunkOffset();
+            m_shader->setUniform(modelScale, glm::scale(model, scale));
+            m_shader->setUniform(modelTrans, glm::translate(model, glm::vec3(offset.x + chunk->getSize()/2.0f, offset.y + chunk->getSize() /2.0f, offset.z + chunk->getSize() /2.0f)));
+            Boundless::Renderer::submit(m_faceMaskToMesh[63]);
+        }
         
         Boundless::Renderer::endScene();
 

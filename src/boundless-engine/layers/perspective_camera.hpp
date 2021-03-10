@@ -45,7 +45,7 @@ namespace Boundless {
             glm::vec3 m_position;
             glm::vec3 m_up;
             
-            const float m_speed = 50.0f; // adjust accordingly
+            const float m_speed = 15.0f; // adjust accordingly
             float yaw;
             float pitch;
             float m_lastX = 400, m_lastY = 320;

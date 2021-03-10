@@ -44,15 +44,22 @@ namespace Boundless {
         uint32_t target = startLocation;
         uint32_t path = 0u;
         uint8_t count = 0u;
-        while ((target & mask) == whileThis && target != 0u) {
+        uint8_t latest = 0u;
+        while ((target & mask) == whileThis && target > 1u) {
+            latest = target & 7u;
             if (backwardIsOr) {
-                path = path | (((target & 7u) | mask) << (3u * count));
+                path = path | ((latest | mask) << (3u * count));
             } else {
-                path = path | (((target & 7u) ^ mask) << (3u * count));
+                path = path | ((latest ^ mask) << (3u * count));
             }
             target = target >> 3u;
             count += 1u;
         }
+        if (target == 1u) {
+            target = target << 3u;
+            target = target | latest;
+        }
+
         if (backwardIsOr) {
             target = target ^ mask;
         } else {
@@ -63,7 +70,7 @@ namespace Boundless {
         return target;
     }
 
-    bool checkIfSiblingIsSolid(Octree* octree, uint32_t siblingLocationalCode, uint32_t faceBitsTestMask, uint32_t testMaskExpectedResult) {
+    bool checkIfSiblingIsSolid(Octree* octree, uint32_t siblingLocationalCode, uint32_t faceBitsTestMask, uint32_t testMaskExpectedResult, uint32_t size) {
         while (siblingLocationalCode > 1u) {
             if (octree->nodeExists(siblingLocationalCode)) {
                 Ref<OctreeNode>& sibling = octree->getNodeAt(siblingLocationalCode);
@@ -88,9 +95,9 @@ namespace Boundless {
                 } else if (!sibling->getVoxelData().isSolid() && sibling->getLocationalCode() != 1) {
                     return false;
                 }
+
                 return true;
             }
-
             siblingLocationalCode = siblingLocationalCode >> 3u;
         }
 
@@ -151,12 +158,12 @@ namespace Boundless {
             node->setFaceMask(node->getFaceMask() | FACE_BOTTOM);
         }
 
-        if (!checkIfSiblingIsSolid(this, back, FRONT_BACK_FACE_BITS_TEST, 0u)) {
-            node->setFaceMask(node->getFaceMask() | FACE_BACK);
-        }
-
         if (!checkIfSiblingIsSolid(this, front, FRONT_BACK_FACE_BITS_TEST, 1u)) {
             node->setFaceMask(node->getFaceMask() | FACE_FRONT);
+        }
+
+        if (!checkIfSiblingIsSolid(this, back, FRONT_BACK_FACE_BITS_TEST, 0u)) {
+            node->setFaceMask(node->getFaceMask() | FACE_BACK);
         }
 
         if (!checkIfSiblingIsSolid(this, left, LEFT_RIGHT_FACE_BITS_TEST, 1u)) {
