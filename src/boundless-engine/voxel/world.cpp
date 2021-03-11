@@ -32,7 +32,7 @@ namespace Boundless {
         delete m_octree;
     }
 
-    int World::shouldDivide(const glm::vec3& chunkOffset, uint32_t nodeSize, uint32_t lod) {
+    int World::shouldDivide(const glm::vec3& chunkOffset, uint64_t nodeSize, uint64_t lod) {
         int above = 1;
         
         for (int x = chunkOffset.x; x < chunkOffset.x + nodeSize; x++) {
@@ -58,7 +58,7 @@ namespace Boundless {
 
         BD_CORE_INFO("Generating world.");
         
-        m_octree->visitAll(rootNode, [&](uint32_t nodeLocationalCode, Ref<OctreeNode>& node) {
+        m_octree->visitAll(rootNode, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
             UNUSED(nodeLocationalCode);
             glm::vec3 offset = node->getChunkOffset();
             int aboveBelowOrDivide = this->shouldDivide(offset, node->getSize(), node->getLOD());
@@ -73,7 +73,7 @@ namespace Boundless {
             }
         });
 
-        m_octree->visitAll(rootNode, [&](uint32_t nodeLocationalCode, Ref<OctreeNode>& node) {
+        m_octree->visitAll(rootNode, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
             UNUSED(nodeLocationalCode);
             m_octree->calculateFaceMask(node);
         });
@@ -81,11 +81,11 @@ namespace Boundless {
         BD_CORE_TRACE("TOTAL NODES: {}", totalNodes);
     }
 
-    void World::changeLOD(Ref<OctreeNode>& lodNode, uint32_t lod) {
-        uint32_t currentLod = lodNode->getLOD();
+    void World::changeLOD(Ref<OctreeNode>& lodNode, uint64_t lod) {
+        uint64_t currentLod = lodNode->getLOD();
         if (currentLod < lod) {
             lodNode->setLOD(lod);
-            m_octree->visitAllBottomUp(lodNode, [&](uint32_t nodeLocationalCode, Ref<OctreeNode>& node) {
+            m_octree->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
                 UNUSED(nodeLocationalCode);
                 
                 if (node->getSize() < lod) {
@@ -99,7 +99,7 @@ namespace Boundless {
             });
         } else if (lod < currentLod) {
             lodNode->setLOD(lod);
-            m_octree->visitAllBottomUp(lodNode, [&](uint32_t nodeLocationalCode, Ref<OctreeNode>& node) {
+            m_octree->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
                 UNUSED(nodeLocationalCode);
                 
                 if (node->isLeaf() && node->getSize() > lod) {

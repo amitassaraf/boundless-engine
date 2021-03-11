@@ -28,7 +28,7 @@ public:
     void calcRenderNodes(Boundless::World& world) {
         chunks.clear();
         airChunks.clear();
-        world.getOctree()->visitAll(world.getOctree()->getRootNode(), [&](uint32_t nodeLocationalCode, Boundless::Ref<Boundless::OctreeNode>& node) {
+        world.getOctree()->visitAll(world.getOctree()->getRootNode(), [&](uint64_t nodeLocationalCode, Boundless::Ref<Boundless::OctreeNode>& node) {
             UNUSED(nodeLocationalCode);
 
             if (!node->isLeaf() || !node->getVoxelData().isSolid() || node->getFaceMask() == 0) {
@@ -175,7 +175,7 @@ public:
             
             if (keyPressedEvent->getKeyCode() == 84) {
                 auto random_it = std::next(std::begin(chunks), rand() % chunks.size());
-                uint32_t lod = std::pow(2, rand() % 8 + 1);
+                uint64_t lod = std::pow(2, rand() % 8 + 1);
                 BD_CORE_TRACE("Changing to LOD: {}",lod);
                 world.changeLOD((*random_it), lod);
                 calcRenderNodes(world);

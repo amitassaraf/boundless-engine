@@ -5,7 +5,7 @@
 
 namespace Boundless {
 
-    OctreeNode::OctreeNode(uint32_t locationalCode, uint32_t nodeSize) 
+    OctreeNode::OctreeNode(uint64_t locationalCode, uint64_t nodeSize) 
     : m_voxel(false), m_locationalCode(locationalCode), m_nodeSize(nodeSize) {
 
     }
@@ -15,9 +15,9 @@ namespace Boundless {
     }
 
     glm::vec3 OctreeNode::getChunkOffset() const {
-        uint32_t locationalCode = m_locationalCode;
+        uint64_t locationalCode = m_locationalCode;
         glm::vec3 chunkOffset(0, 0, 0);
-        uint32_t size = m_nodeSize;
+        uint64_t size = m_nodeSize;
 
         while (locationalCode > 1) {
             uint8_t localCode = locationalCode & 7u;
@@ -56,13 +56,13 @@ namespace Boundless {
                     break;
             }
 
-            locationalCode >>= 3;
-            size *= 2;
+            locationalCode >>= 3u;
+            size *= 2u;
         }
         return chunkOffset;
     }
 
-    std::uint32_t OctreeNode::getSize() const {
+    std::uint64_t OctreeNode::getSize() const {
         return m_nodeSize;
     }
 
@@ -72,7 +72,7 @@ namespace Boundless {
         }
 
     #if defined(__GNUC__)
-        return (31-__builtin_clz(m_locationalCode))/3;
+        return (63-__builtin_clz(m_locationalCode))/3;
     #elif defined(_MSC_VER)
         long msb;
         _BitScanReverse(&msb, m_locationalCode);
@@ -84,7 +84,7 @@ namespace Boundless {
         return m_voxel;
     }
 
-    std::uint32_t OctreeNode::getLocationalCode() const {
+    std::uint64_t OctreeNode::getLocationalCode() const {
         return m_locationalCode;
     }
 
@@ -104,11 +104,11 @@ namespace Boundless {
         m_faceMask = faceMask;
     }
 
-    std::uint32_t OctreeNode::getLOD() const {
+    std::uint64_t OctreeNode::getLOD() const {
         return m_lod;
     }
 
-    void OctreeNode::setLOD(std::uint32_t lod) {
+    void OctreeNode::setLOD(std::uint64_t lod) {
         m_lod = lod;
     }
 
