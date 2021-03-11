@@ -21,6 +21,7 @@ namespace Boundless {
             virtual void wireframeMode() = 0;
             virtual void fillMode() = 0;
             virtual void drawIndexed(const Ref<VertexArray>& vertexArray) = 0;
+            virtual void drawIndexedInstanced(const Ref<VertexArray>& vertexArray, uint32_t count) = 0;
 
             inline static RenderAPI getApi() { return s_Api; }
         private:

@@ -10,6 +10,7 @@ namespace Boundless {
         glGenBuffers(1, &m_rendererId);
         glBindBuffer(GL_ARRAY_BUFFER, m_rendererId);  
         glBufferData(GL_ARRAY_BUFFER, size, verticies, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);  
     }
 
     OpenGLVertexBuffer::~OpenGLVertexBuffer() {
@@ -33,6 +34,7 @@ namespace Boundless {
         glGenBuffers(1, &m_rendererId);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_rendererId);  
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indicies, GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);  
     }
 
     OpenGLIndexBuffer::~OpenGLIndexBuffer() {

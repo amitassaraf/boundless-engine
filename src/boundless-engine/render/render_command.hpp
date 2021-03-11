@@ -22,6 +22,10 @@ namespace Boundless {
                 s_rendererApi->drawIndexed(vertexArray);
             }
 
+            inline static void drawIndexedInstanced(const Ref<VertexArray>& vertexArray, uint32_t count) {
+                s_rendererApi->drawIndexedInstanced(vertexArray, count);
+            }
+
             inline static void wireframeMode() {
                 s_rendererApi->wireframeMode();
             }

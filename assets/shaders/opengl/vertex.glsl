@@ -1,20 +1,18 @@
 #version 330 core
 
-layout (location = 0) in vec3 a_Pos;
-layout (location = 1) in vec3 a_Norm;
+layout (location = 0) in vec3 v_Pos;
+layout (location = 1) in vec3 v_Norm;
+layout (location = 2) in mat4 m_ModelMatrix;
 
-flat out vec3 v_Nom;
-out vec3 v_Pos;  
-
-uniform mat4 modelScale;
-uniform mat4 modelTrans;
+flat out vec3 out_Nom;
+out vec3 out_Pos;  
 
 uniform mat4 view;
 uniform mat4 projection;
 
 void main() {
-    vec4 position = vec4(a_Pos, 1.0);
-    v_Nom = mat3(transpose(inverse(modelTrans * modelScale))) * a_Norm; 
-    v_Pos = vec3(modelTrans * modelScale * position);
-    gl_Position = projection * view * modelTrans * modelScale * position;
+    vec4 position = vec4(v_Pos, 1.0);
+    out_Nom = mat3(transpose(inverse(m_ModelMatrix))) * v_Norm; 
+    out_Pos = vec3(m_ModelMatrix * position);
+    gl_Position = projection * view * m_ModelMatrix * position;
 }

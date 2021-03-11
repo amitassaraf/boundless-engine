@@ -18,7 +18,7 @@ namespace Boundless {
             virtual void bind() const override;
             virtual void unbind() const override;
 
-            virtual void addVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) override;
+            virtual void addVertexBuffer(const Ref<VertexBuffer>& vertexBuffer, uint32_t beginAtIndex = 0) override;
             virtual void setIndexBuffer(const Ref<IndexBuffer>& indexBuffer) override;
             
             inline virtual const Ref<IndexBuffer>& getIndexBuffer() const override { return m_indexBuffer; }

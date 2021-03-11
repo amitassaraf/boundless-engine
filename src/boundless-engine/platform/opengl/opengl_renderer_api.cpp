@@ -16,6 +16,10 @@ namespace Boundless {
         glDrawElements(GL_TRIANGLES, vertexArray->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
     }
 
+    void OpenGLRendererAPI::drawIndexedInstanced(const Ref<VertexArray>& vertexArray, uint32_t count) {
+        glDrawElementsInstanced(GL_TRIANGLES, vertexArray->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, 0, count);
+    }
+
     void OpenGLRendererAPI::wireframeMode() {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }

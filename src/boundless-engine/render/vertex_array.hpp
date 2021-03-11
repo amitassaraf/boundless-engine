@@ -16,7 +16,7 @@ namespace Boundless {
             virtual void bind() const = 0;
             virtual void unbind() const = 0;
 
-            virtual void addVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) = 0;
+            virtual void addVertexBuffer(const Ref<VertexBuffer>& vertexBuffer, uint32_t beginAtIndex = 0) = 0;
             virtual void setIndexBuffer(const Ref<IndexBuffer>& indexBuffer) = 0;
 
             virtual const Ref<IndexBuffer>& getIndexBuffer() const = 0; 

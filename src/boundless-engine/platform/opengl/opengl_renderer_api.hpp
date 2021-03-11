@@ -16,6 +16,7 @@ namespace Boundless {
             virtual void fillMode() override;
 
             virtual void drawIndexed(const Ref<VertexArray>& vertexArray) override;
+            virtual void drawIndexedInstanced(const Ref<VertexArray>& vertexArray, uint32_t count) override;
     };
 
 }

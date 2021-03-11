@@ -23,7 +23,7 @@ namespace Boundless {
         glBindVertexArray(0);
     }
 
-    void OpenGLVertexArray::addVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) {
+    void OpenGLVertexArray::addVertexBuffer(const Ref<VertexBuffer>& vertexBuffer, uint32_t beginAtIndex) {
         const auto& layout = vertexBuffer->getLayout();
         if (layout.getElements().size() == 0) {
             BD_CORE_ERROR("Vertex buffer layout was not set.");
@@ -32,7 +32,7 @@ namespace Boundless {
 
         this->bind();
         vertexBuffer->bind();
-        uint32_t index = 0;
+        uint32_t index = beginAtIndex;
         
         for (const auto& element : layout) {
             glVertexAttribPointer(index,
@@ -42,9 +42,13 @@ namespace Boundless {
                 layout.getStride(),
                 INT2VOIDP(element.offset));
             glEnableVertexAttribArray(index);
+            if (element.instanced) {
+                glVertexAttribDivisor(index, 1);
+            }
             index++;
         }
-
+        vertexBuffer->unbind();
+        this->unbind();
         m_vertexBuffers.push_back(vertexBuffer);
     }
 
@@ -53,6 +57,9 @@ namespace Boundless {
         indexBuffer->bind();
         
         m_indexBuffer = indexBuffer;
+
+        indexBuffer->unbind();
+        this->unbind();
     }
 
 

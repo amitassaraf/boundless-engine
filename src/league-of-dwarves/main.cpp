@@ -3,14 +3,13 @@
 class LeagueOfDwarves : public Boundless::Game {
 public:
     std::unordered_map<uint8_t, Boundless::Ref<Boundless::VertexArray> > m_faceMaskToMesh;
+    std::vector<std::pair<Boundless::Ref<Boundless::VertexArray>, uint32_t> > m_toRender;
     Boundless::Ref<Boundless::Shader> m_shader;
     Boundless::Ref<Boundless::PerspectiveCamera> m_camera;
     std::vector<Boundless::Ref<Boundless::OctreeNode> > chunks;
     std::vector<Boundless::Ref<Boundless::OctreeNode> > airChunks;
     double lastTime = 0;
     int nbFrames = 0;
-    Boundless::Ref<Boundless::LocatedUniform> modelScale;
-    Boundless::Ref<Boundless::LocatedUniform> modelTrans;
     Boundless::Ref<Boundless::LocatedUniform> view;
     Boundless::Ref<Boundless::LocatedUniform> projection;
     // ThreadPool pool(std::thread::hardware_concurrency());
@@ -59,20 +58,22 @@ public:
             0,  1,  1,  -1,  0,  0,  // 7, nv left 
         };
 
+        glm::mat4 model = glm::mat4(1.0f);
         Boundless::Ref<Boundless::VertexBuffer> m_vb;
         m_vb.reset(Boundless::VertexBuffer::create(cubeVertices, sizeof(cubeVertices)));
-
-        Boundless::BufferLayout layout = {
-            { Boundless::ShaderDataType::VEC3, "a_Pos" },
-            { Boundless::ShaderDataType::VEC3, "surfaceNormal" },
+        Boundless::BufferLayout vertexLayout = {
+            { Boundless::ShaderDataType::VEC3, "v_Pos" },
+            { Boundless::ShaderDataType::VEC3, "v_Normal" },  
         };
-        m_vb->setLayout(layout);
-
+        m_vb->setLayout(vertexLayout);
+        
         for (int i = 1; i < 64; i++ ) {
             uint8_t faceMask = i;
             std::vector<uint32_t> cubeIndices;
+            Boundless::Ref<Boundless::VertexBuffer> m_vbPositions;
+
             m_faceMaskToMesh[faceMask] = Boundless::Ref<Boundless::VertexArray>(Boundless::VertexArray::create());
-            m_faceMaskToMesh[faceMask]->addVertexBuffer(m_vb);
+
 
             if ((faceMask & FACE_BOTTOM) == FACE_BOTTOM) {
                 cubeIndices.insert(cubeIndices.end(), {0, 2, 3,   0, 3, 1});
@@ -99,16 +100,57 @@ public:
                 cubeIndices.insert(cubeIndices.end(), {7, 6, 0,   7, 0, 1});
             }
 
+            std::vector<float> cubePositions;
+            uint32_t instanceCount = 0u;
+            for (Boundless::Ref<Boundless::OctreeNode> chunk : chunks) {
+                if (chunk->getFaceMask() == faceMask) {
+                    glm::mat4 scaledModel = glm::scale(model, glm::vec3(chunk->getSize(), chunk->getSize(), chunk->getSize()));
+                    glm::mat4 translatedModel = glm::translate(scaledModel, chunk->getChunkOffset());
+
+                    cubePositions.insert(cubePositions.end(), {translatedModel[0][0],
+                                                               translatedModel[0][1],
+                                                               translatedModel[0][2],
+                                                               translatedModel[0][3]});
+                    cubePositions.insert(cubePositions.end(), {translatedModel[1][0],
+                                                               translatedModel[1][1],
+                                                               translatedModel[1][2],
+                                                               translatedModel[1][3]});
+                    cubePositions.insert(cubePositions.end(), {translatedModel[2][0],
+                                                               translatedModel[2][1],
+                                                               translatedModel[2][2],
+                                                               translatedModel[2][3]});
+                    cubePositions.insert(cubePositions.end(), {translatedModel[3][0],
+                                                               translatedModel[3][1],
+                                                               translatedModel[3][2],
+                                                               translatedModel[3][3]});
+                    instanceCount += 1u;
+                }
+            }
+
+            float* positions = &cubePositions[0];
+            m_vbPositions.reset(Boundless::VertexBuffer::create(positions, cubePositions.size() * sizeof(float)));
+            Boundless::BufferLayout layout = {
+                { Boundless::ShaderDataType::VEC4, "m_scaledTranslated_Col1", true },
+                { Boundless::ShaderDataType::VEC4, "m_scaledTranslated_Col2", true },
+                { Boundless::ShaderDataType::VEC4, "m_scaledTranslated_Col3", true },
+                { Boundless::ShaderDataType::VEC4, "m_scaledTranslated_Col4", true },
+            };
+            m_vbPositions->setLayout(layout);
+
+
+            m_faceMaskToMesh[faceMask]->addVertexBuffer(m_vb);
+            m_faceMaskToMesh[faceMask]->addVertexBuffer(m_vbPositions, 2);
+
+
             uint32_t* indicies = &cubeIndices[0];
             Boundless::Ref<Boundless::IndexBuffer> m_ib;
             m_ib.reset(Boundless::IndexBuffer::create(indicies, cubeIndices.size()));
             m_faceMaskToMesh[faceMask]->setIndexBuffer(m_ib);
-        }
 
-        std::sort(chunks.begin(), chunks.end(), 
-        [](Boundless::Ref<Boundless::OctreeNode> const &a, Boundless::Ref<Boundless::OctreeNode> const &b) {
-            return a->getFaceMask() < b->getFaceMask(); 
-        });
+            if (instanceCount > 0u) {
+                m_toRender.push_back(std::make_pair(m_faceMaskToMesh[faceMask], instanceCount));
+            }
+        }
 
         // uint32_t cubeIndices[6 * 3 * 2] = {
         //     0, 2, 3,   0, 3, 1, // bottom
@@ -125,8 +167,6 @@ public:
         m_shader->bind();
         m_shader->setUniform("lightPos", glm::vec3( 0,  256,  0));
 
-        modelScale.reset(m_shader->locateUniform("modelScale"));
-        modelTrans.reset(m_shader->locateUniform("modelTrans"));
         view.reset(m_shader->locateUniform("view"));
         projection.reset(m_shader->locateUniform("projection"));
 
@@ -144,7 +184,7 @@ public:
     }
 
     void onUpdate() override {
-        glm::mat4 model = glm::mat4(1.0f);
+        // glm::mat4 model = glm::mat4(1.0f);
 
         // Measure speed
         double currentTime = glfwGetTime();
@@ -166,18 +206,18 @@ public:
         
         Boundless::RenderCommand::fillMode();
 
-        uint8_t boundMask = 0;
-        for (Boundless::Ref<Boundless::OctreeNode> chunk : chunks) {
-            if (boundMask != chunk->getFaceMask()) {
-                boundMask = chunk->getFaceMask();
-                m_faceMaskToMesh[boundMask]->bind();
-            }
-            
-            glm::vec3 scale = glm::vec3(chunk->getSize(), chunk->getSize(), chunk->getSize());
-            m_shader->setUniform(modelScale, glm::scale(model, scale));
-            m_shader->setUniform(modelTrans, glm::translate(model, chunk->getChunkOffset()));
-            Boundless::Renderer::submit(m_faceMaskToMesh[boundMask]);
+        // uint8_t boundMask = 0;
+        for (auto pair : m_toRender) {
+            pair.first->bind();
+            Boundless::Renderer::submitInstanced(pair.first, pair.second);
         }
+        // for (Boundless::Ref<Boundless::OctreeNode> chunk : chunks) {
+        //     if (boundMask != chunk->getFaceMask()) {
+        //         boundMask = chunk->getFaceMask();
+        //         m_faceMaskToMesh[boundMask]->bind();
+        //     }
+        //     Boundless::Renderer::submit(m_faceMaskToMesh[boundMask]);
+        // }
         // m_faceMaskToMesh[boundMask]->unbind();
 
         // Boundless::RenderCommand::wireframeMode();

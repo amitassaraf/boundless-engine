@@ -13,12 +13,13 @@ namespace Boundless {
         std::string name;
         ShaderDataType type;
         uint32_t size;
-        uint32_t offset;
+        uint32_t offset;        
+        bool instanced;
         bool normalized;
 
         BufferElement() {}
-        BufferElement(ShaderDataType type, const std::string& name, bool normalized = false) :
-            name(name), type(type), size(getShaderDataTypeSize(type)),  offset(0), normalized(normalized) {
+        BufferElement(ShaderDataType type, const std::string& name, bool instanced = false, bool normalized = false) :
+            name(name), type(type), size(getShaderDataTypeSize(type)),  offset(0), instanced(instanced), normalized(normalized) {
 
             }
     };
