@@ -32,7 +32,7 @@ namespace Boundless {
         delete m_octree;
     }
 
-    int World::shouldDivide(const glm::vec3& chunkOffset, uint64_t nodeSize, uint64_t lod) {
+    int World::shouldDivide(const glm::vec3& chunkOffset, uint16_t nodeSize, uint64_t lod) {
         int above = 1;
         
         for (int x = chunkOffset.x; x < chunkOffset.x + nodeSize; x++) {

@@ -12,29 +12,29 @@
 namespace Boundless {
     class OctreeNode {
         public:
-            OctreeNode(uint64_t locationalCode, uint64_t nodeSize);
+            OctreeNode(uint64_t locationalCode, uint16_t nodeSize);
             ~OctreeNode() {}
 
             std::size_t getDepth() const;
             glm::vec3 getChunkOffset() const;
-            std::uint64_t getSize() const;
+            std::uint16_t getSize() const;
             bool isLeaf() const;
             Voxel& getVoxelData();
             std::uint64_t getLocationalCode() const;
             std::uint8_t getChildrenMask() const;
             void setChildrenMask(std::uint8_t childMask);
-            std::uint64_t getLOD() const;
+            std::uint16_t getLOD() const;
             std::uint8_t getFaceMask() const;
             void setFaceMask(std::uint8_t faceMask);
-            void setLOD(std::uint64_t lod);
+            void setLOD(std::uint16_t lod);
 
         private:
             Voxel m_voxel;
             std::uint64_t m_locationalCode;
-            std::uint64_t m_nodeSize;
+            std::uint16_t m_nodeSize;
             std::uint8_t m_childrenMask = 0;
             std::uint8_t m_faceMask = 0;
-            std::uint64_t m_lod = 1u;
+            std::uint16_t m_lod = 1u;
     };
 
 }
@@ -48,9 +48,14 @@ namespace Boundless {
 #define TOP_LEFT_BACK 6u // 110
 #define TOP_RIGHT_BACK 7u // 111
 
-#define LEFT_RIGHT_FACE_BITS_TEST 1u  // 0b001001001001001001001001001001
-#define FRONT_BACK_FACE_BITS_TEST 2u // 0b010010010010010010010010010010
-#define TOP_BOTTOM_FACE_BITS_TEST 4u // 0b100100100100100100100100100100
+#define LEFT_RIGHT_FACE_BITS_TEST 1u  // 0b001
+#define FRONT_BACK_FACE_BITS_TEST 2u // 0b010
+#define TOP_BOTTOM_FACE_BITS_TEST 4u // 0b100
+
+#define BIT64_LEFT_RIGHT_FACE_BITS_TEST 0x9249249249249249  // 0b001001001001001001001001001001
+#define BIT64_FRONT_BACK_FACE_BITS_TEST 0x2492492492492492 // 0b010010010010010010010010010010
+#define BIT64_TOP_BOTTOM_FACE_BITS_TEST 0x4924924924924924 // 0b100100100100100100100100100100
+
 
 #define FACE_TOP 1u // 000
 #define FACE_BOTTOM 2u // 010

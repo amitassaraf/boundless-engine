@@ -6,7 +6,7 @@
 #include <bitset>
 
 namespace Boundless {
-    Octree::Octree(uint64_t octreeSize) {
+    Octree::Octree(uint16_t octreeSize) {
         m_nodes[1] = Ref<OctreeNode>(new OctreeNode(1, octreeSize)); // Root Node
     }
 
@@ -35,7 +35,7 @@ namespace Boundless {
     }
 
     void Octree::divide(Ref<OctreeNode>& node) {
-        uint64_t newSize = node->getSize() / 2u;
+        uint16_t newSize = node->getSize() / 2u;
         for (int i=0; i<8; i++) {
             node->setChildrenMask(node->getChildrenMask() | (1<<i));
             uint64_t childLocationalCode = (node->getLocationalCode() << 3) | i;
@@ -72,7 +72,7 @@ namespace Boundless {
         return target;
     }
 
-    bool checkIfSiblingIsSolid(Octree* octree, uint64_t siblingLocationalCode, uint64_t nodeSize, uint64_t faceBitsTestMask, bool expectingZeroResult) {
+    bool checkIfSiblingIsSolid(Octree* octree, uint64_t siblingLocationalCode, uint16_t nodeSize, uint64_t faceBitsTestMask, bool expectingZeroResult) {
         while (siblingLocationalCode > 1u) {
             if (octree->nodeExists(siblingLocationalCode)) {
                 Ref<OctreeNode>& sibling = octree->getNodeAt(siblingLocationalCode);

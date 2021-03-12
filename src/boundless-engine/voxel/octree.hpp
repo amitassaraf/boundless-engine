@@ -11,7 +11,7 @@ namespace Boundless {
 
     class Octree {
         public:
-            Octree(uint64_t octreeSize);
+            Octree(uint16_t octreeSize);
 
             Ref<OctreeNode>& getParentNode(Ref<OctreeNode>& node);
             Ref<OctreeNode>& getRootNode();
