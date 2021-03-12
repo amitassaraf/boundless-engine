@@ -105,7 +105,8 @@ public:
             for (Boundless::Ref<Boundless::OctreeNode> chunk : chunks) {
                 if (chunk->getFaceMask() == faceMask) {
                     glm::mat4 scaledModel = glm::scale(model, glm::vec3(chunk->getSize(), chunk->getSize(), chunk->getSize()));
-                    glm::mat4 translatedModel = glm::translate(scaledModel, chunk->getChunkOffset());
+                    glm::mat4 translatedModel = glm::translate(model, chunk->getChunkOffset());
+                    
 
                     cubePositions.insert(cubePositions.end(), {translatedModel[0][0],
                                                                translatedModel[0][1],
@@ -123,6 +124,23 @@ public:
                                                                translatedModel[3][1],
                                                                translatedModel[3][2],
                                                                translatedModel[3][3]});
+
+                    cubePositions.insert(cubePositions.end(), {scaledModel[0][0],
+                                                               scaledModel[0][1],
+                                                               scaledModel[0][2],
+                                                               scaledModel[0][3]});
+                    cubePositions.insert(cubePositions.end(), {scaledModel[1][0],
+                                                               scaledModel[1][1],
+                                                               scaledModel[1][2],
+                                                               scaledModel[1][3]});
+                    cubePositions.insert(cubePositions.end(), {scaledModel[2][0],
+                                                               scaledModel[2][1],
+                                                               scaledModel[2][2],
+                                                               scaledModel[2][3]});
+                    cubePositions.insert(cubePositions.end(), {scaledModel[3][0],
+                                                               scaledModel[3][1],
+                                                               scaledModel[3][2],
+                                                               scaledModel[3][3]});
                     instanceCount += 1u;
                 }
             }
@@ -130,10 +148,14 @@ public:
             float* positions = &cubePositions[0];
             m_vbPositions.reset(Boundless::VertexBuffer::create(positions, cubePositions.size() * sizeof(float)));
             Boundless::BufferLayout layout = {
-                { Boundless::ShaderDataType::VEC4, "m_scaledTranslated_Col1", true },
-                { Boundless::ShaderDataType::VEC4, "m_scaledTranslated_Col2", true },
-                { Boundless::ShaderDataType::VEC4, "m_scaledTranslated_Col3", true },
-                { Boundless::ShaderDataType::VEC4, "m_scaledTranslated_Col4", true },
+                { Boundless::ShaderDataType::VEC4, "m_Translated_Col1", true },
+                { Boundless::ShaderDataType::VEC4, "m_Translated_Col2", true },
+                { Boundless::ShaderDataType::VEC4, "m_Translated_Col3", true },
+                { Boundless::ShaderDataType::VEC4, "m_Translated_Col4", true },
+                { Boundless::ShaderDataType::VEC4, "m_Scaled_Col1", true },
+                { Boundless::ShaderDataType::VEC4, "m_Scaled_Col2", true },
+                { Boundless::ShaderDataType::VEC4, "m_Scaled_Col3", true },
+                { Boundless::ShaderDataType::VEC4, "m_Scaled_Col4", true },
             };
             m_vbPositions->setLayout(layout);
 

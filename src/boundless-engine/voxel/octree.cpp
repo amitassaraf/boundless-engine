@@ -72,15 +72,15 @@ namespace Boundless {
         return target;
     }
 
-    bool checkIfSiblingIsSolid(Octree* octree, uint64_t siblingLocationalCode, uint64_t faceBitsTestMask, uint64_t testMaskExpectedResult) {
+    bool checkIfSiblingIsSolid(Octree* octree, uint64_t siblingLocationalCode, uint64_t nodeSize, uint64_t faceBitsTestMask, bool expectingZeroResult) {
         while (siblingLocationalCode > 1u) {
             if (octree->nodeExists(siblingLocationalCode)) {
                 Ref<OctreeNode>& sibling = octree->getNodeAt(siblingLocationalCode);
                 if (!sibling->isLeaf()) {
-                    // Find its smaller children that might be obscuring our view
+                    // Find its smaller children that might hiding our face
                     bool solidFlag = true;
                     octree->visitAll(sibling, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
-                        if (!node->isLeaf())
+                        if (!node->isLeaf() || node->getSize() > nodeSize)
                             return;
                         
                         uint8_t depth = node->getDepth() - sibling->getDepth();
@@ -90,11 +90,20 @@ namespace Boundless {
                             hyperFaceBitsTestMask = (hyperFaceBitsTestMask << 3u) | faceBitsTestMask;
                         }
                         
-                        if ((hyperLocalCode & hyperFaceBitsTestMask) == testMaskExpectedResult) {
-                            if (!node->getVoxelData().isSolid() && nodeLocationalCode != 1u) {
-                                solidFlag = false;
+                        if (expectingZeroResult) {
+                            if ((hyperLocalCode & hyperFaceBitsTestMask) == hyperFaceBitsTestMask) {
+                                if (!node->getVoxelData().isSolid()) {
+                                    solidFlag = false;
+                                }
+                            }
+                        } else {
+                            if ((hyperLocalCode & hyperFaceBitsTestMask) == 0) {
+                                if (!node->getVoxelData().isSolid()) {
+                                    solidFlag = false;
+                                }
                             }
                         }
+                        
                     });
                     if (!solidFlag) {
                         return false;
@@ -157,27 +166,27 @@ namespace Boundless {
         }
 
 
-        if (!checkIfSiblingIsSolid(this, north, TOP_BOTTOM_FACE_BITS_TEST, 0u)) {
+        if (!checkIfSiblingIsSolid(this, north, node->getSize(), TOP_BOTTOM_FACE_BITS_TEST, false)) {
             node->setFaceMask(node->getFaceMask() | FACE_TOP);
         }
 
-        if (!checkIfSiblingIsSolid(this, south, TOP_BOTTOM_FACE_BITS_TEST, 1u)) {
+        if (!checkIfSiblingIsSolid(this, south, node->getSize(), TOP_BOTTOM_FACE_BITS_TEST, true)) {
             node->setFaceMask(node->getFaceMask() | FACE_BOTTOM);
         }
 
-        if (!checkIfSiblingIsSolid(this, front, FRONT_BACK_FACE_BITS_TEST, 1u)) {
+        if (!checkIfSiblingIsSolid(this, front, node->getSize(), FRONT_BACK_FACE_BITS_TEST, true)) {
             node->setFaceMask(node->getFaceMask() | FACE_FRONT);
         }
 
-        if (!checkIfSiblingIsSolid(this, back, FRONT_BACK_FACE_BITS_TEST, 0u)) {
+        if (!checkIfSiblingIsSolid(this, back, node->getSize(), FRONT_BACK_FACE_BITS_TEST, false)) {
             node->setFaceMask(node->getFaceMask() | FACE_BACK);
         }
 
-        if (!checkIfSiblingIsSolid(this, left, LEFT_RIGHT_FACE_BITS_TEST, 1u)) {
+        if (!checkIfSiblingIsSolid(this, left, node->getSize(), LEFT_RIGHT_FACE_BITS_TEST, true)) {
             node->setFaceMask(node->getFaceMask() | FACE_LEFT);
         }
 
-        if (!checkIfSiblingIsSolid(this, right, LEFT_RIGHT_FACE_BITS_TEST, 0u)) {
+        if (!checkIfSiblingIsSolid(this, right, node->getSize(), LEFT_RIGHT_FACE_BITS_TEST, false)) {
             node->setFaceMask(node->getFaceMask() | FACE_RIGHT);
         }
     }

@@ -4,9 +4,9 @@
 #include "logging/logger.hpp"
 #include <bitset>
 
-float scale     = 100.f;
+float scale     = 50.f;
 float lacunarity    = 1.99f;
-float persistance   = 0.1f;
+float persistance   = 0.3f;
 
 const int octaves = static_cast<int>(3 + std::log(scale)); // Estimate number of octaves needed for the current scale
 

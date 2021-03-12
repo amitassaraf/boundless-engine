@@ -29,8 +29,12 @@ namespace Boundless {
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-        glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
         glCullFace(GL_BACK);
+        glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
+
+        glfwWindowHint(GLFW_SAMPLES, 4);
+        glEnable(GL_MULTISAMPLE);  
+
     }
 
     void OpenGLContext::swapBuffers() {
