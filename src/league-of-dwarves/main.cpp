@@ -155,10 +155,10 @@ public:
             Boundless::Ref<Boundless::KeyPressedEvent> keyPressedEvent = std::dynamic_pointer_cast<Boundless::KeyPressedEvent> (event);
             
             if (keyPressedEvent->getKeyCode() == 84) {
-                auto random_it = std::next(std::begin(chunks), rand() % chunks.size());
-                uint16_t lod = std::pow(2, rand() % 8 + 1);
+                uint16_t lod = rand() % 8 + 1;
                 BD_CORE_TRACE("Changing to LOD: {}",lod);
-                world.changeLOD((*random_it), lod);
+                int location = rand() % this->chunks.size();
+                world.changeLOD(this->chunks[location], lod);
                 calcRenderNodes(world);
             }
         });

@@ -104,14 +104,17 @@ namespace Boundless {
         m_faceMask = faceMask;
     }
 
-    std::uint16_t OctreeNode::getLOD() const {
+    std::uint8_t OctreeNode::getLOD() const {
         return m_lod;
     }
 
-    void OctreeNode::setLOD(std::uint16_t lod) {
+    void OctreeNode::setLOD(std::uint8_t lod) {
         m_lod = lod;
     }
 
+    void OctreeNode::setSize(std::uint16_t size) {
+        m_nodeSize = size;
+    }
 
 
 }

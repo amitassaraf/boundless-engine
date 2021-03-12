@@ -23,10 +23,11 @@ namespace Boundless {
             std::uint64_t getLocationalCode() const;
             std::uint8_t getChildrenMask() const;
             void setChildrenMask(std::uint8_t childMask);
-            std::uint16_t getLOD() const;
+            std::uint8_t getLOD() const;
             std::uint8_t getFaceMask() const;
             void setFaceMask(std::uint8_t faceMask);
-            void setLOD(std::uint16_t lod);
+            void setLOD(std::uint8_t lod);
+            void setSize(std::uint16_t size);
 
         private:
             Voxel m_voxel;
@@ -34,7 +35,7 @@ namespace Boundless {
             std::uint16_t m_nodeSize;
             std::uint8_t m_childrenMask = 0;
             std::uint8_t m_faceMask = 0;
-            std::uint16_t m_lod = 1u;
+            std::uint8_t m_lod = 1u;
     };
 
 }
