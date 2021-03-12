@@ -24,7 +24,7 @@ float normalize(float input)
         
 namespace Boundless {
     World::World() : m_noise(SimplexNoise(0.1f/scale, 0.5f, lacunarity, persistance)) {
-        m_size = 512u;
+        m_size = 1024u;
         m_octree = new Octree(m_size);
     }
 
@@ -52,13 +52,13 @@ namespace Boundless {
     }
 
     void World::generateWorld() {
-        Ref<OctreeNode>& rootNode = m_octree->getRootNode();
+        Scope<OctreeNode>& rootNode = m_octree->getRootNode();
         m_octree->divide(rootNode);
         int totalNodes = 8;
 
         BD_CORE_INFO("Generating world.");
         
-        m_octree->visitAll(rootNode, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
+        m_octree->visitAll(rootNode, [&](uint64_t nodeLocationalCode, Scope<OctreeNode>& node) {
             UNUSED(nodeLocationalCode);
             glm::vec3 offset = node->getChunkOffset();
             int aboveBelowOrDivide = this->shouldDivide(offset, node->getSize(), node->getLOD());
@@ -73,23 +73,24 @@ namespace Boundless {
             }
         });
 
-        m_octree->visitAll(rootNode, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
+        m_octree->visitAll(rootNode, [&](uint64_t nodeLocationalCode, Scope<OctreeNode>& node) {
             UNUSED(nodeLocationalCode);
             m_octree->calculateFaceMask(node);
         });
 
         BD_CORE_TRACE("TOTAL NODES: {}", totalNodes);
+        BD_CORE_TRACE("TOTAL NODES MBs: {}", (totalNodes * sizeof(OctreeNode)) / 1024 / 1024);
     }
 
-    void World::changeLOD(Ref<OctreeNode>& lodNode, uint64_t lod) {
+    void World::changeLOD(Scope<OctreeNode>& lodNode, uint64_t lod) {
         uint64_t currentLod = lodNode->getLOD();
         if (currentLod < lod) {
             lodNode->setLOD(lod);
-            m_octree->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
+            m_octree->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode, Scope<OctreeNode>& node) {
                 UNUSED(nodeLocationalCode);
                 
                 if (node->getSize() < lod) {
-                    Ref<OctreeNode>& parent = m_octree->getParentNode(node);
+                    Scope<OctreeNode>& parent = m_octree->getParentNode(node);
                     parent->setChildrenMask(parent->getChildrenMask() ^ (nodeLocationalCode & 7u));
                     if (!parent->getVoxelData().isSolid()) {
                         parent->getVoxelData().setSolid(node->getVoxelData().isSolid());
@@ -99,7 +100,7 @@ namespace Boundless {
             });
         } else if (lod < currentLod) {
             lodNode->setLOD(lod);
-            m_octree->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
+            m_octree->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode, Scope<OctreeNode>& node) {
                 UNUSED(nodeLocationalCode);
                 
                 if (node->isLeaf() && node->getSize() > lod) {

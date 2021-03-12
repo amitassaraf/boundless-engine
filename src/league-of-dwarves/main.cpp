@@ -1,12 +1,12 @@
 #include <boundless.h>
+#include <glm/gtx/string_cast.hpp>
 
 class LeagueOfDwarves : public Boundless::Game {
 public:
-    std::unordered_map<uint8_t, Boundless::Ref<Boundless::VertexArray> > m_faceMaskToMesh;
     std::vector<std::pair<Boundless::Ref<Boundless::VertexArray>, uint32_t> > m_toRender;
     Boundless::Ref<Boundless::Shader> m_shader;
     Boundless::Ref<Boundless::PerspectiveCamera> m_camera;
-    std::vector<Boundless::Ref<Boundless::OctreeNode> > chunks;
+    std::vector<std::reference_wrapper<Boundless::Scope<Boundless::OctreeNode> > > chunks;
     double lastTime = 0;
     int nbFrames = 0;
     Boundless::Ref<Boundless::LocatedUniform> view;
@@ -26,7 +26,7 @@ public:
 
     void calcRenderNodes(Boundless::World& world) {
         chunks.clear();
-        world.getOctree()->visitAll(world.getOctree()->getRootNode(), [&](uint64_t nodeLocationalCode, Boundless::Ref<Boundless::OctreeNode>& node) {
+        world.getOctree()->visitAll(world.getOctree()->getRootNode(), [&](uint64_t nodeLocationalCode, Boundless::Scope<Boundless::OctreeNode>& node) {
             UNUSED(nodeLocationalCode);
 
             if (!node->isLeaf() || !node->getVoxelData().isSolid() || node->getFaceMask() == 0) {
@@ -55,7 +55,6 @@ public:
             0,  1,  1,  -1,  0,  0,  // 7, nv left 
         };
 
-        glm::mat4 model = glm::mat4(1.0f);
         Boundless::Ref<Boundless::VertexBuffer> m_vb;
         m_vb.reset(Boundless::VertexBuffer::create(cubeVertices, sizeof(cubeVertices)));
         Boundless::BufferLayout vertexLayout = {
@@ -69,7 +68,7 @@ public:
             std::vector<uint32_t> cubeIndices;
             Boundless::Ref<Boundless::VertexBuffer> m_vbPositions;
 
-            m_faceMaskToMesh[faceMask] = Boundless::Ref<Boundless::VertexArray>(Boundless::VertexArray::create());
+            Boundless::Ref<Boundless::VertexArray> faceMesh = Boundless::Ref<Boundless::VertexArray>(Boundless::VertexArray::create());
 
 
             if ((faceMask & FACE_BOTTOM) == FACE_BOTTOM) {
@@ -99,45 +98,14 @@ public:
 
             std::vector<float> cubePositions;
             uint32_t instanceCount = 0u;
-            for (Boundless::Ref<Boundless::OctreeNode> chunk : chunks) {
-                if (chunk->getFaceMask() == faceMask) {
-                    glm::mat4 scaledModel = glm::scale(model, glm::vec3(chunk->getSize(), chunk->getSize(), chunk->getSize()));
-                    glm::mat4 translatedModel = glm::translate(model, chunk->getChunkOffset());
+            for (std::reference_wrapper<Boundless::Scope<Boundless::OctreeNode> > chunk : chunks) {
+                if (chunk.get()->getFaceMask() == faceMask) {
+                    glm::vec3 offset = chunk.get()->getChunkOffset();
+                    cubePositions.push_back(offset.x);
+                    cubePositions.push_back(offset.y);
+                    cubePositions.push_back(offset.z);
+                    cubePositions.push_back((float)chunk.get()->getSize());
                     
-
-                    cubePositions.insert(cubePositions.end(), {translatedModel[0][0],
-                                                               translatedModel[0][1],
-                                                               translatedModel[0][2],
-                                                               translatedModel[0][3]});
-                    cubePositions.insert(cubePositions.end(), {translatedModel[1][0],
-                                                               translatedModel[1][1],
-                                                               translatedModel[1][2],
-                                                               translatedModel[1][3]});
-                    cubePositions.insert(cubePositions.end(), {translatedModel[2][0],
-                                                               translatedModel[2][1],
-                                                               translatedModel[2][2],
-                                                               translatedModel[2][3]});
-                    cubePositions.insert(cubePositions.end(), {translatedModel[3][0],
-                                                               translatedModel[3][1],
-                                                               translatedModel[3][2],
-                                                               translatedModel[3][3]});
-
-                    cubePositions.insert(cubePositions.end(), {scaledModel[0][0],
-                                                               scaledModel[0][1],
-                                                               scaledModel[0][2],
-                                                               scaledModel[0][3]});
-                    cubePositions.insert(cubePositions.end(), {scaledModel[1][0],
-                                                               scaledModel[1][1],
-                                                               scaledModel[1][2],
-                                                               scaledModel[1][3]});
-                    cubePositions.insert(cubePositions.end(), {scaledModel[2][0],
-                                                               scaledModel[2][1],
-                                                               scaledModel[2][2],
-                                                               scaledModel[2][3]});
-                    cubePositions.insert(cubePositions.end(), {scaledModel[3][0],
-                                                               scaledModel[3][1],
-                                                               scaledModel[3][2],
-                                                               scaledModel[3][3]});
                     instanceCount += 1u;
                 }
             }
@@ -145,29 +113,23 @@ public:
             float* positions = &cubePositions[0];
             m_vbPositions.reset(Boundless::VertexBuffer::create(positions, cubePositions.size() * sizeof(float)));
             Boundless::BufferLayout layout = {
-                { Boundless::ShaderDataType::VEC4, "m_Translated_Col1", true },
-                { Boundless::ShaderDataType::VEC4, "m_Translated_Col2", true },
-                { Boundless::ShaderDataType::VEC4, "m_Translated_Col3", true },
-                { Boundless::ShaderDataType::VEC4, "m_Translated_Col4", true },
-                { Boundless::ShaderDataType::VEC4, "m_Scaled_Col1", true },
-                { Boundless::ShaderDataType::VEC4, "m_Scaled_Col2", true },
-                { Boundless::ShaderDataType::VEC4, "m_Scaled_Col3", true },
-                { Boundless::ShaderDataType::VEC4, "m_Scaled_Col4", true },
+                { Boundless::ShaderDataType::VEC3, "m_Translation", true },
+                { Boundless::ShaderDataType::VEC1, "m_Scale", true },
             };
             m_vbPositions->setLayout(layout);
 
 
-            m_faceMaskToMesh[faceMask]->addVertexBuffer(m_vb);
-            m_faceMaskToMesh[faceMask]->addVertexBuffer(m_vbPositions, 2);
+            faceMesh->addVertexBuffer(m_vb);
+            faceMesh->addVertexBuffer(m_vbPositions, 2);
 
 
             uint32_t* indicies = &cubeIndices[0];
             Boundless::Ref<Boundless::IndexBuffer> m_ib;
             m_ib.reset(Boundless::IndexBuffer::create(indicies, cubeIndices.size()));
-            m_faceMaskToMesh[faceMask]->setIndexBuffer(m_ib);
+            faceMesh->setIndexBuffer(m_ib);
 
             if (instanceCount > 0u) {
-                m_toRender.push_back(std::make_pair(m_faceMaskToMesh[faceMask], instanceCount));
+                m_toRender.push_back(std::make_pair(faceMesh, instanceCount));
             }
         }
 
