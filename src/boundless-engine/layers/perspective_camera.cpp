@@ -13,7 +13,7 @@ namespace Boundless {
         m_lastX = 400;
         m_lastY = 320;
 
-        m_projectionMatrix = glm::perspective(glm::radians(65.0f), (float)800/(float)640, 0.001f, 10000.0f);
+        m_projectionMatrix = glm::perspective(glm::radians(70.0f), (float)800/(float)640, 0.01f, 1000.0f);
 
         m_eventManager.appendListener(EventType::KEY_PRESSED, [&](const Ref<Event> event) {
             Ref<KeyPressedEvent> keyPressEvent = std::dynamic_pointer_cast<KeyPressedEvent> (event);

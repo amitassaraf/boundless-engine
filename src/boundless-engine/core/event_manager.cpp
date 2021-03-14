@@ -7,9 +7,9 @@ namespace Boundless {
     EventManager::~EventManager() {}
 
     void EventManager::enqueue(EventType type, const Ref<Boundless::Event> event) {
-        if (!!event) {
-            BD_CORE_TRACE("Queueing Event {}", event->toString());
-        }
+        // if (!!event) {
+        //     BD_CORE_TRACE("Queueing Event {}", event->toString());
+        // }
         eventpp::EventQueue<int, void(const Ref<Boundless::Event>)>::enqueue(enumToInt(type), event);
     }
 

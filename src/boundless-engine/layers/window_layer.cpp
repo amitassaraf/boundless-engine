@@ -36,6 +36,7 @@ namespace Boundless {
                 UNUSED(window);
         WindowLayer::s_eventManager->enqueue(EventType::MOUSE_MOVED, Ref<Event>(new MouseMovedEvent(xpos, ypos)));
     }
+
     void WindowLayer::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
         UNUSED(window);
         UNUSED(scancode);
@@ -68,7 +69,7 @@ namespace Boundless {
             BD_CORE_ERROR("Window creations failed");
             throw std::runtime_error("Failed initializing window.");
         }
-
+        
         glfwSetFramebufferSizeCallback(m_window, WindowLayer::resizeCallback);  
         glfwSetKeyCallback(m_window, WindowLayer::keyCallback);
         glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
@@ -76,8 +77,6 @@ namespace Boundless {
 
         m_context = new OpenGLContext(m_window, m_eventManager);
         m_context->init();
-
-        m_eventManager.enqueue(EventType::WINDOW_RESIZE, Ref<Event>(new WindowResizeEvent(m_width, m_height)));
     }
 
     void WindowLayer::onDetach() {

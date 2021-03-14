@@ -56,7 +56,7 @@ namespace Boundless {
         m_octree->divide(rootNode);
         int totalNodes = 8;
 
-        BD_CORE_INFO("Generating world.");
+        BD_CORE_INFO("Generating world...");
         
         m_octree->visitAll(rootNode, [&](uint64_t nodeLocationalCode, Scope<OctreeNode>& node) {
             UNUSED(nodeLocationalCode);
@@ -72,6 +72,8 @@ namespace Boundless {
                 node->getVoxelData().setSolid(false);
             }
         });
+
+        BD_CORE_INFO("Calculating face masks...");
 
         m_octree->visitAll(rootNode, [&](uint64_t nodeLocationalCode, Scope<OctreeNode>& node) {
             UNUSED(nodeLocationalCode);

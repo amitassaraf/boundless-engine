@@ -11,7 +11,6 @@ public:
     int nbFrames = 0;
     Boundless::Ref<Boundless::LocatedUniform> view;
     Boundless::Ref<Boundless::LocatedUniform> projection;
-    // ThreadPool pool(std::thread::hardware_concurrency());
 
     LeagueOfDwarves() {
         BD_GAME_INFO("Starting league of dwarves.");
@@ -62,9 +61,29 @@ public:
             { Boundless::ShaderDataType::VEC3, "v_Normal" },  
         };
         m_vb->setLayout(vertexLayout);
+
+        BD_CORE_INFO("Generating meshes...");
         
         for (int i = 1; i < 64; i++ ) {
             uint8_t faceMask = i;
+
+            std::vector<float> cubePositions;
+            uint32_t instanceCount = 0u;
+            for (std::reference_wrapper<Boundless::Scope<Boundless::OctreeNode> > chunk : chunks) {
+                if (chunk.get()->getFaceMask() == faceMask) {
+                    glm::vec3 offset = chunk.get()->getChunkOffset();
+                    cubePositions.push_back(offset.x);
+                    cubePositions.push_back(offset.y);
+                    cubePositions.push_back(offset.z);
+                    cubePositions.push_back((float)chunk.get()->getSize());
+                    
+                    instanceCount += 1u;
+                }
+            }
+
+            if (instanceCount == 0)
+                continue;
+
             std::vector<uint32_t> cubeIndices;
             Boundless::Ref<Boundless::VertexBuffer> m_vbPositions;
 
@@ -96,20 +115,6 @@ public:
                 cubeIndices.insert(cubeIndices.end(), {7, 6, 0,   7, 0, 1});
             }
 
-            std::vector<float> cubePositions;
-            uint32_t instanceCount = 0u;
-            for (std::reference_wrapper<Boundless::Scope<Boundless::OctreeNode> > chunk : chunks) {
-                if (chunk.get()->getFaceMask() == faceMask) {
-                    glm::vec3 offset = chunk.get()->getChunkOffset();
-                    cubePositions.push_back(offset.x);
-                    cubePositions.push_back(offset.y);
-                    cubePositions.push_back(offset.z);
-                    cubePositions.push_back((float)chunk.get()->getSize());
-                    
-                    instanceCount += 1u;
-                }
-            }
-
             float* positions = &cubePositions[0];
             m_vbPositions.reset(Boundless::VertexBuffer::create(positions, cubePositions.size() * sizeof(float)));
             Boundless::BufferLayout layout = {
@@ -133,17 +138,7 @@ public:
             }
         }
 
-        // uint32_t cubeIndices[6 * 3 * 2] = {
-        //     0, 2, 3,   0, 3, 1, // bottom
-        //     4, 6, 7,   4, 7, 5, // top
-        //     3, 2, 4,   3, 4, 5, // right
-        //     7, 6, 0,   7, 0, 1, // left
-        //     6, 4, 2,   6, 2, 0, // back 
-        //     1, 3, 5,   1, 5, 7  // front
-        // };
-
         m_shader.reset(Boundless::Shader::create("/Users/amitassaraf/workspace/league_of_dwarves/assets/shaders/opengl"));
-
 
         m_shader->bind();
         m_shader->setUniform("lightPos", glm::vec3( 0,  256,  0));
