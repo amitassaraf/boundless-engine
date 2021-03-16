@@ -15,15 +15,18 @@ namespace Boundless {
             World();
             ~World();
             void generateWorld();
-            int shouldDivide(const glm::vec3& chunkOffset, uint16_t nodeSize, uint8_t lod);
-            void changeLOD(Scope<OctreeNode>& node, uint8_t lod);
-            inline Octree* getOctree() { return m_octree; }
+            int shouldDivide(const glm::vec3& chunkOffset, uint16_t nodeSize);
+            void changeLOD(Ref<OctreeNode>& node, uint8_t command);
+            inline Scope<Octree>& getOctree() { return m_octree; }
         private:
-            Octree* m_octree;
+            Scope<Octree> m_octree;
             uint16_t m_size;
             SimplexNoise m_noise;
     };
 
 }
+
+#define COLLAPSE 0
+#define DIVIDE 1
 
 #endif // !BD_WORLD_HPP_

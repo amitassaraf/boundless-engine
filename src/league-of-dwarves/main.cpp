@@ -1,22 +1,22 @@
 #include <boundless.h>
 #include <glm/gtx/string_cast.hpp>
+#include <algorithm> 
 
 class LeagueOfDwarves : public Boundless::Game {
 public:
     std::vector<std::pair<Boundless::Ref<Boundless::VertexArray>, uint32_t> > m_toRender;
     Boundless::Ref<Boundless::Shader> m_shader;
     Boundless::Ref<Boundless::PerspectiveCamera> m_camera;
-    std::vector<std::reference_wrapper<Boundless::Scope<Boundless::OctreeNode> > > chunks;
-    double lastTime = 0;
-    int nbFrames = 0;
     Boundless::Ref<Boundless::LocatedUniform> view;
     Boundless::Ref<Boundless::LocatedUniform> projection;
+    Boundless::World world;
 
     LeagueOfDwarves() {
         BD_GAME_INFO("Starting league of dwarves.");
         this->pushLayer(new Boundless::WindowLayer(m_eventManager));
         m_camera.reset(new Boundless::PerspectiveCamera(m_eventManager));
         this->pushLayer(m_camera.get());
+        this->pushLayer(new Boundless::FPSCounterLayer(m_eventManager));
     }
 
     ~LeagueOfDwarves() {
@@ -24,8 +24,9 @@ public:
     }
 
     void calcRenderNodes(Boundless::World& world) {
-        chunks.clear();
-        world.getOctree()->visitAll(world.getOctree()->getRootNode(), [&](uint64_t nodeLocationalCode, Boundless::Scope<Boundless::OctreeNode>& node) {
+        std::vector<std::reference_wrapper<Boundless::Ref<Boundless::OctreeNode> > > chunks;
+        m_toRender.clear();
+        world.getOctree()->visitAll(world.getOctree()->getRootNode(), [&](uint64_t nodeLocationalCode, Boundless::Ref<Boundless::OctreeNode>& node) {
             UNUSED(nodeLocationalCode);
 
             if (!node->isLeaf() || !node->getVoxelData().isSolid() || node->getFaceMask() == 0) {
@@ -35,14 +36,6 @@ public:
             chunks.push_back(node);
         });
         
-    }
-
-    void initialize() override {
-        Boundless::World world;
-        world.generateWorld();
-
-        calcRenderNodes(world);
-
         float cubeVertices[3 * 8 * 2] = {
             0, 0, 0,   0, -1,  0,  // 0, nv front
             0, 0,  1,   0,  0,  1,  // 1, nv top
@@ -69,7 +62,7 @@ public:
 
             std::vector<float> cubePositions;
             uint32_t instanceCount = 0u;
-            for (std::reference_wrapper<Boundless::Scope<Boundless::OctreeNode> > chunk : chunks) {
+            for (std::reference_wrapper<Boundless::Ref<Boundless::OctreeNode> > chunk : chunks) {
                 if (chunk.get()->getFaceMask() == faceMask) {
                     glm::vec3 offset = chunk.get()->getChunkOffset();
                     cubePositions.push_back(offset.x);
@@ -137,6 +130,12 @@ public:
                 m_toRender.push_back(std::make_pair(faceMesh, instanceCount));
             }
         }
+    }
+
+    void initialize() override {
+        world.generateWorld();
+
+        calcRenderNodes(world);
 
         m_shader.reset(Boundless::Shader::create("/Users/amitassaraf/workspace/league_of_dwarves/assets/shaders/opengl"));
 
@@ -150,28 +149,48 @@ public:
             Boundless::Ref<Boundless::KeyPressedEvent> keyPressedEvent = std::dynamic_pointer_cast<Boundless::KeyPressedEvent> (event);
             
             if (keyPressedEvent->getKeyCode() == 84) {
-                uint16_t lod = rand() % 8 + 1;
-                BD_CORE_TRACE("Changing to LOD: {}",lod);
-                int location = rand() % this->chunks.size();
-                world.changeLOD(this->chunks[location], lod);
-                calcRenderNodes(world);
+                checkLODChanges();
             }
         });
     }
 
+    void checkLODChanges() {
+        Boundless::Scope<Boundless::Octree>& octree = world.getOctree();
+        std::vector<uint64_t > chunkChanges;
+        glm::vec3 camera = m_camera->getPosition();
+
+        octree->visitAllConditional(octree->getRootNode(), [&](uint64_t nodeLocationalCode, Boundless::Ref<Boundless::OctreeNode>& node) {
+            UNUSED(nodeLocationalCode);
+            if (node) {
+                glm::vec3 chunkLocation = node->getChunkOffset();
+                glm::vec3 chunkCenter(chunkLocation.x + (node->getSize() / 2), chunkLocation.y + (node->getSize() / 2), chunkLocation.z + (node->getSize() / 2));
+                auto distance = abs(glm::length(camera - chunkCenter));
+
+                if (distance < (node->getSize() * 50)) {
+                    if (node->getChildrenMask() == 0) {
+                        world.changeLOD(node, DIVIDE);
+                    }
+                    return true;
+                }
+                if (node->getChildrenMask() != 0) {
+                    chunkChanges.push_back(nodeLocationalCode);
+                }
+            }
+            return false;
+        });
+
+        for (uint64_t location : chunkChanges) {
+            // Do stuff
+            if (octree->nodeExists(location)) {
+                world.changeLOD(octree->getNodeAt(location), COLLAPSE);
+            }
+        }
+        
+        calcRenderNodes(world);
+    }
+
     void onUpdate() override {
         // glm::mat4 model = glm::mat4(1.0f);
-
-        // Measure speed
-        double currentTime = glfwGetTime();
-        nbFrames++;
-        if ( currentTime - lastTime >= 1.0 ){ // If last prinf() was more than 1 sec ago
-            // printf and reset timer
-            printf("%f ms/frame\n", 1000.0/double(nbFrames));
-            nbFrames = 0;
-            lastTime += 1.0;
-        }
-
         Boundless::RenderCommand::setClearColor({ 0.1f, 0.3f, 0.1f, 1.0f });
         Boundless::RenderCommand::clear();
 

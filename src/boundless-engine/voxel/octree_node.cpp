@@ -5,8 +5,8 @@
 
 namespace Boundless {
 
-    OctreeNode::OctreeNode(uint64_t locationalCode, uint16_t nodeSize) 
-    : m_voxel(false), m_locationalCode(locationalCode), m_nodeSize(nodeSize) {
+    OctreeNode::OctreeNode(uint64_t locationalCode, uint16_t octreeSize, uint8_t lod) 
+    : m_voxel(false), m_locationalCode(locationalCode), m_octreeSize(octreeSize), m_lod(lod) {
 
     }
 
@@ -17,7 +17,7 @@ namespace Boundless {
     glm::vec3 OctreeNode::getChunkOffset() const {
         uint64_t locationalCode = m_locationalCode;
         glm::vec3 chunkOffset(0, 0, 0);
-        uint16_t size = m_nodeSize;
+        uint16_t size = m_octreeSize / pow(2, getDepth());
 
         while (locationalCode > 1) {
             uint8_t localCode = locationalCode & 7u;
@@ -63,7 +63,8 @@ namespace Boundless {
     }
 
     std::uint16_t OctreeNode::getSize() const {
-        return m_nodeSize;
+        // BD_CORE_TRACE("SIZES: {}", m_octreeSize / pow(2, getDepth() - 1));
+        return m_octreeSize / pow(2, getDepth() - 1);
     }
 
     std::size_t OctreeNode::getDepth() const {
@@ -111,10 +112,5 @@ namespace Boundless {
     void OctreeNode::setLOD(std::uint8_t lod) {
         m_lod = lod;
     }
-
-    void OctreeNode::setSize(std::uint16_t size) {
-        m_nodeSize = size;
-    }
-
 
 }

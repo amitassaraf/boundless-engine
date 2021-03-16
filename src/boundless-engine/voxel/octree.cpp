@@ -7,18 +7,19 @@
 
 namespace Boundless {
     Octree::Octree(uint16_t octreeSize) {
-        m_nodes[1] = Scope<OctreeNode>(new OctreeNode(1, octreeSize)); // Root Node
+        m_size = octreeSize;
+        m_nodes[1] = Ref<OctreeNode>(new OctreeNode(1, octreeSize, octreeSize)); // Root Node
     }
 
-    Scope<OctreeNode>& Octree::getRootNode() {
-        return m_nodes.at(1);
+    Ref<OctreeNode>& Octree::getRootNode() {
+        return m_nodes.at(1u);
     }
 
     void Octree::erase(uint64_t locationalCode) {
         m_nodes.erase(locationalCode);
     }
 
-    Scope<OctreeNode>& Octree::getParentNode(Scope<OctreeNode>& node) {
+    Ref<OctreeNode>& Octree::getParentNode(Ref<OctreeNode>& node) {
         const uint64_t locCodeParent = node->getLocationalCode()>>3;
         return getNodeAt(locCodeParent);
     }
@@ -30,16 +31,15 @@ namespace Boundless {
         return true; 
     } 
 
-    Scope<OctreeNode>& Octree::getNodeAt(uint64_t locationalCode) {
+    Ref<OctreeNode>& Octree::getNodeAt(uint64_t locationalCode) {
         return m_nodes.at(locationalCode);
     }
 
-    void Octree::divide(Scope<OctreeNode>& node) {
-        uint16_t newSize = node->getSize() / 2u;
+    void Octree::divide(Ref<OctreeNode>& node) {
         for (int i=0; i<8; i++) {
             node->setChildrenMask(node->getChildrenMask() | (1<<i));
             uint64_t childLocationalCode = (node->getLocationalCode() << 3) | i;
-            m_nodes[childLocationalCode] = Scope<OctreeNode>(new OctreeNode(childLocationalCode, newSize));
+            m_nodes[childLocationalCode].reset(new OctreeNode(childLocationalCode, m_size, node->getLOD() + 1));
         }
     }
 
@@ -75,11 +75,11 @@ namespace Boundless {
     bool checkIfSiblingIsSolid(Octree* octree, uint64_t siblingLocationalCode, uint16_t nodeSize, uint64_t faceBitsTestMask, bool expectingZeroResult) {
         while (siblingLocationalCode > 1u) {
             if (octree->nodeExists(siblingLocationalCode)) {
-                Scope<OctreeNode>& sibling = octree->getNodeAt(siblingLocationalCode);
+                Ref<OctreeNode>& sibling = octree->getNodeAt(siblingLocationalCode);
                 if (!sibling->isLeaf()) {
                     // Find its smaller children that might hiding our face
                     bool solidFlag = true;
-                    octree->visitAll(sibling, [&](uint64_t nodeLocationalCode, Scope<OctreeNode>& node) {
+                    octree->visitAll(sibling, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
                         if (!node->isLeaf() || node->getSize() > nodeSize)
                             return;
                         
@@ -121,7 +121,7 @@ namespace Boundless {
         return true;
     }
 
-    void Octree::calculateFaceMask(Scope<OctreeNode>& node) {
+    void Octree::calculateFaceMask(Ref<OctreeNode>& node) {
         node->setFaceMask(0);
         if (!node->getVoxelData().isSolid() || !node->isLeaf()) {
             return;
@@ -191,24 +191,36 @@ namespace Boundless {
         }
     }
 
-    void Octree::visitAll(Scope<OctreeNode>& node, std::function< void(uint64_t nodeLocationalCode, Scope<OctreeNode>& node) > lambda) {
+    void Octree::visitAll(Ref<OctreeNode>& node, std::function< void(uint64_t nodeLocationalCode, Ref<OctreeNode>& node) > lambda) {
         for (int i=0; i<8; i++) {
             if (node->getChildrenMask()&(1<<i)) {
                 const uint64_t locCodeChild = (node->getLocationalCode()<<3)|i;
-                Scope<OctreeNode>& child = getNodeAt(locCodeChild);
+                Ref<OctreeNode>& child = getNodeAt(locCodeChild);
                 lambda(locCodeChild, child);
                 visitAll(child, lambda);
             }
         }
     }
 
-
-    void Octree::visitAllBottomUp(Scope<OctreeNode>& node, std::function< void(uint64_t nodeLocationalCode, Scope<OctreeNode>& node) > lambda) {
+    void Octree::visitAllConditional(Ref<OctreeNode>& node, std::function< bool(uint64_t nodeLocationalCode, Ref<OctreeNode>& node) > lambda) {
         for (int i=0; i<8; i++) {
             if (node->getChildrenMask()&(1<<i)) {
                 const uint64_t locCodeChild = (node->getLocationalCode()<<3)|i;
-                Scope<OctreeNode>& child = getNodeAt(locCodeChild);
-                visitAll(child, lambda);
+                Ref<OctreeNode>& child = getNodeAt(locCodeChild);
+                bool visit = lambda(locCodeChild, child);
+                if (visit) {
+                    visitAll(child, lambda);
+                }
+            }
+        }
+    }
+
+    void Octree::visitAllBottomUp(Ref<OctreeNode>& node, std::function< void(uint64_t nodeLocationalCode, Ref<OctreeNode>& node) > lambda) {
+        for (int i=0; i<8; i++) {
+            if (node->getChildrenMask()&(1<<i)) {
+                const uint64_t locCodeChild = (node->getLocationalCode()<<3)|i;
+                Ref<OctreeNode>& child = getNodeAt(locCodeChild);
+                visitAllBottomUp(child, lambda);
                 lambda(locCodeChild, child);
             }
         }

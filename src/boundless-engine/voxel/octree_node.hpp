@@ -12,7 +12,7 @@
 namespace Boundless {
     class OctreeNode {
         public:
-            OctreeNode(uint64_t locationalCode, uint16_t nodeSize);
+            OctreeNode(uint64_t locationalCode, uint16_t octreeSize, uint8_t m_lod);
             ~OctreeNode() {}
 
             std::size_t getDepth() const;
@@ -27,12 +27,11 @@ namespace Boundless {
             std::uint8_t getFaceMask() const;
             void setFaceMask(std::uint8_t faceMask);
             void setLOD(std::uint8_t lod);
-            void setSize(std::uint16_t size);
 
         private:
             Voxel m_voxel;
             std::uint64_t m_locationalCode;
-            std::uint16_t m_nodeSize;
+            std::uint16_t m_octreeSize;
             std::uint8_t m_childrenMask = 0;
             std::uint8_t m_faceMask = 0;
             std::uint8_t m_lod = 1u;

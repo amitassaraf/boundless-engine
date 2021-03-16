@@ -13,18 +13,19 @@ namespace Boundless {
         public:
             Octree(uint16_t octreeSize);
 
-            Scope<OctreeNode>& getParentNode(Scope<OctreeNode>& node);
-            Scope<OctreeNode>& getRootNode();
-            void divide(Scope<OctreeNode>&);
-            void visitAll(Scope<OctreeNode>& node, std::function< void(uint64_t nodeLocationalCode, Scope<OctreeNode>& node) > lambda);
-            void visitAllBottomUp(Scope<OctreeNode>& node, std::function< void(uint64_t nodeLocationalCode, Scope<OctreeNode>& node) > lambda);
-            void calculateFaceMask(Scope<OctreeNode>& node);
+            Ref<OctreeNode>& getParentNode(Ref<OctreeNode>& node);
+            Ref<OctreeNode>& getRootNode();
+            void divide(Ref<OctreeNode>&);
+            void visitAll(Ref<OctreeNode>& node, std::function< void(uint64_t nodeLocationalCode, Ref<OctreeNode>& node) > lambda);
+            void visitAllConditional(Ref<OctreeNode>& node, std::function< bool(uint64_t nodeLocationalCode, Ref<OctreeNode>& node) > lambda);
+            void visitAllBottomUp(Ref<OctreeNode>& node, std::function< void(uint64_t nodeLocationalCode, Ref<OctreeNode>& node) > lambda);
+            void calculateFaceMask(Ref<OctreeNode>& node);
             bool nodeExists(uint64_t locationalCode) const;
-            Scope<OctreeNode>& getNodeAt(uint64_t locCode);
+            Ref<OctreeNode>& getNodeAt(uint64_t locCode);
             void erase(uint64_t);
 
-        private:
-            std::unordered_map<uint64_t, Scope<OctreeNode> > m_nodes;
+            std::unordered_map<uint64_t, Ref<OctreeNode> > m_nodes;
+            uint16_t m_size;
     };
 
 }
