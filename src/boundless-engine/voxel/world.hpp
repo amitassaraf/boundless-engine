@@ -17,7 +17,8 @@ namespace Boundless {
             void generateWorld();
             void renderWorldAround(glm::vec3 playerPosition);
             int shouldDivide(const glm::vec3& chunkOffset, uint16_t nodeSize);
-            bool changeLOD(Ref<OctreeNode>& node, uint8_t command);
+            bool collapseNode(Ref<OctreeNode>& node);
+            bool divideNode(Ref<OctreeNode>& node, const glm::vec3& referenceOffset);
             inline Scope<Octree>& getOctree() { return m_octree; }
         private:
             Scope<Octree> m_octree;

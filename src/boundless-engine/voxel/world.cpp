@@ -27,7 +27,7 @@ float normalize(float input)
 namespace Boundless {
 
     World::World() : m_noise(SimplexNoise(0.1f/scale, 0.5f, lacunarity, persistance)) {
-        m_size = 1024u;
+        m_size = 2048u;
         m_octree.reset(new Octree(m_size));
     }
 
@@ -86,7 +86,7 @@ namespace Boundless {
 
             if (distance < (node->getSize() * 100)) {
                 if (node->getSize() > 1 && node->isLeaf()) {
-                    bool divided = changeLOD(node, DIVIDE);
+                    bool divided = divideNode(node, chunkLocation);
                     if (divided) {
                         for (int i=0; i<8; i++) {
                             const uint64_t locCodeChild = (node->getLocationalCode()<<3)|i;
@@ -108,7 +108,7 @@ namespace Boundless {
         for (uint64_t location : chunkChanges) {
             if (m_octree->nodeExists(location)) {
                 Boundless::Ref<Boundless::OctreeNode>& node = m_octree->getNodeAt(location);
-                changeLOD(node, COLLAPSE);
+                collapseNode(node);
                 nodesToCalculateFaces.push_back(location);
             }
         }
@@ -123,32 +123,31 @@ namespace Boundless {
         BD_CORE_INFO("Done!");
     }
 
-    bool World::changeLOD(Ref<OctreeNode>& lodNode, uint8_t command) {
-        if (command == COLLAPSE) {
-            bool solid = false;
-            m_octree->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
-                UNUSED(nodeLocationalCode);
-                
-                if (node->getVoxelData().isSolid()) {
-                    solid = true;
-                }
-                m_octree->erase(nodeLocationalCode);
-            });
-            lodNode->getVoxelData().setSolid(solid);
-            lodNode->setChildrenMask(0);
-            return true;
-        } else if (command == DIVIDE) {
-            glm::vec3 offset = lodNode->getChunkOffset();
-            int aboveBelowOrDivide = this->shouldDivide(offset, lodNode->getSize());
-            if (aboveBelowOrDivide == 0) {
-                m_octree->divide(lodNode);
-                lodNode->getVoxelData().setSolid(false);
-                return true;
-            } else if (aboveBelowOrDivide == 1) {
-                lodNode->getVoxelData().setSolid(true);
-            } else if (aboveBelowOrDivide == -1) {
-                lodNode->getVoxelData().setSolid(false);
+    bool World::collapseNode(Ref<OctreeNode>& lodNode) {
+        bool solid = false;
+        m_octree->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
+            UNUSED(nodeLocationalCode);
+            
+            if (node->getVoxelData().isSolid()) {
+                solid = true;
             }
+            m_octree->erase(nodeLocationalCode);
+        });
+        lodNode->getVoxelData().setSolid(solid);
+        lodNode->setChildrenMask(0);
+        return true;
+    }
+
+    bool World::divideNode(Ref<OctreeNode>& lodNode, const glm::vec3& referenceOffset) {
+        int aboveBelowOrDivide = this->shouldDivide(referenceOffset, lodNode->getSize());
+        if (aboveBelowOrDivide == 0) {
+            m_octree->divide(lodNode);
+            lodNode->getVoxelData().setSolid(false);
+            return true;
+        } else if (aboveBelowOrDivide == 1) {
+            lodNode->getVoxelData().setSolid(true);
+        } else if (aboveBelowOrDivide == -1) {
+            lodNode->getVoxelData().setSolid(false);
         }
         return false;
     }

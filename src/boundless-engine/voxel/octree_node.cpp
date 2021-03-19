@@ -14,55 +14,32 @@ namespace Boundless {
         return m_childrenMask == 0;
     }
 
+    uint16_t calculateOffset(uint64_t mask, uint64_t starter, uint16_t base, uint8_t bitOffset) {
+        return ((mask & starter) >> (2 - bitOffset) << base) // 0
+        + ((mask & (starter) << 3) >> (4 - bitOffset) << base) // 1
+        + ((mask & (starter) << 6) >> (6 - bitOffset) << base) // 2
+        + ((mask & (starter) << 9) >> (8 - bitOffset) << base) // 3
+        + ((mask & (starter) << 12) >> (10 - bitOffset) << base) // 4
+        + ((mask & (starter) << 15) >> (12 - bitOffset) << base) // 5
+        + ((mask & (starter) << 18) >> (14 - bitOffset) << base) // 6
+        + ((mask & (starter) << 21) >> (16 - bitOffset) << base) // 7
+        + ((mask & (starter) << 24) >> (18 - bitOffset) << base) // 8
+        + ((mask & (starter) << 27) >> (20 - bitOffset) << base) // 9
+        + ((mask & (starter) << 30) >> (22 - bitOffset) << base) // 10
+        + ((mask & (starter) << 33) >> (24 - bitOffset) << base) // 11
+        + ((mask & (starter) << 36) >> (26 - bitOffset) << base) // 12
+        + ((mask & (starter) << 39) >> (28 - bitOffset) << base) // 13
+        + ((mask & (starter) << 42) >> (30 - bitOffset) << base) // 14
+        + ((mask & (starter) << 45) >> (32 - bitOffset) << base) // 15
+        + ((mask & (starter) << 48) >> (34 - bitOffset) << base) // 16
+        + ((mask & (starter) << 51) >> (36 - bitOffset) << base) // 17
+        + ((mask & (starter) << 54) >> (38 - bitOffset) << base) // 18
+        + ((mask & (starter) << 57) >> (40 - bitOffset) << base) // 19
+        + ((mask & (starter) << 60) >> (42 - bitOffset)); // 21 Cannot leftshift node size
+    }
+
     glm::vec3 OctreeNode::getChunkOffset() const {
-        // uint64_t locationalCode = m_locationalCode;
-        // glm::vec3 chunkOffset(0, 0, 0);
-        // uint16_t size = m_octreeSize / pow(2, getDepth());
-
-        // while (locationalCode > 1) {
-        //     uint8_t localCode = locationalCode & 7u;
-        //     float locationalDifference = size;
-        //     switch (localCode) {
-        //         case BOTTOM_LEFT_BACK:
-        //             // Root Node, always at 0
-        //             break;
-        //         case BOTTOM_LEFT_FRONT:
-        //             chunkOffset.x = chunkOffset.x + locationalDifference;
-        //             break;
-        //         case BOTTOM_RIGHT_BACK:
-        //             chunkOffset.z = chunkOffset.z + locationalDifference;
-        //             break;
-        //         case BOTTOM_RIGHT_FRONT:
-        //             chunkOffset.z = chunkOffset.z + locationalDifference;
-        //             chunkOffset.x = chunkOffset.x + locationalDifference;
-        //             break;
-        //         case TOP_LEFT_BACK:
-        //             chunkOffset.y = chunkOffset.y + locationalDifference;
-        //             break;
-        //         case TOP_LEFT_FRONT:
-        //             chunkOffset.y = chunkOffset.y + locationalDifference;
-        //             chunkOffset.x = chunkOffset.x + locationalDifference;
-        //             break;
-        //         case TOP_RIGHT_BACK:
-        //             chunkOffset.y = chunkOffset.y + locationalDifference;
-        //             chunkOffset.z = chunkOffset.z + locationalDifference;
-        //             break;
-        //         case TOP_RIGHT_FRONT:
-        //             chunkOffset.y = chunkOffset.y + locationalDifference;
-        //             chunkOffset.z = chunkOffset.z + locationalDifference;
-        //             chunkOffset.x = chunkOffset.x + locationalDifference;
-        //             break;
-        //         default:
-        //             break;
-        //     }
-
-        //     locationalCode >>= 3u;
-        //     size *= 2u;
-        // }
-
-        // BD_CORE_TRACE("Offset: {}.{}.{}", chunkOffset.x, chunkOffset.y, chunkOffset.z);
-        
-        uint16_t nodeSize = getSize();
+        uint16_t nodeSize = log2(getSize());
         uint64_t tops = m_locationalCode & BIT64_TOP_BOTTOM_FACE_BITS_TEST;
 
         uint64_t rights = m_locationalCode & BIT64_LEFT_RIGHT_FACE_BITS_TEST;
@@ -71,32 +48,9 @@ namespace Boundless {
         uint16_t lsb = __builtin_clzll(m_locationalCode);
         uint64_t fronts = ((m_locationalCode ^ BIT64_FRONT_BACK_FACE_BITS_TEST) << lsb) >> lsb & BIT64_FRONT_BACK_FACE_BITS_TEST;
 
-        uint16_t topOffset = 0;
-        uint16_t frontsOffset = 0;
-        uint16_t rightsOffset = 0;
-        while (tops > 0) {
-            uint16_t index = 63 - __builtin_clzll(tops);
-            tops = tops ^ (1 << index);
-            uint16_t depth = index / 3;
-            topOffset += pow(2u, log2(nodeSize) + depth);
-        }
-
-        while (fronts > 0) {
-            uint16_t index = 63u - __builtin_clzll(fronts);
-            fronts = fronts ^ (1u << index);
-            uint16_t depth = (index / 3u);
-            frontsOffset += pow(2u, log2(nodeSize) + depth);
-        }
-
-        // Remove root node
-        while (rights > 0) {
-            uint16_t index = 63 - __builtin_clzll(rights);
-            rights = rights ^ (1 << index);
-            uint16_t depth = index / 3;
-            rightsOffset += pow(2u, log2(nodeSize) + depth);
-        }
-
-        return glm::vec3(frontsOffset, topOffset, rightsOffset);
+        return glm::vec3(calculateOffset(fronts, 0x2, nodeSize, 1), 
+                         calculateOffset(tops, 0x4, nodeSize, 0), 
+                         calculateOffset(rights, 0x1, nodeSize, 2));
     }
 
     std::uint16_t OctreeNode::getSize() const {
