@@ -12,29 +12,27 @@
 namespace Boundless {
     class OctreeNode {
         public:
-            OctreeNode(uint64_t locationalCode, uint16_t octreeSize, uint8_t m_lod);
+            OctreeNode(uint64_t locationalCode, uint16_t octreeSize);
             ~OctreeNode() {}
 
             std::size_t getDepth() const;
             glm::vec3 getChunkOffset() const;
+            std::uint16_t getOctreeSize() const;
             std::uint16_t getSize() const;
             bool isLeaf() const;
             Voxel& getVoxelData();
             std::uint64_t getLocationalCode() const;
             std::uint8_t getChildrenMask() const;
             void setChildrenMask(std::uint8_t childMask);
-            std::uint8_t getLOD() const;
             std::uint8_t getFaceMask() const;
             void setFaceMask(std::uint8_t faceMask);
-            void setLOD(std::uint8_t lod);
-
+            
         private:
             Voxel m_voxel;
             std::uint64_t m_locationalCode;
             std::uint16_t m_octreeSize;
             std::uint8_t m_childrenMask = 0;
             std::uint8_t m_faceMask = 0;
-            std::uint8_t m_lod = 1u;
     };
 
 }
@@ -52,7 +50,7 @@ namespace Boundless {
 #define FRONT_BACK_FACE_BITS_TEST 2u // 0b010
 #define TOP_BOTTOM_FACE_BITS_TEST 4u // 0b100
 
-#define BIT64_LEFT_RIGHT_FACE_BITS_TEST 0x9249249249249249  // 0b001001001001001001001001001001
+#define BIT64_LEFT_RIGHT_FACE_BITS_TEST 0x9249249249249249 // 0b001001001001001001001001001001
 #define BIT64_FRONT_BACK_FACE_BITS_TEST 0x2492492492492492 // 0b010010010010010010010010010010
 #define BIT64_TOP_BOTTOM_FACE_BITS_TEST 0x4924924924924924 // 0b100100100100100100100100100100
 

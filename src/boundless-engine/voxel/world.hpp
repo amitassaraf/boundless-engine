@@ -15,13 +15,15 @@ namespace Boundless {
             World();
             ~World();
             void generateWorld();
+            void renderWorldAround(glm::vec3 playerPosition);
             int shouldDivide(const glm::vec3& chunkOffset, uint16_t nodeSize);
-            void changeLOD(Ref<OctreeNode>& node, uint8_t command);
+            bool changeLOD(Ref<OctreeNode>& node, uint8_t command);
             inline Scope<Octree>& getOctree() { return m_octree; }
         private:
             Scope<Octree> m_octree;
             uint16_t m_size;
             SimplexNoise m_noise;
+            std::unordered_map<uint32_t, uint16_t> m_samples;
     };
 
 }

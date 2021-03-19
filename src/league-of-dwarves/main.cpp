@@ -1,6 +1,8 @@
 #include <boundless.h>
 #include <glm/gtx/string_cast.hpp>
 #include <algorithm> 
+#include <ThreadPool.h>
+#include <thread>
 
 class LeagueOfDwarves : public Boundless::Game {
 public:
@@ -8,13 +10,16 @@ public:
     Boundless::Ref<Boundless::Shader> m_shader;
     Boundless::Ref<Boundless::PerspectiveCamera> m_camera;
     Boundless::Ref<Boundless::LocatedUniform> view;
+    Boundless::Ref<Boundless::LocatedUniform> viewPos;
     Boundless::Ref<Boundless::LocatedUniform> projection;
     Boundless::World world;
+    Boundless::Scope<ThreadPool> m_pool;
 
     LeagueOfDwarves() {
         BD_GAME_INFO("Starting league of dwarves.");
         this->pushLayer(new Boundless::WindowLayer(m_eventManager));
         m_camera.reset(new Boundless::PerspectiveCamera(m_eventManager));
+        m_pool.reset(new ThreadPool(std::thread::hardware_concurrency()));
         this->pushLayer(m_camera.get());
         this->pushLayer(new Boundless::FPSCounterLayer(m_eventManager));
     }
@@ -24,6 +29,8 @@ public:
     }
 
     void calcRenderNodes(Boundless::World& world) {
+        BD_CORE_INFO("Traversing Meshes...");
+
         std::vector<std::reference_wrapper<Boundless::Ref<Boundless::OctreeNode> > > chunks;
         m_toRender.clear();
         world.getOctree()->visitAll(world.getOctree()->getRootNode(), [&](uint64_t nodeLocationalCode, Boundless::Ref<Boundless::OctreeNode>& node) {
@@ -36,6 +43,8 @@ public:
             chunks.push_back(node);
         });
         
+        BD_CORE_INFO("Generating meshes...");
+
         float cubeVertices[3 * 8 * 2] = {
             0, 0, 0,   0, -1,  0,  // 0, nv front
             0, 0,  1,   0,  0,  1,  // 1, nv top
@@ -54,8 +63,6 @@ public:
             { Boundless::ShaderDataType::VEC3, "v_Normal" },  
         };
         m_vb->setLayout(vertexLayout);
-
-        BD_CORE_INFO("Generating meshes...");
         
         for (int i = 1; i < 64; i++ ) {
             uint8_t faceMask = i;
@@ -140,53 +147,28 @@ public:
         m_shader.reset(Boundless::Shader::create("/Users/amitassaraf/workspace/league_of_dwarves/assets/shaders/opengl"));
 
         m_shader->bind();
-        m_shader->setUniform("lightPos", glm::vec3( 0,  256,  0));
+        m_shader->setUniform("lightPos", glm::vec3( -0.2f, -1.0f, -0.3f));
 
         view.reset(m_shader->locateUniform("view"));
         projection.reset(m_shader->locateUniform("projection"));
+        viewPos.reset(m_shader->locateUniform("viewPos"));
+        
 
         m_eventManager.appendListener(Boundless::EventType::KEY_PRESSED, [&](const Boundless::Ref<Boundless::Event> event) {
             Boundless::Ref<Boundless::KeyPressedEvent> keyPressedEvent = std::dynamic_pointer_cast<Boundless::KeyPressedEvent> (event);
             
             if (keyPressedEvent->getKeyCode() == 84) {
-                checkLODChanges();
+                m_pool->enqueue([&]() { 
+                    world.renderWorldAround(m_camera->getPosition());
+                });
+                
+            } else if (keyPressedEvent->getKeyCode() == 82) {
+                calcRenderNodes(world);
             }
         });
-    }
 
-    void checkLODChanges() {
-        Boundless::Scope<Boundless::Octree>& octree = world.getOctree();
-        std::vector<uint64_t > chunkChanges;
-        glm::vec3 camera = m_camera->getPosition();
 
-        octree->visitAllConditional(octree->getRootNode(), [&](uint64_t nodeLocationalCode, Boundless::Ref<Boundless::OctreeNode>& node) {
-            UNUSED(nodeLocationalCode);
-            if (node) {
-                glm::vec3 chunkLocation = node->getChunkOffset();
-                glm::vec3 chunkCenter(chunkLocation.x + (node->getSize() / 2), chunkLocation.y + (node->getSize() / 2), chunkLocation.z + (node->getSize() / 2));
-                auto distance = abs(glm::length(camera - chunkCenter));
 
-                if (distance < (node->getSize() * 50)) {
-                    if (node->getChildrenMask() == 0) {
-                        world.changeLOD(node, DIVIDE);
-                    }
-                    return true;
-                }
-                if (node->getChildrenMask() != 0) {
-                    chunkChanges.push_back(nodeLocationalCode);
-                }
-            }
-            return false;
-        });
-
-        for (uint64_t location : chunkChanges) {
-            // Do stuff
-            if (octree->nodeExists(location)) {
-                world.changeLOD(octree->getNodeAt(location), COLLAPSE);
-            }
-        }
-        
-        calcRenderNodes(world);
     }
 
     void onUpdate() override {
@@ -197,6 +179,7 @@ public:
         Boundless::Renderer::beginScene();
 
         m_shader->setUniform(view, m_camera->getViewMatrix());
+        m_shader->setUniform(viewPos, m_camera->getPosition());
         m_shader->setUniform(projection, m_camera->getProjectionMatrix());
         
         Boundless::RenderCommand::fillMode();

@@ -8,7 +8,7 @@
 namespace Boundless {
     Octree::Octree(uint16_t octreeSize) {
         m_size = octreeSize;
-        m_nodes[1] = Ref<OctreeNode>(new OctreeNode(1, octreeSize, octreeSize)); // Root Node
+        m_nodes[1] = Ref<OctreeNode>(new OctreeNode(1, octreeSize)); // Root Node
     }
 
     Ref<OctreeNode>& Octree::getRootNode() {
@@ -25,10 +25,7 @@ namespace Boundless {
     }
 
     bool Octree::nodeExists(uint64_t locationalCode) const { 
-        if (m_nodes.find(locationalCode) == m_nodes.end()) {
-            return false; 
-        }
-        return true; 
+        return m_nodes.count(locationalCode) > 0;
     } 
 
     Ref<OctreeNode>& Octree::getNodeAt(uint64_t locationalCode) {
@@ -39,7 +36,7 @@ namespace Boundless {
         for (int i=0; i<8; i++) {
             node->setChildrenMask(node->getChildrenMask() | (1<<i));
             uint64_t childLocationalCode = (node->getLocationalCode() << 3) | i;
-            m_nodes[childLocationalCode].reset(new OctreeNode(childLocationalCode, m_size, node->getLOD() + 1));
+            m_nodes[childLocationalCode].reset(new OctreeNode(childLocationalCode, m_size));
         }
     }
 
@@ -123,6 +120,7 @@ namespace Boundless {
 
     void Octree::calculateFaceMask(Ref<OctreeNode>& node) {
         node->setFaceMask(0);
+        // return;
         if (!node->getVoxelData().isSolid() || !node->isLeaf()) {
             return;
         }
@@ -166,6 +164,9 @@ namespace Boundless {
         }
 
 
+        // BD_CORE_TRACE("DEPTH: {}", node->getDepth());
+        // BD_CORE_TRACE("SIZE: {}", node->getSize());
+        // BD_CORE_TRACE("OCTREE: {}", node->getOctreeSize());
         if (!checkIfSiblingIsSolid(this, north, node->getSize(), TOP_BOTTOM_FACE_BITS_TEST, false)) {
             node->setFaceMask(node->getFaceMask() | FACE_TOP);
         }
@@ -209,7 +210,7 @@ namespace Boundless {
                 Ref<OctreeNode>& child = getNodeAt(locCodeChild);
                 bool visit = lambda(locCodeChild, child);
                 if (visit) {
-                    visitAll(child, lambda);
+                    visitAllConditional(child, lambda);
                 }
             }
         }
