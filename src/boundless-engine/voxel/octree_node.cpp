@@ -10,10 +10,6 @@ namespace Boundless {
 
     }
 
-    bool OctreeNode::isLeaf() const {
-        return m_childrenMask == 0;
-    }
-
     uint16_t calculateOffset(uint64_t mask, uint64_t starter, uint16_t base, uint8_t bitOffset) {
         return ((mask & starter) >> (2 - bitOffset) << base) // 0
         + ((mask & (starter) << 3) >> (4 - bitOffset) << base) // 1
@@ -81,22 +77,6 @@ namespace Boundless {
 
     std::uint64_t OctreeNode::getLocationalCode() const {
         return m_locationalCode;
-    }
-
-    std::uint8_t OctreeNode::getChildrenMask() const {
-        return m_childrenMask;
-    }
-
-    void OctreeNode::setChildrenMask(std::uint8_t childMask) {
-        m_childrenMask = childMask;
-    }
-
-    std::uint8_t OctreeNode::getFaceMask() const {
-        return m_faceMask;
-    }
-
-    void OctreeNode::setFaceMask(std::uint8_t faceMask) {
-        m_faceMask = faceMask;
     }
 
 }

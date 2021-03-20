@@ -36,7 +36,7 @@ public:
         world.getOctree()->visitAll(world.getOctree()->getRootNode(), [&](uint64_t nodeLocationalCode, Boundless::Ref<Boundless::OctreeNode>& node) {
             UNUSED(nodeLocationalCode);
 
-            if (!node->isLeaf() || !node->getVoxelData().isSolid() || node->getFaceMask() == 0) {
+            if (!world.getOctree()->isLeaf(node) || !node->getVoxelData().isSolid()) {
                 return;
             }
 
@@ -63,22 +63,30 @@ public:
             { Boundless::ShaderDataType::VEC3, "v_Normal" },  
         };
         m_vb->setLayout(vertexLayout);
+
+        std::unordered_map<uint8_t, std::vector<uint64_t> > maskToChunk;
+
+        for (std::reference_wrapper<Boundless::Ref<Boundless::OctreeNode> > chunk : chunks) {
+            uint8_t mask = world.getOctree()->calculateFaceMask(chunk);
+            if (mask != 0) {
+                maskToChunk[mask].push_back(chunk.get()->getLocationalCode());
+            }
+        }
         
         for (int i = 1; i < 64; i++ ) {
             uint8_t faceMask = i;
 
             std::vector<float> cubePositions;
             uint32_t instanceCount = 0u;
-            for (std::reference_wrapper<Boundless::Ref<Boundless::OctreeNode> > chunk : chunks) {
-                if (chunk.get()->getFaceMask() == faceMask) {
-                    glm::vec3 offset = chunk.get()->getChunkOffset();
-                    cubePositions.push_back(offset.x);
-                    cubePositions.push_back(offset.y);
-                    cubePositions.push_back(offset.z);
-                    cubePositions.push_back((float)chunk.get()->getSize());
+            for (uint64_t chunkLocation : maskToChunk[faceMask]) {
+                Boundless::Ref<Boundless::OctreeNode> chunk = world.getOctree()->getNodeAt(chunkLocation);
+                glm::vec3 offset = chunk.get()->getChunkOffset();
+                cubePositions.push_back(offset.x);
+                cubePositions.push_back(offset.y);
+                cubePositions.push_back(offset.z);
+                cubePositions.push_back((float)chunk.get()->getSize());
                     
-                    instanceCount += 1u;
-                }
+                instanceCount += 1u;
             }
 
             if (instanceCount == 0)

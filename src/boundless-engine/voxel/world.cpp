@@ -27,7 +27,7 @@ float normalize(float input)
 namespace Boundless {
 
     World::World() : m_noise(SimplexNoise(0.1f/scale, 0.5f, lacunarity, persistance)) {
-        m_size = 4096u;
+        m_size = 8192u;
         m_octree.reset(new Octree(m_size));
     }
 
@@ -45,14 +45,7 @@ namespace Boundless {
         
         for (int x = chunkOffset.x; x < chunkOffset.x + nodeSize; x+=step) {
             for (int z = chunkOffset.z; z < chunkOffset.z + nodeSize; z+=step) {
-                float normalized;
-                uint32_t loc = (x << 16u) | z;
-                if (m_samples.count(loc) > 0) {
-                    normalized = m_samples[loc];
-                } else {
-                    normalized = floor(normalize(m_noise.fractal(octaves, x, z)) * m_size);
-                    m_samples[loc] = normalized;
-                }
+                float normalized = floor(normalize(m_noise.fractal(octaves, x, z)) * m_size);
                 if (nodeSize > 1.0f && normalized >= chunkOffset.y && normalized < chunkOffset.y + nodeSize) {
                     return 0;
                 } else if (normalized >= chunkOffset.y + nodeSize) {
@@ -85,7 +78,7 @@ namespace Boundless {
             auto distance = abs(glm::length(camera - chunkCenter));
 
             if (distance < (node->getSize() * 100)) {
-                if (node->getSize() > 1 && node->isLeaf()) {
+                if (node->getSize() > 1 && m_octree->isLeaf(node)) {
                     bool divided = divideNode(node, chunkLocation);
                     if (divided) {
                         for (int i=0; i<8; i++) {
@@ -97,7 +90,7 @@ namespace Boundless {
                 }
 
                 return true;
-            } else if (!node->isLeaf() && node->getSize() < m_octree->m_size) {
+            } else if (!m_octree->isLeaf(node) && node->getSize() < m_octree->m_size) {
                 chunkChanges.push_back(nodeLocationalCode);
             }
             return false;
@@ -113,13 +106,6 @@ namespace Boundless {
             }
         }
 
-        BD_CORE_INFO("Calculating faces...");
-
-        for (uint64_t location : nodesToCalculateFaces) {
-            if (m_octree->nodeExists(location)) {
-                m_octree->calculateFaceMask(m_octree->getNodeAt(location));
-            }
-        }
         BD_CORE_INFO("Done!");
     }
 
@@ -134,7 +120,6 @@ namespace Boundless {
             m_octree->erase(nodeLocationalCode);
         });
         lodNode->getVoxelData().setSolid(solid);
-        lodNode->setChildrenMask(0);
         return true;
     }
 

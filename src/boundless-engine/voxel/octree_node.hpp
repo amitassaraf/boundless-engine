@@ -19,20 +19,13 @@ namespace Boundless {
             glm::vec3 getChunkOffset() const;
             std::uint16_t getOctreeSize() const;
             std::uint16_t getSize() const;
-            bool isLeaf() const;
             Voxel& getVoxelData();
             std::uint64_t getLocationalCode() const;
-            std::uint8_t getChildrenMask() const;
-            void setChildrenMask(std::uint8_t childMask);
-            std::uint8_t getFaceMask() const;
-            void setFaceMask(std::uint8_t faceMask);
             
         private:
             Voxel m_voxel;
             std::uint64_t m_locationalCode;
             std::uint16_t m_octreeSize;
-            std::uint8_t m_childrenMask = 0;
-            std::uint8_t m_faceMask = 0;
     };
 
 }

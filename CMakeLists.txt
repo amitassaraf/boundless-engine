@@ -131,6 +131,7 @@ endif()
 include_directories("third_party/eventpp/include")
 include_directories("third_party/ThreadPool")
 include_directories("third_party/SimplexNoise/src")
+include_directories("third_party/OpenCL-Registry/api/2.1")
 
 set(SIMPLEX_NOISE
     "third_party/SimplexNoise/src/SimplexNoise.cpp"

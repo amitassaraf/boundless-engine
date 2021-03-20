@@ -15,11 +15,12 @@ namespace Boundless {
 
             Ref<OctreeNode>& getParentNode(Ref<OctreeNode>& node);
             Ref<OctreeNode>& getRootNode();
+            bool isLeaf(Ref<OctreeNode>& node) const;
             void divide(Ref<OctreeNode>&);
             void visitAll(Ref<OctreeNode>& node, std::function< void(uint64_t nodeLocationalCode, Ref<OctreeNode>& node) > lambda);
             void visitAllConditional(Ref<OctreeNode>& node, std::function< bool(uint64_t nodeLocationalCode, Ref<OctreeNode>& node) > lambda);
             void visitAllBottomUp(Ref<OctreeNode>& node, std::function< void(uint64_t nodeLocationalCode, Ref<OctreeNode>& node) > lambda);
-            void calculateFaceMask(Ref<OctreeNode>& node);
+            uint8_t calculateFaceMask(Ref<OctreeNode>& node);
             bool nodeExists(uint64_t locationalCode) const;
             Ref<OctreeNode>& getNodeAt(uint64_t locCode);
             void erase(uint64_t);

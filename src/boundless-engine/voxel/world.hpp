@@ -24,7 +24,6 @@ namespace Boundless {
             Scope<Octree> m_octree;
             uint16_t m_size;
             SimplexNoise m_noise;
-            std::unordered_map<uint32_t, uint16_t> m_samples;
     };
 
 }

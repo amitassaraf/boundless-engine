@@ -10,12 +10,6 @@
 
 // #include <AL/al.h>
 
-// #ifdef __APPLE__ //Mac OSX has a different name for the header file
-// #include <OpenCL/opencl.h>
-// #else
-// #include <CL/cl.h>
-// #endif
-
 namespace Boundless {
 
     Game::Game() {
