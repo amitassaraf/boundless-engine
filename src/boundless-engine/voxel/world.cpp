@@ -6,7 +6,8 @@
 #include <glm/gtx/string_cast.hpp>
 #include <algorithm> 
 
-float scale     = 30.f;
+
+float scale     = 100.f;
 float lacunarity    = 0.1f;
 float persistance   = 1.2f;
 
@@ -22,7 +23,6 @@ float normalize(float input)
     float normalized_x = (input - average) / range;
     return (normalized_x + 1.0f) / 2.0f;
 }
-
         
 namespace Boundless {
 
@@ -59,30 +59,54 @@ namespace Boundless {
     }
 
     void World::generateWorld() {
-        Ref<OctreeNode>& rootNode = m_octree->getRootNode();
+        OctreeNode rootNode = m_octree->getRootNode();
         m_octree->divide(rootNode);
         BD_CORE_INFO("Generating world...");
 
         renderWorldAround(glm::vec3(0,0,0));
     }
 
-    void World::renderWorldAround(glm::vec3 playerPosition) {
+    OctreeNode World::findIntersectingNode(const glm::vec3& position) {
+        OctreeNode rootNode = m_octree->getRootNode();
+        uint64_t closestNode = 1u;
+        m_octree->visitAllConditional(rootNode, [&](uint64_t nodeLocationalCode, OctreeNode& node) {
+            glm::vec3 chunkLocation = node.getChunkOffset();
+            uint16_t size = node.getSize();
+
+            if (chunkLocation.x >= position.x && chunkLocation.x + size < position.x) {
+                if (chunkLocation.z >= position.z && chunkLocation.z + size < position.z) {
+                    if (chunkLocation.y >= position.y && chunkLocation.y + size < position.y) {
+                        closestNode = nodeLocationalCode;
+                        return true;
+                    }
+                }    
+            }
+
+            return false;
+        });
+
+        return m_octree->getNodeAt(closestNode);
+    }
+
+    void World::renderWorldAround(const glm::vec3& playerPosition) {
         std::vector<uint64_t > chunkChanges;
         std::vector<uint64_t > nodesToCalculateFaces;
         glm::vec3 camera = playerPosition;
 
         BD_CORE_INFO("Calculating LODs...");
-        m_octree->visitAllConditional(m_octree->getRootNode(), [&](uint64_t nodeLocationalCode, Boundless::Ref<Boundless::OctreeNode>& node) {
-            glm::vec3 chunkLocation = node->getChunkOffset();
-            glm::vec3 chunkCenter(chunkLocation.x + (node->getSize() / 2.0f), chunkLocation.y + (node->getSize() / 2.0f), chunkLocation.z + (node->getSize() / 2.0f));
+        OctreeNode rootNode = m_octree->getRootNode();
+        m_octree->visitAllConditional(rootNode, [&](uint64_t nodeLocationalCode, OctreeNode& node) {
+            glm::vec3 chunkLocation = node.getChunkOffset();
+            uint16_t size = node.getSize();
+            glm::vec3 chunkCenter(chunkLocation.x + (size / 2.0f), chunkLocation.y + (size / 2.0f), chunkLocation.z + (size / 2.0f));
             auto distance = abs(glm::length(camera - chunkCenter));
 
-            if (distance < (node->getSize() * 100)) {
-                if (node->getSize() > 1 && m_octree->isLeaf(node)) {
+            if (distance < (size * 150)) {
+                if (size > 1 && m_octree->isLeaf(node)) {
                     bool divided = divideNode(node, chunkLocation);
                     if (divided) {
                         for (int i=0; i<8; i++) {
-                            const uint64_t locCodeChild = (node->getLocationalCode()<<3)|i;
+                            const uint64_t locCodeChild = (node.getLocationalCode()<<3)|i;
                             nodesToCalculateFaces.push_back(locCodeChild);
                         }
                     }
@@ -90,7 +114,7 @@ namespace Boundless {
                 }
 
                 return true;
-            } else if (!m_octree->isLeaf(node) && node->getSize() < m_octree->m_size) {
+            } else if (!m_octree->isLeaf(node) && size < m_octree->m_size) {
                 chunkChanges.push_back(nodeLocationalCode);
             }
             return false;
@@ -100,7 +124,7 @@ namespace Boundless {
 
         for (uint64_t location : chunkChanges) {
             if (m_octree->nodeExists(location)) {
-                Boundless::Ref<Boundless::OctreeNode>& node = m_octree->getNodeAt(location);
+                OctreeNode node = m_octree->getNodeAt(location);
                 collapseNode(node);
                 nodesToCalculateFaces.push_back(location);
             }
@@ -109,30 +133,30 @@ namespace Boundless {
         BD_CORE_INFO("Done!");
     }
 
-    bool World::collapseNode(Ref<OctreeNode>& lodNode) {
+    bool World::collapseNode(OctreeNode& lodNode) {
         bool solid = false;
-        m_octree->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode, Ref<OctreeNode>& node) {
+        m_octree->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode, OctreeNode& node) {
             UNUSED(nodeLocationalCode);
             
-            if (node->getVoxelData().isSolid()) {
+            if (node.isSolid()) {
                 solid = true;
             }
             m_octree->erase(nodeLocationalCode);
         });
-        lodNode->getVoxelData().setSolid(solid);
+        m_octree->setNodeAt(lodNode.getLocationalCode(), solid ? 1u : 0u);
         return true;
     }
 
-    bool World::divideNode(Ref<OctreeNode>& lodNode, const glm::vec3& referenceOffset) {
-        int aboveBelowOrDivide = this->shouldDivide(referenceOffset, lodNode->getSize());
+    bool World::divideNode(OctreeNode& lodNode, const glm::vec3& referenceOffset) {
+        int aboveBelowOrDivide = this->shouldDivide(referenceOffset, lodNode.getSize());
         if (aboveBelowOrDivide == 0) {
             m_octree->divide(lodNode);
-            lodNode->getVoxelData().setSolid(false);
+            m_octree->setNodeAt(lodNode.getLocationalCode(), 0u);
             return true;
         } else if (aboveBelowOrDivide == 1) {
-            lodNode->getVoxelData().setSolid(true);
+            m_octree->setNodeAt(lodNode.getLocationalCode(), 1u);
         } else if (aboveBelowOrDivide == -1) {
-            lodNode->getVoxelData().setSolid(false);
+            m_octree->setNodeAt(lodNode.getLocationalCode(), 0u);
         }
         return false;
     }

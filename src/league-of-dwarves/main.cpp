@@ -31,16 +31,17 @@ public:
     void calcRenderNodes(Boundless::World& world) {
         BD_CORE_INFO("Traversing Meshes...");
 
-        std::vector<std::reference_wrapper<Boundless::Ref<Boundless::OctreeNode> > > chunks;
+        std::vector<uint64_t> chunks;
         m_toRender.clear();
-        world.getOctree()->visitAll(world.getOctree()->getRootNode(), [&](uint64_t nodeLocationalCode, Boundless::Ref<Boundless::OctreeNode>& node) {
+        Boundless::OctreeNode root = world.getOctree()->getRootNode();
+        world.getOctree()->visitAll(root, [&](uint64_t nodeLocationalCode, Boundless::OctreeNode& node) {
             UNUSED(nodeLocationalCode);
 
-            if (!world.getOctree()->isLeaf(node) || !node->getVoxelData().isSolid()) {
+            if (!world.getOctree()->isLeaf(node) || !node.isSolid()) {
                 return;
             }
 
-            chunks.push_back(node);
+            chunks.push_back(nodeLocationalCode);
         });
         
         BD_CORE_INFO("Generating meshes...");
@@ -66,10 +67,10 @@ public:
 
         std::unordered_map<uint8_t, std::vector<uint64_t> > maskToChunk;
 
-        for (std::reference_wrapper<Boundless::Ref<Boundless::OctreeNode> > chunk : chunks) {
+        for (uint64_t chunk : chunks) {
             uint8_t mask = world.getOctree()->calculateFaceMask(chunk);
             if (mask != 0) {
-                maskToChunk[mask].push_back(chunk.get()->getLocationalCode());
+                maskToChunk[mask].push_back(chunk);
             }
         }
         
@@ -79,12 +80,12 @@ public:
             std::vector<float> cubePositions;
             uint32_t instanceCount = 0u;
             for (uint64_t chunkLocation : maskToChunk[faceMask]) {
-                Boundless::Ref<Boundless::OctreeNode> chunk = world.getOctree()->getNodeAt(chunkLocation);
-                glm::vec3 offset = chunk.get()->getChunkOffset();
+                Boundless::OctreeNode chunk = world.getOctree()->getNodeAt(chunkLocation);
+                glm::vec3 offset = chunk.getChunkOffset();
                 cubePositions.push_back(offset.x);
                 cubePositions.push_back(offset.y);
                 cubePositions.push_back(offset.z);
-                cubePositions.push_back((float)chunk.get()->getSize());
+                cubePositions.push_back((float)chunk.getSize());
                     
                 instanceCount += 1u;
             }

@@ -5,9 +5,10 @@
 
 namespace Boundless {
 
-    OctreeNode::OctreeNode(uint64_t locationalCode, uint16_t octreeSize) 
-    : m_voxel(false), m_locationalCode(locationalCode), m_octreeSize(octreeSize) {
+    uint16_t OctreeNode::m_octreeSize = 0;
 
+    OctreeNode::OctreeNode(uint64_t locationalCode, uint8_t voxel) 
+    : m_voxel(voxel), m_locationalCode(locationalCode) {
     }
 
     uint16_t calculateOffset(uint64_t mask, uint64_t starter, uint16_t base, uint8_t bitOffset) {
@@ -71,8 +72,8 @@ namespace Boundless {
     #endif
     }
 
-    Voxel& OctreeNode::getVoxelData() {
-        return m_voxel;
+    bool OctreeNode::isSolid() {
+        return m_voxel == 1u;
     }
 
     std::uint64_t OctreeNode::getLocationalCode() const {

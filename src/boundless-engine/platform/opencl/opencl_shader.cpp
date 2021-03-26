@@ -18,9 +18,10 @@ namespace Boundless {
         // // Add the OpenCL source
         // cl::Program::Sources sources(1, std::make_pair(shaderSrc.c_str(), shaderSrc.length() + 1));
         // cl::Context context(device);
-        // cl::Program program(context, sources);
+        // m_program = cl::Program(context, sources);
 
-        // cl_int err = program.build();
+        // cl_int err = m_program.build();
+        // UNUSED(err);
 
         // Split to class 
         // cl::Buffer memBuf(context, CL_MEM_READ_WRITE | CL_MEM_HOST_READ_ONLY, sizeof(buf));

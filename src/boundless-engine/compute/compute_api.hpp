@@ -3,6 +3,7 @@
 #define BD_COMPUTE_API_HPP_
 
 #include <memory>
+#include "core/core.hpp"
 
 namespace Boundless {
 

@@ -17,6 +17,8 @@ namespace Boundless {
 
             virtual void bind() const override;
             virtual void unbind() const override;
+        private:
+            cl::Program m_program;
     };
 
 }
