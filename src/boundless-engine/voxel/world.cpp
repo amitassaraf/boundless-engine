@@ -27,7 +27,7 @@ float normalize(float input)
 namespace Boundless {
 
     World::World() : m_noise(SimplexNoise(0.1f/scale, 0.5f, lacunarity, persistance)) {
-        m_size = 8192u;
+        m_size = 4096u;
         m_octree.reset(new Octree(m_size));
     }
 
