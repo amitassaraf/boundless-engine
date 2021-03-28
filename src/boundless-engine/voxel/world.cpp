@@ -89,13 +89,13 @@ namespace Boundless {
     }
 
     void World::renderWorldAround(const glm::vec3& playerPosition) {
+        std::vector<uint64_t > chunkChanges;
+        std::vector<uint64_t > nodesToCalculateFaces;
         glm::vec3 camera = playerPosition;
 
         BD_CORE_INFO("Calculating LODs...");
         OctreeNode rootNode = m_octree->getRootNode();
         m_octree->visitAllConditional(rootNode, [&](uint64_t nodeLocationalCode, OctreeNode& node) {
-            UNUSED(nodeLocationalCode);
-
             glm::vec3 chunkLocation = node.getChunkOffset();
             uint16_t size = node.getSize();
             glm::vec3 chunkCenter(chunkLocation.x + (size / 2.0f), chunkLocation.y + (size / 2.0f), chunkLocation.z + (size / 2.0f));
@@ -103,15 +103,32 @@ namespace Boundless {
 
             if (distance < (size * 150)) {
                 if (size > 1 && m_octree->isLeaf(node)) {
-                    divideNode(node, chunkLocation);
+                    bool divided = divideNode(node, chunkLocation);
+                    if (divided) {
+                        for (int i=0; i<8; i++) {
+                            const uint64_t locCodeChild = (node.getLocationalCode()<<3)|i;
+                            nodesToCalculateFaces.push_back(locCodeChild);
+                        }
+                    }
+                    nodesToCalculateFaces.push_back(nodeLocationalCode);
                 }
 
                 return true;
             } else if (!m_octree->isLeaf(node) && size < m_octree->m_size) {
-                collapseNode(node);
+                chunkChanges.push_back(nodeLocationalCode);
             }
             return false;
         });
+
+        BD_CORE_INFO("Finishing up LOD calculations...");
+
+        for (uint64_t location : chunkChanges) {
+            if (m_octree->nodeExists(location)) {
+                OctreeNode node = m_octree->getNodeAt(location);
+                collapseNode(node);
+                nodesToCalculateFaces.push_back(location);
+            }
+        }
 
         BD_CORE_INFO("Done!");
     }
