@@ -38,16 +38,13 @@ namespace Boundless {
     glm::vec3 OctreeNode::getChunkOffset() const {
         uint16_t nodeSize = log2(getSize());
         uint64_t tops = m_locationalCode & BIT64_TOP_BOTTOM_FACE_BITS_TEST;
-
         uint64_t rights = m_locationalCode & BIT64_LEFT_RIGHT_FACE_BITS_TEST;
-        rights = rights ^ (1 << (63 - __builtin_clzll(rights)));
-
         uint16_t lsb = __builtin_clzll(m_locationalCode);
         uint64_t fronts = ((m_locationalCode ^ BIT64_FRONT_BACK_FACE_BITS_TEST) << lsb) >> lsb & BIT64_FRONT_BACK_FACE_BITS_TEST;
 
-        return glm::vec3(calculateOffset(fronts, 0x2, nodeSize, 1), 
-                         calculateOffset(tops, 0x4, nodeSize, 0), 
-                         calculateOffset(rights, 0x1, nodeSize, 2));
+        return glm::vec3(calculateOffset(fronts, 0x2u, nodeSize, 1u), 
+                         calculateOffset(tops, 0x4u, nodeSize, 0u), 
+                         calculateOffset(rights, 0x1u, nodeSize, 2u));
     }
 
     std::uint16_t OctreeNode::getSize() const {
