@@ -56,4 +56,5 @@ namespace Boundless {
 #define FACE_FRONT 16u  // 10000
 #define FACE_BACK 32u // 100000
 
+
 #endif // !BD_OCTREE_NODE_HPP_

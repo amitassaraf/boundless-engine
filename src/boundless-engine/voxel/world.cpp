@@ -24,11 +24,20 @@ float normalize(float input)
     return (normalized_x + 1.0f) / 2.0f;
 }
         
+float noise[8192][8192];
+
 namespace Boundless {
 
     World::World() : m_noise(SimplexNoise(0.1f/scale, 0.5f, lacunarity, persistance)) {
-        m_size = 4096u;
+        m_size = 8192u;
         m_octree.reset(new Octree(m_size));
+
+        for (int x = 0; x < 8192; x++) {
+            for (int z = 0; z < 8192; z++) {
+                noise[x][z] = floor(normalize(m_noise.fractal(octaves, x, z)) * m_size);
+            }     
+        }
+        
     }
 
     World::~World() {
@@ -45,7 +54,7 @@ namespace Boundless {
         
         for (int x = chunkOffset.x; x < chunkOffset.x + nodeSize; x+=step) {
             for (int z = chunkOffset.z; z < chunkOffset.z + nodeSize; z+=step) {
-                float normalized = floor(normalize(m_noise.fractal(octaves, x, z)) * m_size);
+                float normalized = noise[x][z];
                 if (nodeSize > 1.0f && normalized >= chunkOffset.y && normalized < chunkOffset.y + nodeSize) {
                     return 0;
                 } else if (normalized >= chunkOffset.y + nodeSize) {
@@ -101,7 +110,7 @@ namespace Boundless {
             glm::vec3 chunkCenter(chunkLocation.x + (size / 2.0f), chunkLocation.y + (size / 2.0f), chunkLocation.z + (size / 2.0f));
             auto distance = abs(glm::length(camera - chunkCenter));
 
-            if (distance < (size * 150)) {
+            if (distance < (size * 250)) {
                 if (size > 1 && m_octree->isLeaf(node)) {
                     divideNode(node, chunkLocation);
                 }

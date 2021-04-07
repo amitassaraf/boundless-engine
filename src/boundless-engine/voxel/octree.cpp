@@ -73,7 +73,25 @@ namespace Boundless {
         return target;
     }
 
-    bool checkIfSiblingIsSolid(Octree* octree, uint64_t siblingLocationalCode, uint16_t nodeSize, uint64_t faceBitsTestMask, bool expectingZeroResult) {
+    bool isDirection(uint8_t localCode, uint8_t direction) {
+        switch (direction) {
+            case FACE_TOP:
+                return (localCode & 4u) == 0u;
+            case FACE_BOTTOM:
+                return (localCode & 4u) == 4u;
+            case FACE_FRONT:
+                return (localCode & 2u) == 2u;
+            case FACE_BACK:
+                return (localCode & 2u) == 0u;
+            case FACE_LEFT:
+                return (localCode & 1u) == 1u;
+            case FACE_RIGHT:
+                return (localCode & 1u) == 0u;
+        }
+        return false;
+    }
+
+    bool checkIfSiblingIsSolid(Octree* octree, uint64_t siblingLocationalCode, uint16_t nodeSize, uint64_t faceBitsTestMask, bool expectingZeroResult, uint8_t direction) {
         while (siblingLocationalCode > 1u) {
             if (octree->nodeExists(siblingLocationalCode)) {
                 OctreeNode sibling = octree->getNodeAt(siblingLocationalCode);
@@ -81,7 +99,7 @@ namespace Boundless {
                     // Find its smaller children that might hiding our face
                     bool solidFlag = true;
                     octree->visitAll(sibling, [&](uint64_t nodeLocationalCode, OctreeNode& node) {
-                        if (!octree->isLeaf(node) || node.getSize() > nodeSize)
+                        if (!isDirection(nodeLocationalCode, direction) || !octree->isLeaf(node) || node.getSize() > nodeSize)
                             return;
                         
                         uint8_t depth = node.getDepth() - sibling.getDepth();
@@ -177,27 +195,27 @@ namespace Boundless {
         // BD_CORE_TRACE("SIZE: {}", node.getSize());
         // BD_CORE_TRACE("OCTREE: {}", node.getOctreeSize());
         uint8_t faceMask = 0u;
-        if (!checkIfSiblingIsSolid(this, north, node.getSize(), TOP_BOTTOM_FACE_BITS_TEST, false)) {
+        if (!checkIfSiblingIsSolid(this, north, node.getSize(), TOP_BOTTOM_FACE_BITS_TEST, false, FACE_TOP)) {
             faceMask |= FACE_TOP;
         }
 
-        if (!checkIfSiblingIsSolid(this, south, node.getSize(), TOP_BOTTOM_FACE_BITS_TEST, true)) {
+        if (!checkIfSiblingIsSolid(this, south, node.getSize(), TOP_BOTTOM_FACE_BITS_TEST, true, FACE_BOTTOM)) {
             faceMask |= FACE_BOTTOM;
         }
 
-        if (!checkIfSiblingIsSolid(this, front, node.getSize(), FRONT_BACK_FACE_BITS_TEST, true)) {
+        if (!checkIfSiblingIsSolid(this, front, node.getSize(), FRONT_BACK_FACE_BITS_TEST, true, FACE_FRONT)) {
             faceMask |= FACE_FRONT;
         }
 
-        if (!checkIfSiblingIsSolid(this, back, node.getSize(), FRONT_BACK_FACE_BITS_TEST, false)) {
+        if (!checkIfSiblingIsSolid(this, back, node.getSize(), FRONT_BACK_FACE_BITS_TEST, false, FACE_BACK)) {
             faceMask |= FACE_BACK;
         }
 
-        if (!checkIfSiblingIsSolid(this, left, node.getSize(), LEFT_RIGHT_FACE_BITS_TEST, true)) {
+        if (!checkIfSiblingIsSolid(this, left, node.getSize(), LEFT_RIGHT_FACE_BITS_TEST, true, FACE_LEFT)) {
             faceMask |= FACE_LEFT;
         }
 
-        if (!checkIfSiblingIsSolid(this, right, node.getSize(), LEFT_RIGHT_FACE_BITS_TEST, false)) {
+        if (!checkIfSiblingIsSolid(this, right, node.getSize(), LEFT_RIGHT_FACE_BITS_TEST, false, FACE_RIGHT)) {
             faceMask |= FACE_RIGHT;
         }
 

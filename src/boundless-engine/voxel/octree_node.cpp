@@ -44,7 +44,7 @@ namespace Boundless {
 
         return glm::vec3(calculateOffset(fronts, 0x2u, nodeSize, 1u), 
                          calculateOffset(tops, 0x4u, nodeSize, 0u), 
-                         calculateOffset(rights, 0x1u, nodeSize, 2u));
+                         calculateOffset(rights, 0x1u, nodeSize, 2u) - OctreeNode::m_octreeSize);
     }
 
     std::uint16_t OctreeNode::getSize() const {

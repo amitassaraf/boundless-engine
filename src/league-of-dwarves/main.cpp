@@ -28,13 +28,16 @@ public:
 
     }
 
+
     void calcRenderNodes(Boundless::World& world) {
         BD_CORE_INFO("Traversing Meshes...");
 
         std::vector<uint64_t> chunks;
+        int nodes = 0;
         m_toRender.clear();
         Boundless::OctreeNode root = world.getOctree()->getRootNode();
         world.getOctree()->visitAll(root, [&](uint64_t nodeLocationalCode, Boundless::OctreeNode& node) {
+            nodes += 1;
             UNUSED(nodeLocationalCode);
 
             if (!world.getOctree()->isLeaf(node) || !node.isSolid()) {
@@ -44,7 +47,7 @@ public:
             chunks.push_back(nodeLocationalCode);
         });
         
-        BD_CORE_INFO("Generating meshes...");
+        BD_CORE_INFO("Generating meshes for {} nodes...", nodes);
 
         float cubeVertices[3 * 8 * 2] = {
             0, 0, 0,   0, -1,  0,  // 0, nv front
@@ -56,6 +59,7 @@ public:
             0,  1, 0,   0,  0, -1,  // 6, nv bottom
             0,  1,  1,  -1,  0,  0,  // 7, nv left 
         };
+
 
         Boundless::Ref<Boundless::VertexBuffer> m_vb;
         m_vb.reset(Boundless::VertexBuffer::create(cubeVertices, sizeof(cubeVertices)));
