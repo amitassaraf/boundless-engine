@@ -11,6 +11,7 @@
 #include "render/renderer_api.hpp"
 #include "render/render_command.hpp"
 #include "render/buffer.hpp"
+#include "render/texture.hpp"
 #include "render/buffer_layout.hpp"
 #include "layers/perspective_camera.hpp"
 #include "layers/fps_counter_layer.hpp"

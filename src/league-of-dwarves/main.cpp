@@ -3,6 +3,7 @@
 #include <algorithm> 
 #include <ThreadPool.h>
 #include <thread>
+#include <random>
 
 class LeagueOfDwarves : public Boundless::Game {
 public:
@@ -152,6 +153,10 @@ public:
         }
     }
 
+    float lerp(float a, float b, float f) {
+        return a + f * (b - a);
+    }  
+
     void initialize() override {
         world.generateWorld();
 
@@ -180,8 +185,58 @@ public:
             }
         });
 
+        Boundless::Ref<Boundless::Texture> gPosition;
+        gPosition.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RGBA, Boundless::TextureColorChannel::RGBA16F, NULL));
+        gPosition->bind();
+        gPosition->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
+        gPosition->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
+        gPosition->setTextureParameter(Boundless::TextureParameterName::WRAP_S, Boundless::TextureParameter::CLAMP_TO_EDGE);
+        gPosition->setTextureParameter(Boundless::TextureParameterName::WRAP_T, Boundless::TextureParameter::CLAMP_TO_EDGE);
+        gPosition->unbind();
 
+        std::uniform_real_distribution<float> randomFloats(0.0, 1.0); // random floats between [0.0, 1.0]
+        std::default_random_engine generator;
+        std::vector<glm::vec3> ssaoKernel;
+        for (unsigned int i = 0; i < 64; ++i)
+        {
+            glm::vec3 sample(
+                randomFloats(generator) * 2.0 - 1.0, 
+                randomFloats(generator) * 2.0 - 1.0, 
+                randomFloats(generator)
+            );
+            sample  = glm::normalize(sample);
+            sample *= randomFloats(generator);
+            
+            float scale = (float)i / 64.0; 
+            scale   = lerp(0.1f, 1.0f, scale * scale);
+            sample *= scale;
+            ssaoKernel.push_back(sample);  
+        }
 
+        std::vector<glm::vec3> ssaoNoise;
+        for (unsigned int i = 0; i < 16; i++) {
+            glm::vec3 noise(
+                randomFloats(generator) * 2.0 - 1.0, 
+                randomFloats(generator) * 2.0 - 1.0, 
+                0.0f); 
+            ssaoNoise.push_back(noise);
+        }  
+
+        Boundless::Ref<Boundless::Texture> noiseTexture;
+        noiseTexture.reset(Boundless::Texture::create2DTexture(4, 4, Boundless::TextureColorChannel::RGB, Boundless::TextureColorChannel::RGBA16F, &ssaoNoise[0]));
+        noiseTexture->bind();
+        noiseTexture->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
+        noiseTexture->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
+        noiseTexture->setTextureParameter(Boundless::TextureParameterName::WRAP_S, Boundless::TextureParameter::REPEAT);
+        noiseTexture->setTextureParameter(Boundless::TextureParameterName::WRAP_T, Boundless::TextureParameter::REPEAT);
+        noiseTexture->unbind();
+
+        Boundless::Ref<Boundless::Texture> ssaoColorBuffer;
+        noiseTexture.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RED, Boundless::TextureColorChannel::RED, &ssaoNoise[0]));
+        noiseTexture->bind();
+        noiseTexture->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
+        noiseTexture->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
+        noiseTexture->unbind();
     }
 
     void onUpdate() override {
