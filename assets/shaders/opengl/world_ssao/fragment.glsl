@@ -45,7 +45,7 @@ void main()
         offset.xyz /= offset.w; // perspective divide
         offset.xyz = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
 
-        vec3 toOriginal = texture(gPosition, TexCoords).xyz - cameraPosition;
+        vec3 toOriginal = texture(gPosition, TexCoords.xy).xyz - cameraPosition;
         float sampleDepth = dot(cameraDirection, toOriginal);
 
         // range check & accumulate
