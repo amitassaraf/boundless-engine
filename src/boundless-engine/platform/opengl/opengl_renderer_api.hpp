@@ -12,9 +12,11 @@ namespace Boundless {
         public:
             virtual void setClearColor(const glm::vec4& color) override;
             virtual void clear() override;
+            virtual void clearColor() override;
             virtual void wireframeMode() override;
             virtual void fillMode() override;
 
+            virtual void drawArrays(const Ref<VertexArray>& vertexArray) override;
             virtual void drawIndexed(const Ref<VertexArray>& vertexArray) override;
             virtual void drawIndexedInstanced(const Ref<VertexArray>& vertexArray, uint32_t count) override;
     };

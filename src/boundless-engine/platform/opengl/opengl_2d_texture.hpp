@@ -13,19 +13,17 @@ namespace Boundless {
 
     class OpenGL2DTexture : public Texture {
         public:
-            OpenGL2DTexture(uint16_t width, uint16_t height, TextureColorChannel textureColorChannel, TextureColorChannel renderColorChannel, void* source);
+            OpenGL2DTexture(uint16_t width, uint16_t height, TextureColorChannel textureColorChannel, TextureColorChannel renderColorChannel, TextureDataType type, void* source);
             virtual ~OpenGL2DTexture();
 
             virtual void bind() const override;
             virtual void unbind() const override;
             virtual void setTextureParameter(TextureParameterName parameter, TextureParameter value) const override;
         protected:
-            virtual int textureParameterNameToRendererValue(TextureParameterName format) const override;
-            virtual int textureColorChannelToRendererValue(TextureColorChannel channel) const override;
-            virtual int textureParameterToRendererValue(TextureParameter format) const override;
-            
-        private:
-            uint32_t m_rendererId;
+            virtual unsigned int textureParameterNameToRendererValue(TextureParameterName format) const override;
+            virtual unsigned int textureColorChannelToRendererValue(TextureColorChannel channel) const override;
+            virtual unsigned int textureParameterToRendererValue(TextureParameter format) const override;
+            virtual unsigned int textureDataTypeToRendererValue(TextureDataType type) const override;
     };
 
 }

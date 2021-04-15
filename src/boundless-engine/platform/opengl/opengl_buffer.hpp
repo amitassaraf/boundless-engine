@@ -18,6 +18,7 @@ namespace Boundless {
 
             virtual void bind() const override;
             virtual void unbind() const override;
+            virtual uint32_t getCount() const override { return m_size; }
 
             virtual void setLayout(const BufferLayout& layout) override { m_layout = layout; }
             virtual const BufferLayout& getLayout() const override { return m_layout; }
@@ -25,6 +26,7 @@ namespace Boundless {
         private:
             uint32_t m_rendererId;
             BufferLayout m_layout;
+            uint32_t m_size;
     };
 
     class OpenGLIndexBuffer : public IndexBuffer {
@@ -38,6 +40,33 @@ namespace Boundless {
         private:
             uint32_t m_rendererId;
             uint32_t m_count;
+    };
+
+      class OpenGLFrameBuffer : public FrameBuffer {
+        public:
+            OpenGLFrameBuffer();
+            virtual ~OpenGLFrameBuffer();
+
+            virtual void bind() const override;
+            virtual void unbind() const override;
+            virtual void set2DTexture(unsigned int index, Ref<Texture> texture) const override;
+            virtual void setRenderBuffer(FrameBufferAttachmentType type, Ref<RenderBuffer> renderBuffer) const override;
+            virtual void enableTextureIndexes(unsigned int indexes[], unsigned int amount) const override;
+        protected:
+            virtual unsigned int frameBufferAttachmentTypeToRendererValue(FrameBufferAttachmentType type) const override;
+        private:
+            uint32_t m_rendererId;
+    };
+
+    class OpenGLRenderBuffer : public RenderBuffer {
+        public:
+            OpenGLRenderBuffer(RenderBufferType type, int width, int height);
+            virtual ~OpenGLRenderBuffer();
+
+            virtual void bind() const override;
+            virtual void unbind() const override;
+        protected:
+            virtual unsigned int renderBufferTypeToRendererValue(RenderBufferType type) const override;
     };
 
 }

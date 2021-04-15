@@ -3,12 +3,13 @@
 
 namespace Boundless {
 
-    OpenGL2DTexture::OpenGL2DTexture(uint16_t width, uint16_t height, TextureColorChannel textureColorChannel, TextureColorChannel renderColorChannel, void* source) {
+    OpenGL2DTexture::OpenGL2DTexture(uint16_t width, uint16_t height, TextureColorChannel textureColorChannel, TextureColorChannel renderColorChannel, TextureDataType type, void* source) {
         glGenTextures(1, &m_rendererId);
         this->bind();
         glTexImage2D(GL_TEXTURE_2D, 0, 
             this->textureColorChannelToRendererValue(renderColorChannel), width, height, 0, 
-            this->textureColorChannelToRendererValue(textureColorChannel), GL_FLOAT, source);
+            this->textureColorChannelToRendererValue(textureColorChannel), 
+            this->textureDataTypeToRendererValue(type), source);
         this->unbind();
     }
 
@@ -28,7 +29,7 @@ namespace Boundless {
         glBindTexture(GL_TEXTURE_2D, 0);  
     }
 
-    int OpenGL2DTexture::textureColorChannelToRendererValue(TextureColorChannel format) const {
+    unsigned int OpenGL2DTexture::textureColorChannelToRendererValue(TextureColorChannel format) const {
         switch(format) {
             case TextureColorChannel::RGB:
                 return GL_RGB;
@@ -38,13 +39,15 @@ namespace Boundless {
                 return GL_RED;
             case TextureColorChannel::RGBA16F:
                 return GL_RGBA16F;
+            case TextureColorChannel::RGBA32F:
+                return GL_RGBA32F;
         }
 
         BD_CORE_ERROR("Unsupported format");
         throw std::runtime_error("Unsupported format");
     }
     
-    int OpenGL2DTexture::textureParameterNameToRendererValue(TextureParameterName parameter) const {
+    unsigned int OpenGL2DTexture::textureParameterNameToRendererValue(TextureParameterName parameter) const {
         switch(parameter) {
             case TextureParameterName::WRAP_S:
                 return GL_TEXTURE_WRAP_S;
@@ -60,7 +63,7 @@ namespace Boundless {
         throw std::runtime_error("Unsupported parameter");
     }
 
-    int OpenGL2DTexture::textureParameterToRendererValue(TextureParameter function) const {
+    unsigned int OpenGL2DTexture::textureParameterToRendererValue(TextureParameter function) const {
         switch(function) {
             case TextureParameter::NEAREST:
                 return GL_NEAREST;
@@ -82,6 +85,18 @@ namespace Boundless {
 
         BD_CORE_ERROR("Unsupported function");
         throw std::runtime_error("Unsupported function");
+    }
+
+    unsigned int OpenGL2DTexture::textureDataTypeToRendererValue(TextureDataType type) const {
+        switch(type) {
+            case TextureDataType::FLOAT:
+                return GL_FLOAT;
+            case TextureDataType::UNSIGNED_BYTE:
+                return GL_UNSIGNED_BYTE;
+        }
+
+        BD_CORE_ERROR("Unsupported type");
+        throw std::runtime_error("Unsupported type");
     }
 
 }

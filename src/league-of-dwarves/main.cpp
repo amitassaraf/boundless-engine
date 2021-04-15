@@ -9,12 +9,27 @@ class LeagueOfDwarves : public Boundless::Game {
 public:
     std::vector<std::pair<Boundless::Ref<Boundless::VertexArray>, uint32_t> > m_toRender;
     Boundless::Ref<Boundless::Shader> m_shader;
+    Boundless::Ref<Boundless::Shader> m_ssaoShader;
+    Boundless::Ref<Boundless::Shader> m_ssaoBlurShader;
+    Boundless::Ref<Boundless::Shader> m_ssaoLightingShader;
     Boundless::Ref<Boundless::PerspectiveCamera> m_camera;
-    Boundless::Ref<Boundless::LocatedUniform> view;
-    Boundless::Ref<Boundless::LocatedUniform> viewPos;
-    Boundless::Ref<Boundless::LocatedUniform> projection;
     Boundless::World world;
     Boundless::Scope<ThreadPool> m_pool;
+    Boundless::Ref<Boundless::Texture> m_gPosition;
+    Boundless::Ref<Boundless::Texture> m_gNormal;
+    Boundless::Ref<Boundless::Texture> m_gAlbedo;
+    std::vector<glm::vec3> m_ssaoNoise;
+    Boundless::Ref<Boundless::Texture> m_noiseTexture;
+    Boundless::Ref<Boundless::FrameBuffer> m_ssaoFBO;
+    Boundless::Ref<Boundless::FrameBuffer> m_ssaoBlurFBO;
+    Boundless::Ref<Boundless::FrameBuffer> m_gBuffer;
+    Boundless::Ref<Boundless::RenderBuffer> m_renderBuffer;
+    Boundless::Ref<Boundless::Texture> m_ssaoColorBuffer;
+    Boundless::Ref<Boundless::Texture> m_ssaoColorBufferBlur;
+    Boundless::Ref<Boundless::VertexArray> m_quad;
+    std::vector<glm::vec3> m_ssaoKernel;
+    glm::vec3 lightPos = glm::vec3(2.0, 4.0, -2.0);
+    glm::vec3 lightColor = glm::vec3(0.2, 0.2, 0.7);
 
     LeagueOfDwarves() {
         BD_GAME_INFO("Starting league of dwarves.");
@@ -29,6 +44,27 @@ public:
 
     }
 
+    void prepareQuad() {
+        float quadVertices[5 * 4] = {
+            // positions        // texture Coords
+            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+
+        m_quad.reset(Boundless::VertexArray::create());
+        Boundless::Ref<Boundless::VertexBuffer> m_vb;
+        m_vb.reset(Boundless::VertexBuffer::create(quadVertices, sizeof(quadVertices)));
+        Boundless::BufferLayout vertexLayout = {
+            { Boundless::ShaderDataType::VEC3, "aPos" },
+            { Boundless::ShaderDataType::VEC2, "aTexCoords" },  
+        };
+        m_vb->setLayout(vertexLayout);
+        m_quad->addVertexBuffer(m_vb);
+
+
+    }
 
     void calcRenderNodes(Boundless::World& world) {
         BD_CORE_INFO("Traversing Meshes...");
@@ -162,15 +198,10 @@ public:
 
         calcRenderNodes(world);
 
-        m_shader.reset(Boundless::Shader::create("/Users/amitassaraf/workspace/league_of_dwarves/assets/shaders/opengl"));
-
-        m_shader->bind();
-        m_shader->setUniform("lightPos", glm::vec3( -0.2f, -1.0f, -0.3f));
-
-        view.reset(m_shader->locateUniform("view"));
-        projection.reset(m_shader->locateUniform("projection"));
-        viewPos.reset(m_shader->locateUniform("viewPos"));
-        
+        m_shader.reset(Boundless::Shader::create("/Users/amitassaraf/workspace/league_of_dwarves/assets/shaders/opengl/world"));
+        m_ssaoShader.reset(Boundless::Shader::create("/Users/amitassaraf/workspace/league_of_dwarves/assets/shaders/opengl/world_ssao"));
+        m_ssaoBlurShader.reset(Boundless::Shader::create("/Users/amitassaraf/workspace/league_of_dwarves/assets/shaders/opengl/world_ssao_blur"));
+        m_ssaoLightingShader.reset(Boundless::Shader::create("/Users/amitassaraf/workspace/league_of_dwarves/assets/shaders/opengl/world_lighting"));
 
         m_eventManager.appendListener(Boundless::EventType::KEY_PRESSED, [&](const Boundless::Ref<Boundless::Event> event) {
             Boundless::Ref<Boundless::KeyPressedEvent> keyPressedEvent = std::dynamic_pointer_cast<Boundless::KeyPressedEvent> (event);
@@ -185,70 +216,112 @@ public:
             }
         });
 
-        Boundless::Ref<Boundless::Texture> gPosition;
-        gPosition.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RGBA, Boundless::TextureColorChannel::RGBA16F, NULL));
-        gPosition->bind();
-        gPosition->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
-        gPosition->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
-        gPosition->setTextureParameter(Boundless::TextureParameterName::WRAP_S, Boundless::TextureParameter::CLAMP_TO_EDGE);
-        gPosition->setTextureParameter(Boundless::TextureParameterName::WRAP_T, Boundless::TextureParameter::CLAMP_TO_EDGE);
-        gPosition->unbind();
+        prepareQuad();
 
-        std::uniform_real_distribution<float> randomFloats(0.0, 1.0); // random floats between [0.0, 1.0]
+        m_gBuffer.reset(Boundless::FrameBuffer::create());
+        m_gBuffer->bind();
+
+        // Prepare m_gBuffer
+        m_gPosition.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RGBA, Boundless::TextureColorChannel::RGBA16F, Boundless::TextureDataType::FLOAT, NULL));
+        m_gPosition->bind();
+        m_gPosition->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
+        m_gPosition->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
+        m_gPosition->setTextureParameter(Boundless::TextureParameterName::WRAP_S, Boundless::TextureParameter::CLAMP_TO_EDGE);
+        m_gPosition->setTextureParameter(Boundless::TextureParameterName::WRAP_T, Boundless::TextureParameter::CLAMP_TO_EDGE);
+        m_gBuffer->set2DTexture(0, m_gPosition);
+
+        m_gNormal.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RGBA, Boundless::TextureColorChannel::RGBA16F, Boundless::TextureDataType::FLOAT, NULL));
+        m_gNormal->bind();
+        m_gNormal->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
+        m_gNormal->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
+        m_gBuffer->set2DTexture(1, m_gNormal);
+
+        m_gAlbedo.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RGBA, Boundless::TextureColorChannel::RGBA, Boundless::TextureDataType::UNSIGNED_BYTE, NULL));
+        m_gAlbedo->bind();
+        m_gAlbedo->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
+        m_gAlbedo->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
+        m_gBuffer->set2DTexture(2, m_gAlbedo);
+        
+        unsigned int indexes[3] = { 0, 1, 2 };
+        m_gBuffer->enableTextureIndexes(indexes, 3);
+
+        m_renderBuffer.reset(Boundless::RenderBuffer::create(Boundless::RenderBufferType::DEPTH_BUFFER, 800, 600));
+        m_gBuffer->setRenderBuffer(Boundless::FrameBufferAttachmentType::DEPTH, m_renderBuffer);
+
+        m_gBuffer->unbind();
+        // END OF Prepare m_gBuffer
+
+
+        // Prepare SSAO FBO
+        m_ssaoFBO.reset(Boundless::FrameBuffer::create());
+        m_ssaoBlurFBO.reset(Boundless::FrameBuffer::create());
+
+        m_ssaoFBO->bind();
+
+        m_ssaoColorBuffer.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RED, Boundless::TextureColorChannel::RED, Boundless::TextureDataType::FLOAT, NULL));
+        m_ssaoColorBuffer->bind();
+        m_ssaoColorBuffer->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
+        m_ssaoColorBuffer->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
+        m_ssaoFBO->set2DTexture(0, m_ssaoColorBuffer);
+        
+        m_ssaoBlurFBO->bind();
+
+        m_ssaoColorBufferBlur.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RED, Boundless::TextureColorChannel::RED, Boundless::TextureDataType::FLOAT, NULL));
+        m_ssaoColorBufferBlur->bind();
+        m_ssaoColorBufferBlur->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
+        m_ssaoColorBufferBlur->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
+        m_ssaoBlurFBO->set2DTexture(0, m_ssaoColorBufferBlur);
+        m_ssaoBlurFBO->unbind();
+        // END OF Prepare SSAO FBO
+
+        // Generate sample kernel
+        std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
         std::default_random_engine generator;
         std::vector<glm::vec3> ssaoKernel;
         for (unsigned int i = 0; i < 64; ++i)
         {
-            glm::vec3 sample(
-                randomFloats(generator) * 2.0 - 1.0, 
-                randomFloats(generator) * 2.0 - 1.0, 
-                randomFloats(generator)
-            );
-            sample  = glm::normalize(sample);
+            glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
+            sample = glm::normalize(sample);
             sample *= randomFloats(generator);
-            
-            float scale = (float)i / 64.0; 
-            scale   = lerp(0.1f, 1.0f, scale * scale);
+            float scale = float(i) / 64.0;
+
+            // scale samples s.t. they're more aligned to center of kernel
+            scale = lerp(0.1f, 1.0f, scale * scale);
             sample *= scale;
-            ssaoKernel.push_back(sample);  
+            m_ssaoKernel.push_back(sample);
+        }
+        
+        std::vector<glm::vec3> ssaoNoise;
+        for (unsigned int i = 0; i < 16; i++)
+        {
+            glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); // rotate around z-axis (in tangent space)
+            m_ssaoNoise.push_back(noise);
         }
 
-        std::vector<glm::vec3> ssaoNoise;
-        for (unsigned int i = 0; i < 16; i++) {
-            glm::vec3 noise(
-                randomFloats(generator) * 2.0 - 1.0, 
-                randomFloats(generator) * 2.0 - 1.0, 
-                0.0f); 
-            ssaoNoise.push_back(noise);
-        }  
+        m_noiseTexture.reset(Boundless::Texture::create2DTexture(4, 4, Boundless::TextureColorChannel::RGB, Boundless::TextureColorChannel::RGBA32F, Boundless::TextureDataType::FLOAT, &m_ssaoNoise[0]));
+        m_noiseTexture->bind();
+        m_noiseTexture->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
+        m_noiseTexture->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
+        m_noiseTexture->setTextureParameter(Boundless::TextureParameterName::WRAP_S, Boundless::TextureParameter::REPEAT);
+        m_noiseTexture->setTextureParameter(Boundless::TextureParameterName::WRAP_T, Boundless::TextureParameter::REPEAT);
+        m_noiseTexture->unbind();
 
-        Boundless::Ref<Boundless::Texture> noiseTexture;
-        noiseTexture.reset(Boundless::Texture::create2DTexture(4, 4, Boundless::TextureColorChannel::RGB, Boundless::TextureColorChannel::RGBA16F, &ssaoNoise[0]));
-        noiseTexture->bind();
-        noiseTexture->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
-        noiseTexture->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
-        noiseTexture->setTextureParameter(Boundless::TextureParameterName::WRAP_S, Boundless::TextureParameter::REPEAT);
-        noiseTexture->setTextureParameter(Boundless::TextureParameterName::WRAP_T, Boundless::TextureParameter::REPEAT);
-        noiseTexture->unbind();
-
-        Boundless::Ref<Boundless::Texture> ssaoColorBuffer;
-        noiseTexture.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RED, Boundless::TextureColorChannel::RED, &ssaoNoise[0]));
-        noiseTexture->bind();
-        noiseTexture->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
-        noiseTexture->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
-        noiseTexture->unbind();
     }
 
     void onUpdate() override {
         // glm::mat4 model = glm::mat4(1.0f);
-        Boundless::RenderCommand::setClearColor({ 0.1f, 0.3f, 0.1f, 1.0f });
-        Boundless::RenderCommand::clear();
-
         Boundless::Renderer::beginScene();
 
-        m_shader->setUniform(view, m_camera->getViewMatrix());
-        m_shader->setUniform(viewPos, m_camera->getPosition());
-        m_shader->setUniform(projection, m_camera->getProjectionMatrix());
+        Boundless::RenderCommand::setClearColor({ 0.1f, 0.3f, 0.1f, 1.0f });
+        Boundless::RenderCommand::clear();
+        
+        // 1. Draw geometry into the gBuffer
+        m_gBuffer->bind();
+        Boundless::RenderCommand::clear();
+        m_shader->bind();
+
+        m_shader->setUniform("view", m_camera->getViewMatrix());
+        m_shader->setUniform("projection", m_camera->getProjectionMatrix());
         
         Boundless::RenderCommand::fillMode();
 
@@ -257,6 +330,81 @@ public:
             Boundless::Renderer::submitInstanced(pair.first, pair.second);
         }
         
+        m_gBuffer->unbind();
+        
+        // 2. generate SSAO texture
+        m_ssaoFBO->bind();
+        Boundless::RenderCommand::clearColor();
+        m_ssaoShader->bind();
+        m_ssaoShader->setUniform("gPosition", 0);
+        m_ssaoShader->setUniform("gNormal", 1);
+        m_ssaoShader->setUniform("noiseTexture", 2);
+
+        // Send kernel + rotation to shader
+        for (unsigned int i = 0; i < 64; ++i) {
+            m_ssaoShader->setUniform("samples[" + std::to_string(i) + "]", m_ssaoKernel[i]);
+        }
+        m_ssaoShader->setUniform("projectionView", m_camera->getViewProjectionMatrix());
+        m_ssaoShader->setUniform("cameraPosition", m_camera->getPosition());
+        m_ssaoShader->setUniform("cameraDirection", m_camera->getFront());
+        m_ssaoShader->setActiveTextureUnit(0);
+        m_gPosition->bind();
+        m_ssaoShader->setActiveTextureUnit(1);
+        m_gNormal->bind();
+        m_ssaoShader->setActiveTextureUnit(2);
+        m_noiseTexture->bind();
+        // Render the SSAO texture to Quad
+        m_quad->bind();
+        Boundless::Renderer::submit(m_quad);
+        m_quad->unbind();
+        m_ssaoFBO->unbind();
+
+
+
+        m_ssaoBlurFBO->bind();
+        Boundless::RenderCommand::clearColor();
+        m_ssaoBlurShader->bind();
+        m_ssaoBlurShader->setUniform("ssaoInput", 0);
+        m_ssaoBlurShader->setActiveTextureUnit(0);
+        m_ssaoColorBuffer->bind();
+        m_quad->bind();
+        Boundless::Renderer::submit(m_quad);
+        m_quad->unbind();
+        m_ssaoBlurFBO->unbind();
+        
+
+        // 3. lighting pass
+        Boundless::RenderCommand::clear();
+        m_ssaoLightingShader->bind();
+        m_ssaoLightingShader->setUniform("gPosition", 0);
+        m_ssaoLightingShader->setUniform("gNormal", 1);
+        m_ssaoLightingShader->setUniform("gAlbedo", 2);
+        m_ssaoLightingShader->setUniform("ssao", 3);
+        
+
+        glm::vec3 lightPosView = glm::vec3(m_camera->getViewMatrix() * glm::vec4(lightPos, 1.0));
+        m_ssaoLightingShader->setUniform("light.Position", lightPosView);
+        m_ssaoLightingShader->setUniform("light.Color", lightColor);
+        // Update attenuation parameters
+        const float linear    = 0.09;
+        const float quadratic = 0.032;
+        m_ssaoLightingShader->setUniform("light.Linear", linear);
+        m_ssaoLightingShader->setUniform("light.Quadratic", quadratic);
+
+        m_ssaoLightingShader->setActiveTextureUnit(0);
+        m_gPosition->bind();
+        m_ssaoLightingShader->setActiveTextureUnit(1);
+        m_gNormal->bind();
+        m_ssaoLightingShader->setActiveTextureUnit(2);
+        m_gAlbedo->bind();
+        m_ssaoLightingShader->setActiveTextureUnit(3);
+        m_ssaoColorBufferBlur->bind();
+        // Render the SSAO texture to Quad
+        m_quad->bind();
+        Boundless::Renderer::submit(m_quad);
+        m_quad->unbind();
+
+
         Boundless::Renderer::endScene();
 
     }

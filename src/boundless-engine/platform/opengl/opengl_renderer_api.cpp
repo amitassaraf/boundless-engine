@@ -12,6 +12,16 @@ namespace Boundless {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
+    void OpenGLRendererAPI::clearColor() {
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    void OpenGLRendererAPI::drawArrays(const Ref<VertexArray>& vertexArray) {
+        for (Ref<VertexBuffer> vb : vertexArray->getVertexBuffers()) {
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, vb->getCount());
+        }
+    }
+
     void OpenGLRendererAPI::drawIndexed(const Ref<VertexArray>& vertexArray) {
         glDrawElements(GL_TRIANGLES, vertexArray->getIndexBuffer()->getCount(), GL_UNSIGNED_INT, nullptr);
     }

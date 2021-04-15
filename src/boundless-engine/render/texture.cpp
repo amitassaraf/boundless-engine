@@ -5,14 +5,14 @@
 
 namespace Boundless {
 
-    Texture* Texture::create2DTexture(uint16_t width, uint16_t height, TextureColorChannel textureColorChannel, TextureColorChannel renderColorChannel, void* source) {
+    Texture* Texture::create2DTexture(uint16_t width, uint16_t height, TextureColorChannel textureColorChannel, TextureColorChannel renderColorChannel, TextureDataType type, void* source) {
         switch (RendererAPI::getApi()) {
             case RenderAPI::NONE:
                 BD_CORE_ERROR("Renderer API None is not supported");
                 throw std::runtime_error("Renderer API None is not supported.");
                 break;
             case RenderAPI::OPEN_GL:
-                return new OpenGL2DTexture(width, height, textureColorChannel, renderColorChannel, source);
+                return new OpenGL2DTexture(width, height, textureColorChannel, renderColorChannel, type, source);
                 break;
         }
 

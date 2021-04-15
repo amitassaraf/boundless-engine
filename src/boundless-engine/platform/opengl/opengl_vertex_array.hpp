@@ -22,6 +22,7 @@ namespace Boundless {
             virtual void setIndexBuffer(const Ref<IndexBuffer>& indexBuffer) override;
             
             inline virtual const Ref<IndexBuffer>& getIndexBuffer() const override { return m_indexBuffer; }
+            inline virtual const std::vector< Ref<VertexBuffer> >& getVertexBuffers() const override { return m_vertexBuffers; }
         private:
             std::vector< Ref<VertexBuffer> > m_vertexBuffers;
             Ref< IndexBuffer > m_indexBuffer;

@@ -24,16 +24,16 @@ float normalize(float input)
     return (normalized_x + 1.0f) / 2.0f;
 }
         
-float noise[8192][8192];
+float noise[2048][2048];
 
 namespace Boundless {
 
     World::World() : m_noise(SimplexNoise(0.1f/scale, 0.5f, lacunarity, persistance)) {
-        m_size = 8192u;
+        m_size = 2048u;
         m_octree.reset(new Octree(m_size));
 
-        for (int x = 0; x < 8192; x++) {
-            for (int z = 0; z < 8192; z++) {
+        for (int x = 0; x < 2048; x++) {
+            for (int z = 0; z < 2048; z++) {
                 noise[x][z] = floor(normalize(m_noise.fractal(octaves, x, z)) * m_size);
             }     
         }

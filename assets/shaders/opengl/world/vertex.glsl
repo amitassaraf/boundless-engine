@@ -7,7 +7,6 @@ layout (location = 3) in float m_Scale;
 
 flat out vec3 out_Nom;
 out vec3 out_Pos;  
-out vec3 view_Pos;
 
 uniform mat4 view;
 uniform mat4 projection;

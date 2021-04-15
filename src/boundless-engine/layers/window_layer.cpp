@@ -19,7 +19,7 @@ namespace Boundless {
     EventManager* WindowLayer::s_eventManager = NULL;
 
     WindowLayer::WindowLayer(EventManager& eventManager) : Layer(eventManager, "WindowLayer"), 
-    m_width(800), m_height(640), m_title(std::move("Boundless")) {
+    m_width(800), m_height(600), m_title(std::move("Boundless")) {
         WindowLayer::s_eventManager = &eventManager;
     }
 

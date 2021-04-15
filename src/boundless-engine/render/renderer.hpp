@@ -14,6 +14,7 @@ namespace Boundless {
             static void endScene();
             static void submit(const Ref<VertexArray>& vertexArray);
             static void submitInstanced(const Ref<VertexArray>& vertexArray, uint32_t count);
+            static void submitIndexed(const Ref<VertexArray>& vertexArray);
     };
 
 }

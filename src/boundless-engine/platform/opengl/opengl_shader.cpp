@@ -96,6 +96,14 @@ namespace Boundless {
         glUniform3fv(uniformLocation->location, 1, glm::value_ptr(uniform));
     }
 
+    void OpenGLShader::setUniform(const Ref<LocatedUniform>& uniformLocation, const float uniform) const {
+        glUniform1fv(uniformLocation->location, 1, &uniform);
+    }
+
+    void OpenGLShader::setUniform(const Ref<LocatedUniform>& uniformLocation, const int uniform) const {
+        glUniform1iv(uniformLocation->location, 1, &uniform);
+    }
+
     void OpenGLShader::setUniform(const std::string& uniformName, const glm::mat4& uniform) const {
         unsigned int uniformLocation = glGetUniformLocation(m_rendererId, uniformName.c_str());
         glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(uniform));
@@ -109,6 +117,16 @@ namespace Boundless {
     void OpenGLShader::setUniform(const std::string& uniformName, const glm::vec3& uniform) const {
         unsigned int uniformLocation = glGetUniformLocation(m_rendererId, uniformName.c_str());
         glUniform3fv(uniformLocation, 1, glm::value_ptr(uniform));
+    }
+
+    void OpenGLShader::setUniform(const std::string& uniformName, const float uniform) const {
+        unsigned int uniformLocation = glGetUniformLocation(m_rendererId, uniformName.c_str());
+        glUniform1fv(uniformLocation, 1, &uniform);
+    }
+
+    void OpenGLShader::setUniform(const std::string& uniformName, const int uniform) const {
+        unsigned int uniformLocation = glGetUniformLocation(m_rendererId, uniformName.c_str());
+        glUniform1iv(uniformLocation, 1, &uniform);
     }
 
     unsigned int OpenGLShader::shaderDataTypeToNativeType(ShaderDataType type) {
@@ -131,6 +149,10 @@ namespace Boundless {
         BD_CORE_ERROR("Unknown Shader Data Type.");
         throw std::runtime_error("Unknown Shader Data Type.");
         return 0;
+    }
+
+    void OpenGLShader::setActiveTextureUnit(unsigned int index) const {
+        glActiveTexture(GL_TEXTURE0 + index);
     }
 
 }

@@ -18,6 +18,14 @@ namespace Boundless {
                 s_rendererApi->clear();
             }
 
+            inline static void clearColor() {
+                s_rendererApi->clearColor();
+            }
+
+            inline static void drawArrays(const Ref<VertexArray>& vertexArray) {
+                s_rendererApi->drawArrays(vertexArray);
+            }
+
             inline static void drawIndexed(const Ref<VertexArray>& vertexArray) {
                 s_rendererApi->drawIndexed(vertexArray);
             }
