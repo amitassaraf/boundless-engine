@@ -258,7 +258,7 @@ public:
 
         m_ssaoFBO->bind();
 
-        m_ssaoColorBuffer.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RED, Boundless::TextureColorChannel::RED, Boundless::TextureDataType::FLOAT, NULL));
+        m_ssaoColorBuffer.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RGB, Boundless::TextureColorChannel::RED, Boundless::TextureDataType::FLOAT, NULL));
         m_ssaoColorBuffer->bind();
         m_ssaoColorBuffer->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
         m_ssaoColorBuffer->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
@@ -344,9 +344,7 @@ public:
         for (unsigned int i = 0; i < 64; ++i) {
             m_ssaoShader->setUniform("samples[" + std::to_string(i) + "]", m_ssaoKernel[i]);
         }
-        m_ssaoShader->setUniform("projectionView", m_camera->getViewProjectionMatrix());
-        m_ssaoShader->setUniform("cameraPosition", m_camera->getPosition());
-        m_ssaoShader->setUniform("cameraDirection", m_camera->getFront());
+        m_ssaoShader->setUniform("projection", m_camera->getProjectionMatrix());
         m_ssaoShader->setActiveTextureUnit(0);
         m_gPosition->bind();
         m_ssaoShader->setActiveTextureUnit(1);
