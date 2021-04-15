@@ -25,7 +25,8 @@ void main() {
                             0.0, 0.0, 1, 0.0, 
                             m_Translation.x, m_Translation.y, m_Translation.z, 1.0);
 
-    out_Nom = mat3(transpose(inverse(translation * scale))) * v_Norm; 
-    out_Pos = vec3(translation * scale * position);
+    mat3 normalMatrix = transpose(inverse(mat3(view * translation * scale)));
+    out_Nom = normalMatrix * v_Norm;
+    out_Pos = vec3(view * translation * scale * position);
     gl_Position = projection * view * translation * scale * position;
 }

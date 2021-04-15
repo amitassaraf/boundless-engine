@@ -344,9 +344,7 @@ public:
         for (unsigned int i = 0; i < 64; ++i) {
             m_ssaoShader->setUniform("samples[" + std::to_string(i) + "]", m_ssaoKernel[i]);
         }
-        m_ssaoShader->setUniform("projectionView", m_camera->getViewProjectionMatrix());
-        m_ssaoShader->setUniform("cameraPosition", m_camera->getPosition());
-        m_ssaoShader->setUniform("cameraDirection", m_camera->getFront());
+        m_ssaoShader->setUniform("projection", m_camera->getProjectionMatrix());
         m_ssaoShader->setActiveTextureUnit(0);
         m_gPosition->bind();
         m_ssaoShader->setActiveTextureUnit(1);
