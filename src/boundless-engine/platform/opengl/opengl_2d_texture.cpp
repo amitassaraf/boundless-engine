@@ -53,10 +53,14 @@ namespace Boundless {
                 return GL_TEXTURE_WRAP_S;
             case TextureParameterName::WRAP_T:
                 return GL_TEXTURE_WRAP_T;
+            case TextureParameterName::WRAP_R:
+                return GL_TEXTURE_WRAP_R;
             case TextureParameterName::MIN_FILTER:
                 return GL_TEXTURE_MIN_FILTER;
             case TextureParameterName::MAG_FILTER:
                 return GL_TEXTURE_MAG_FILTER;
+            case TextureParameterName::COMPARE_MODE:
+                return GL_TEXTURE_COMPARE_MODE;
         }
 
         BD_CORE_ERROR("Unsupported parameter");
@@ -81,6 +85,8 @@ namespace Boundless {
                 return GL_REPEAT;
             case TextureParameter::CLAMP_TO_EDGE:
                 return GL_CLAMP_TO_EDGE;
+            case TextureParameter::NONE:
+                return GL_NONE;
         }
 
         BD_CORE_ERROR("Unsupported function");

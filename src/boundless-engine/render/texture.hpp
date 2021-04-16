@@ -7,7 +7,7 @@
 namespace Boundless {
 
     enum class TextureParameterName {
-        WRAP_S = 0, WRAP_T, MIN_FILTER, MAG_FILTER
+        WRAP_S = 0, WRAP_T, MIN_FILTER, MAG_FILTER, WRAP_R, COMPARE_MODE
     };
 
     enum class TextureColorChannel {
@@ -15,7 +15,7 @@ namespace Boundless {
     };
 
     enum class TextureParameter {
-        NEAREST = 0, LINEAR, NEAREST_MIPMAP_NEAREST, LINEAR_MIPMAP_NEAREST, NEAREST_MIPMAP_LINEAR, LINEAR_MIPMAP_LINEAR, CLAMP_TO_EDGE, REPEAT,
+        NEAREST = 0, LINEAR, NEAREST_MIPMAP_NEAREST, LINEAR_MIPMAP_NEAREST, NEAREST_MIPMAP_LINEAR, LINEAR_MIPMAP_LINEAR, CLAMP_TO_EDGE, REPEAT, NONE
     };
 
     enum class TextureDataType {

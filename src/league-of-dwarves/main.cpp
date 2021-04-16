@@ -258,7 +258,7 @@ public:
 
         m_ssaoFBO->bind();
 
-        m_ssaoColorBuffer.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RGB, Boundless::TextureColorChannel::RED, Boundless::TextureDataType::FLOAT, NULL));
+        m_ssaoColorBuffer.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RED, Boundless::TextureColorChannel::RED, Boundless::TextureDataType::FLOAT, NULL));
         m_ssaoColorBuffer->bind();
         m_ssaoColorBuffer->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
         m_ssaoColorBuffer->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
