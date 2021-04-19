@@ -9,7 +9,7 @@
 
 float scale     = 100.f;
 float lacunarity    = 0.1f;
-float persistance   = 1.2f;
+float persistance   = 1.6f;
 
 const int octaves = static_cast<int>(3 + std::log(scale)); // Estimate number of octaves needed for the current scale
 
@@ -24,16 +24,16 @@ float normalize(float input)
     return (normalized_x + 1.0f) / 2.0f;
 }
         
-float noise[2048][2048];
+float noise[8192][8192];
 
 namespace Boundless {
 
     World::World() : m_noise(SimplexNoise(0.1f/scale, 0.5f, lacunarity, persistance)) {
-        m_size = 2048u;
+        m_size = 8192u;
         m_octree.reset(new Octree(m_size));
 
-        for (int x = 0; x < 2048; x++) {
-            for (int z = 0; z < 2048; z++) {
+        for (int x = 0; x < 8192; x++) {
+            for (int z = 0; z < 8192; z++) {
                 noise[x][z] = floor(normalize(m_noise.fractal(octaves, x, z)) * m_size);
             }     
         }
@@ -72,7 +72,7 @@ namespace Boundless {
         m_octree->divide(rootNode);
         BD_CORE_INFO("Generating world...");
 
-        renderWorldAround(glm::vec3(0,0,0));
+        renderWorldAround(glm::vec3(4096,4096,4096));
     }
 
     OctreeNode World::findIntersectingNode(const glm::vec3& position) {

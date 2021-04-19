@@ -1,5 +1,7 @@
+#include <GL/glew.h>
 #include <boundless.h>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/transform.hpp>
 #include <algorithm> 
 #include <ThreadPool.h>
 #include <thread>
@@ -30,11 +32,14 @@ public:
     std::vector<glm::vec3> m_ssaoKernel;
     glm::vec3 lightPos = glm::vec3(2.0, 4.0, -2.0);
     glm::vec3 lightColor = glm::vec3(0.2, 0.2, 0.7);
+    double previousTime = glfwGetTime();
+    int frameCount = 0;
 
     LeagueOfDwarves() {
         BD_GAME_INFO("Starting league of dwarves.");
         this->pushLayer(new Boundless::WindowLayer(m_eventManager));
         m_camera.reset(new Boundless::PerspectiveCamera(m_eventManager));
+        m_camera->setPosition(glm::vec3(4096, 4096, 4096));
         m_pool.reset(new ThreadPool(std::thread::hardware_concurrency()));
         this->pushLayer(m_camera.get());
         this->pushLayer(new Boundless::FPSCounterLayer(m_eventManager));
@@ -50,7 +55,7 @@ public:
             -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
             -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
              1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+             1.0f, -1.0f, 0.0f, 1.0f, 0.0f
         };
 
         m_quad.reset(Boundless::VertexArray::create());
@@ -220,6 +225,7 @@ public:
 
         m_gBuffer.reset(Boundless::FrameBuffer::create());
         m_gBuffer->bind();
+        glViewport(0, 0, 800, 600);
 
         // Prepare m_gBuffer
         m_gPosition.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RGBA, Boundless::TextureColorChannel::RGBA16F, Boundless::TextureDataType::FLOAT, NULL));
@@ -247,7 +253,6 @@ public:
 
         m_renderBuffer.reset(Boundless::RenderBuffer::create(Boundless::RenderBufferType::DEPTH_BUFFER, 800, 600));
         m_gBuffer->setRenderBuffer(Boundless::FrameBufferAttachmentType::DEPTH, m_renderBuffer);
-
         m_gBuffer->unbind();
         // END OF Prepare m_gBuffer
 
@@ -257,7 +262,7 @@ public:
         m_ssaoBlurFBO.reset(Boundless::FrameBuffer::create());
 
         m_ssaoFBO->bind();
-
+        glViewport(0, 0, 800, 600);
         m_ssaoColorBuffer.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RED, Boundless::TextureColorChannel::RED, Boundless::TextureDataType::FLOAT, NULL));
         m_ssaoColorBuffer->bind();
         m_ssaoColorBuffer->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
@@ -278,12 +283,12 @@ public:
         std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
         std::default_random_engine generator;
         std::vector<glm::vec3> ssaoKernel;
-        for (unsigned int i = 0; i < 64; ++i)
+        for (unsigned int i = 0; i < 32; ++i)
         {
             glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
             sample = glm::normalize(sample);
             sample *= randomFloats(generator);
-            float scale = float(i) / 64.0;
+            float scale = float(i) / 32.0;
 
             // scale samples s.t. they're more aligned to center of kernel
             scale = lerp(0.1f, 1.0f, scale * scale);
@@ -294,7 +299,8 @@ public:
         std::vector<glm::vec3> ssaoNoise;
         for (unsigned int i = 0; i < 16; i++)
         {
-            glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); // rotate around z-axis (in tangent space)
+            glm::mat3 rmat = glm::rotate(randomFloats(generator) * glm::pi<float>() * 2.0f, glm::vec3(0, 0, 1));
+            glm::vec3 noise = rmat * glm::vec3(1, 0, 0);
             m_ssaoNoise.push_back(noise);
         }
 
@@ -309,14 +315,18 @@ public:
     }
 
     void onUpdate() override {
+        double currentTime = glfwGetTime();
+        frameCount++;
+
         // glm::mat4 model = glm::mat4(1.0f);
         Boundless::Renderer::beginScene();
 
-        Boundless::RenderCommand::setClearColor({ 0.1f, 0.3f, 0.1f, 1.0f });
+        Boundless::RenderCommand::setClearColor({ 0.196078f, 0.6f, 0.8f, 1.0f });
         Boundless::RenderCommand::clear();
         
         // 1. Draw geometry into the gBuffer
         m_gBuffer->bind();
+        glViewport(0, 0, 800, 600);
         Boundless::RenderCommand::clear();
         m_shader->bind();
 
@@ -334,6 +344,7 @@ public:
         
         // 2. generate SSAO texture
         m_ssaoFBO->bind();
+        glViewport(0, 0, 800, 600);
         Boundless::RenderCommand::clearColor();
         m_ssaoShader->bind();
         m_ssaoShader->setUniform("gPosition", 0);
@@ -341,10 +352,11 @@ public:
         m_ssaoShader->setUniform("noiseTexture", 2);
 
         // Send kernel + rotation to shader
-        for (unsigned int i = 0; i < 64; ++i) {
+        for (unsigned int i = 0; i < 32; ++i) {
             m_ssaoShader->setUniform("samples[" + std::to_string(i) + "]", m_ssaoKernel[i]);
         }
         m_ssaoShader->setUniform("projection", m_camera->getProjectionMatrix());
+        m_ssaoShader->setUniform("view", m_camera->getViewMatrix());
         m_ssaoShader->setActiveTextureUnit(0);
         m_gPosition->bind();
         m_ssaoShader->setActiveTextureUnit(1);
@@ -404,6 +416,13 @@ public:
 
 
         Boundless::Renderer::endScene();
+        if ( currentTime - previousTime >= 1.0 ) {
+            // Display the frame count here any way you want.
+            BD_CORE_TRACE("FPS: {}", frameCount);
+
+            frameCount = 0;
+            previousTime = currentTime;
+        }
 
     }
 

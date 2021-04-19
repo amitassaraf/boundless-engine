@@ -19,6 +19,7 @@ namespace Boundless {
 
         BD_CORE_TRACE("Setting context.");
         glfwMakeContextCurrent(m_windowHandle);
+        // glfwSwapInterval( 0 );
 
         GLenum err = glewInit();
         if (GLEW_OK != err)
