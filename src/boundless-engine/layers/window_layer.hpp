@@ -19,10 +19,15 @@ namespace Boundless {
             void onAttach() override;
             void onDetach() override;
             void onUpdate() override;
+
+            void updateViewport() const;
             
             static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
             static void mouseCallback(GLFWwindow* window, double xpos, double ypos);
             static void resizeCallback(GLFWwindow* window, int width, int height);
+
+            inline int getWidth() const { return m_width; }
+            inline int getHeight() const { return m_height; }
         private:
             int m_width;
             int m_height;

@@ -12,6 +12,7 @@ namespace Boundless {
             virtual ~GraphicsContext();
             virtual void init() = 0;
             virtual void swapBuffers() = 0;
+            virtual void updateViewport(int width, int height) = 0;
         protected:
             EventManager& m_eventManager;
     };

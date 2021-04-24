@@ -12,7 +12,7 @@ namespace Boundless {
     
     class PerspectiveCamera : public Layer {
         public:
-            PerspectiveCamera(EventManager& eventManager);
+            PerspectiveCamera(EventManager& eventManager, int width, int height);
             virtual ~PerspectiveCamera();
 
             void onAttach() override;

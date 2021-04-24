@@ -17,6 +17,7 @@ namespace Boundless {
 
             virtual void init() override;
             virtual void swapBuffers() override;
+            virtual void updateViewport(int width, int height) override;
         private:
             GLFWwindow* m_windowHandle;
     };

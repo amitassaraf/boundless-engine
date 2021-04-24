@@ -6,14 +6,14 @@
 
 namespace Boundless {
 
-    PerspectiveCamera::PerspectiveCamera(EventManager& eventManager) : Layer(eventManager, "WindowLayer") {
+    PerspectiveCamera::PerspectiveCamera(EventManager& eventManager, int width, int height) : Layer(eventManager, "Perspective Camera") {
         m_position = glm::vec3(0.0f, 0.0f,  0.0f);
         m_front    = glm::vec3(0.0f, 0.0f, -1.0f);
         m_up       = glm::vec3(0.0f, 1.0f,  0.0f);
         m_lastX = 400;
         m_lastY = 320;
 
-        m_projectionMatrix = glm::perspective(glm::radians(70.0f), (float)800/(float)600, 0.01f, 10000.0f);
+        m_projectionMatrix = glm::perspective(glm::radians(70.0f), (float)width/(float)height, 0.01f, 10000.0f);
 
         m_eventManager.appendListener(EventType::KEY_PRESSED, [&](const Ref<Event> event) {
             Ref<KeyPressedEvent> keyPressEvent = std::dynamic_pointer_cast<KeyPressedEvent> (event);

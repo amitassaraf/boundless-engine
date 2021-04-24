@@ -33,7 +33,7 @@ namespace Boundless {
     }  
 
     void WindowLayer::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
-                UNUSED(window);
+        UNUSED(window);
         WindowLayer::s_eventManager->enqueue(EventType::MOUSE_MOVED, Ref<Event>(new MouseMovedEvent(xpos, ypos)));
     }
 
@@ -77,6 +77,16 @@ namespace Boundless {
 
         m_context = new OpenGLContext(m_window, m_eventManager);
         m_context->init();
+
+        int width, height;
+        glfwGetFramebufferSize(m_window, &width, &height);
+        WindowLayer::s_eventManager->enqueue(EventType::WINDOW_RESIZE, Ref<Event>(new WindowResizeEvent(width, height)));
+        m_width = width;
+        m_height = height;
+    }
+
+    void WindowLayer::updateViewport() const {
+        m_context->updateViewport(m_width, m_height);
     }
 
     void WindowLayer::onDetach() {

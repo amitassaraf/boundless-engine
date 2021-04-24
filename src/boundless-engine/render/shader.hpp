@@ -35,11 +35,13 @@ namespace Boundless {
             virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const glm::mat4& uniform) const = 0;
             virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const glm::vec4& uniform) const = 0;
             virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const glm::vec3& uniform) const = 0;
+            virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const glm::vec2& uniform) const = 0;
             virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const float uniform) const = 0;
             virtual void setUniform(const Ref<LocatedUniform>& uniformLocation, const int uniform) const = 0;
             virtual void setUniform(const std::string& uniformName, const glm::mat4& uniform) const = 0;
             virtual void setUniform(const std::string& uniformName, const glm::vec4& uniform) const = 0;
             virtual void setUniform(const std::string& uniformName, const glm::vec3& uniform) const = 0;
+            virtual void setUniform(const std::string& uniformName, const glm::vec2& uniform) const = 0;
             virtual void setUniform(const std::string& uniformName, const float uniform) const = 0;
             virtual void setUniform(const std::string& uniformName, const int uniform) const = 0;
             virtual void setActiveTextureUnit(unsigned int index) const = 0;

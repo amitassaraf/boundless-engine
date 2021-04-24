@@ -8,19 +8,20 @@ uniform sampler2D gNormal;
 uniform sampler2D noiseTexture;
 
 uniform vec3 samples[32];
+uniform vec2 screenDimensions[1];
 
 // parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 int kernelSize = 32;
 float radius = 3;
 float bias = 0.03;
 
-// tile noise texture over screen based on screen dimensions divided by noise size
-const vec2 noiseScale = vec2(800.0/4.0, 600.0/4.0); 
-
 uniform mat4 projection;
 
 void main()
 {
+    // tile noise texture over screen based on screen dimensions divided by noise size
+    vec2 noiseScale = vec2(screenDimensions[0].x/4.0, screenDimensions[0].y/4.0); 
+
     // get input for SSAO algorithm
     vec3 normal = normalize(texture(gNormal, TexCoords).rgb);
 

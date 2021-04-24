@@ -15,6 +15,7 @@ public:
     Boundless::Ref<Boundless::Shader> m_ssaoBlurShader;
     Boundless::Ref<Boundless::Shader> m_ssaoLightingShader;
     Boundless::Ref<Boundless::PerspectiveCamera> m_camera;
+    Boundless::Ref<Boundless::WindowLayer> m_windowLayer;
     Boundless::World world;
     Boundless::Scope<ThreadPool> m_pool;
     Boundless::Ref<Boundless::Texture> m_gPosition;
@@ -37,9 +38,10 @@ public:
 
     LeagueOfDwarves() {
         BD_GAME_INFO("Starting league of dwarves.");
-        this->pushLayer(new Boundless::WindowLayer(m_eventManager));
-        m_camera.reset(new Boundless::PerspectiveCamera(m_eventManager));
-        m_camera->setPosition(glm::vec3(4096, 4096, 4096));
+        m_windowLayer.reset(new Boundless::WindowLayer(m_eventManager));
+        this->pushLayer(m_windowLayer.get());
+        m_camera.reset(new Boundless::PerspectiveCamera(m_eventManager, m_windowLayer->getWidth(), m_windowLayer->getHeight()));
+        m_camera->setPosition(glm::vec3(1024, 1024, 1024));
         m_pool.reset(new ThreadPool(std::thread::hardware_concurrency()));
         this->pushLayer(m_camera.get());
         this->pushLayer(new Boundless::FPSCounterLayer(m_eventManager));
@@ -225,10 +227,9 @@ public:
 
         m_gBuffer.reset(Boundless::FrameBuffer::create());
         m_gBuffer->bind();
-        glViewport(0, 0, 800, 600);
 
         // Prepare m_gBuffer
-        m_gPosition.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RGBA, Boundless::TextureColorChannel::RGBA16F, Boundless::TextureDataType::FLOAT, NULL));
+        m_gPosition.reset(Boundless::Texture::create2DTexture(m_windowLayer->getWidth(), m_windowLayer->getHeight(), Boundless::TextureColorChannel::RGBA, Boundless::TextureColorChannel::RGBA16F, Boundless::TextureDataType::FLOAT, NULL));
         m_gPosition->bind();
         m_gPosition->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
         m_gPosition->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
@@ -236,13 +237,13 @@ public:
         m_gPosition->setTextureParameter(Boundless::TextureParameterName::WRAP_T, Boundless::TextureParameter::CLAMP_TO_EDGE);
         m_gBuffer->set2DTexture(0, m_gPosition);
 
-        m_gNormal.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RGBA, Boundless::TextureColorChannel::RGBA16F, Boundless::TextureDataType::FLOAT, NULL));
+        m_gNormal.reset(Boundless::Texture::create2DTexture(m_windowLayer->getWidth(), m_windowLayer->getHeight(), Boundless::TextureColorChannel::RGBA, Boundless::TextureColorChannel::RGBA16F, Boundless::TextureDataType::FLOAT, NULL));
         m_gNormal->bind();
         m_gNormal->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
         m_gNormal->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
         m_gBuffer->set2DTexture(1, m_gNormal);
 
-        m_gAlbedo.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RGBA, Boundless::TextureColorChannel::RGBA, Boundless::TextureDataType::UNSIGNED_BYTE, NULL));
+        m_gAlbedo.reset(Boundless::Texture::create2DTexture(m_windowLayer->getWidth(), m_windowLayer->getHeight(), Boundless::TextureColorChannel::RGBA, Boundless::TextureColorChannel::RGBA, Boundless::TextureDataType::UNSIGNED_BYTE, NULL));
         m_gAlbedo->bind();
         m_gAlbedo->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
         m_gAlbedo->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
@@ -251,7 +252,7 @@ public:
         unsigned int indexes[3] = { 0, 1, 2 };
         m_gBuffer->enableTextureIndexes(indexes, 3);
 
-        m_renderBuffer.reset(Boundless::RenderBuffer::create(Boundless::RenderBufferType::DEPTH_BUFFER, 800, 600));
+        m_renderBuffer.reset(Boundless::RenderBuffer::create(Boundless::RenderBufferType::DEPTH_BUFFER, m_windowLayer->getWidth(), m_windowLayer->getHeight()));
         m_gBuffer->setRenderBuffer(Boundless::FrameBufferAttachmentType::DEPTH, m_renderBuffer);
         m_gBuffer->unbind();
         // END OF Prepare m_gBuffer
@@ -262,8 +263,7 @@ public:
         m_ssaoBlurFBO.reset(Boundless::FrameBuffer::create());
 
         m_ssaoFBO->bind();
-        glViewport(0, 0, 800, 600);
-        m_ssaoColorBuffer.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RED, Boundless::TextureColorChannel::RED, Boundless::TextureDataType::FLOAT, NULL));
+        m_ssaoColorBuffer.reset(Boundless::Texture::create2DTexture(m_windowLayer->getWidth(), m_windowLayer->getHeight(), Boundless::TextureColorChannel::RED, Boundless::TextureColorChannel::RED, Boundless::TextureDataType::FLOAT, NULL));
         m_ssaoColorBuffer->bind();
         m_ssaoColorBuffer->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
         m_ssaoColorBuffer->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
@@ -271,7 +271,7 @@ public:
         
         m_ssaoBlurFBO->bind();
 
-        m_ssaoColorBufferBlur.reset(Boundless::Texture::create2DTexture(800, 600, Boundless::TextureColorChannel::RED, Boundless::TextureColorChannel::RED, Boundless::TextureDataType::FLOAT, NULL));
+        m_ssaoColorBufferBlur.reset(Boundless::Texture::create2DTexture(m_windowLayer->getWidth(), m_windowLayer->getHeight(), Boundless::TextureColorChannel::RED, Boundless::TextureColorChannel::RED, Boundless::TextureDataType::FLOAT, NULL));
         m_ssaoColorBufferBlur->bind();
         m_ssaoColorBufferBlur->setTextureParameter(Boundless::TextureParameterName::MIN_FILTER, Boundless::TextureParameter::NEAREST);
         m_ssaoColorBufferBlur->setTextureParameter(Boundless::TextureParameterName::MAG_FILTER, Boundless::TextureParameter::NEAREST);
@@ -326,7 +326,6 @@ public:
         
         // 1. Draw geometry into the gBuffer
         m_gBuffer->bind();
-        glViewport(0, 0, 800, 600);
         Boundless::RenderCommand::clear();
         m_shader->bind();
 
@@ -344,13 +343,13 @@ public:
         
         // 2. generate SSAO texture
         m_ssaoFBO->bind();
-        glViewport(0, 0, 800, 600);
+        m_windowLayer->updateViewport();
         Boundless::RenderCommand::clearColor();
         m_ssaoShader->bind();
         m_ssaoShader->setUniform("gPosition", 0);
         m_ssaoShader->setUniform("gNormal", 1);
         m_ssaoShader->setUniform("noiseTexture", 2);
-
+        m_ssaoShader->setUniform("screenDimensions", glm::vec2(m_windowLayer->getWidth(), m_windowLayer->getHeight()));
         // Send kernel + rotation to shader
         for (unsigned int i = 0; i < 32; ++i) {
             m_ssaoShader->setUniform("samples[" + std::to_string(i) + "]", m_ssaoKernel[i]);
@@ -413,7 +412,6 @@ public:
         m_quad->bind();
         Boundless::Renderer::submit(m_quad);
         m_quad->unbind();
-
 
         Boundless::Renderer::endScene();
         if ( currentTime - previousTime >= 1.0 ) {
