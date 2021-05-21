@@ -6,10 +6,12 @@
 #include <glm/gtx/string_cast.hpp>
 #include <algorithm> 
 
+#define __CL_ENABLE_EXCEPTIONS
+#include <OpenCL/cl.hpp>
 
 float scale     = 100.f;
-float lacunarity    = 0.1f;
-float persistance   = 1.6f;
+float lacunarity    = 0.8f;
+float persistance   = 1.1f;
 
 const int octaves = static_cast<int>(3 + std::log(scale)); // Estimate number of octaves needed for the current scale
 
@@ -24,19 +26,65 @@ float normalize(float input)
     return (normalized_x + 1.0f) / 2.0f;
 }
         
-float noise[2048][2048];
+int noise[4096][4096];
 
 namespace Boundless {
 
     World::World() : m_noise(SimplexNoise(0.1f/scale, 0.5f, lacunarity, persistance)) {
-        m_size = 2048u;
+        m_size = 4096u;
         m_octree.reset(new Octree(m_size));
 
-        for (int x = 0; x < 2048; x++) {
-            for (int z = 0; z < 2048; z++) {
+        for (int x = 0; x < 4096; x++) {
+            for (int z = 0; z < 4096; z++) {
                 noise[x][z] = floor(normalize(m_noise.fractal(octaves, x, z)) * m_size);
             }     
         }
+
+        // std::vector<cl::Platform> platforms;
+        // cl::Platform::get(&platforms);
+
+        // auto platform = platforms.front();
+
+        // std::vector<cl::Device> devices;
+        // platform.getDevices(CL_DEVICE_TYPE_GPU, &devices);
+
+        // auto device = devices.front();
+
+        // // cl_ulong maxBufferSizeInBytes = device.getInfo<CL_DEVICE_MAX_MEM_ALLOC_SIZE>();
+        // // cl_ulong totalNoiseBytes = m_size * m_size * sizeof(int);
+
+        // const std::string shaderSrc = R""""(
+            
+        // )"""";
+
+        // // Add the OpenCL source
+        // cl::Program::Sources sources(1, std::make_pair(shaderSrc.c_str(), shaderSrc.length() + 1));
+        // cl::Context context(device);
+        // cl::Program m_program(context, sources);
+
+        // cl_int err = m_program.build();
+        // UNUSED(err);
+        
+        // // Split to class 
+        // cl::Buffer noiseBuffer(context, CL_MEM_READ_ONLY, sizeof(noise), noise);
+
+        // cl_int error;
+
+        // // Split to class 
+        // cl::Kernel kernel(m_program, "octreeLODGeneration", &error);
+        
+        // kernel.setArg(0, noiseBuffer);
+        // cl::CommandQueue queue(context, device);
+        // for (int depth = 1; depth < 21; depth++) {
+        //     cl::Buffer writeBuffer(context, CL_MEM_READ_WRITE, sizeof(noise), noise);
+
+        //     kernel.setArg(1, m_size/depth);
+        //     kernel.setArg(2, writeBuffer);
+        //     queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(m_size*m_size), cl::NDRange(m_size/depth));
+        // }
+
+        // int output[sizeof(noise)];
+        // queue.enqueueReadBuffer(writeBuffer, CL_TRUE, 0, sizeof(output), output);
         
     }
 
@@ -72,7 +120,7 @@ namespace Boundless {
         m_octree->divide(rootNode);
         BD_CORE_INFO("Generating world...");
 
-        renderWorldAround(glm::vec3(1024,1024,1024));
+        renderWorldAround(glm::vec3(2048,2048,2048));
     }
 
     OctreeNode World::findIntersectingNode(const glm::vec3& position) {

@@ -41,7 +41,7 @@ public:
         m_windowLayer.reset(new Boundless::WindowLayer(m_eventManager));
         this->pushLayer(m_windowLayer.get());
         m_camera.reset(new Boundless::PerspectiveCamera(m_eventManager, m_windowLayer->getWidth(), m_windowLayer->getHeight()));
-        m_camera->setPosition(glm::vec3(1024, 1024, 1024));
+        m_camera->setPosition(glm::vec3(2048, 2048, 2048));
         m_pool.reset(new ThreadPool(std::thread::hardware_concurrency()));
         this->pushLayer(m_camera.get());
         this->pushLayer(new Boundless::FPSCounterLayer(m_eventManager));
@@ -91,7 +91,7 @@ public:
             chunks.push_back(nodeLocationalCode);
         });
         
-        BD_CORE_INFO("Generating meshes for {} nodes...", nodes);
+        BD_CORE_INFO("Calculating face masks for {} nodes...", nodes);
 
         float cubeVertices[3 * 8 * 2] = {
             0, 0, 0,   0, -1,  0,  // 0, nv front
@@ -121,6 +121,8 @@ public:
                 maskToChunk[mask].push_back(chunk);
             }
         }
+
+        BD_CORE_INFO("Generating meshes for {} nodes...", nodes);
         
         for (int i = 1; i < 64; i++ ) {
             uint8_t faceMask = i;
