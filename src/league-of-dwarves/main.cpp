@@ -41,7 +41,7 @@ public:
         m_windowLayer.reset(new Boundless::WindowLayer(m_eventManager));
         this->pushLayer(m_windowLayer.get());
         m_camera.reset(new Boundless::PerspectiveCamera(m_eventManager, m_windowLayer->getWidth(), m_windowLayer->getHeight()));
-        m_camera->setPosition(glm::vec3(2048, 2048, 2048));
+        m_camera->setPosition(glm::vec3(512, 512, 512));
         m_pool.reset(new ThreadPool(std::thread::hardware_concurrency()));
         this->pushLayer(m_camera.get());
         this->pushLayer(new Boundless::FPSCounterLayer(m_eventManager));

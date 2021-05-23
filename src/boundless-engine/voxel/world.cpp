@@ -5,13 +5,14 @@
 #include <bitset>
 #include <glm/gtx/string_cast.hpp>
 #include <algorithm> 
+#include <fstream>
 
 #define __CL_ENABLE_EXCEPTIONS
-#include <OpenCL/cl.hpp>
+#include <OpenCL/opencl.h>
 
-float scale     = 100.f;
-float lacunarity    = 0.8f;
-float persistance   = 1.1f;
+float scale     = 90.f;
+float lacunarity    = 0.9f;
+float persistance   = 1.3f;
 
 const int octaves = static_cast<int>(3 + std::log(scale)); // Estimate number of octaves needed for the current scale
 
@@ -26,65 +27,19 @@ float normalize(float input)
     return (normalized_x + 1.0f) / 2.0f;
 }
         
-int noise[4096][4096];
+int noise[1024][1024];
 
 namespace Boundless {
 
     World::World() : m_noise(SimplexNoise(0.1f/scale, 0.5f, lacunarity, persistance)) {
-        m_size = 4096u;
+        m_size = 1024u;
         m_octree.reset(new Octree(m_size));
 
-        for (int x = 0; x < 4096; x++) {
-            for (int z = 0; z < 4096; z++) {
+        for (int x = 0; x < 1024; x++) {
+            for (int z = 0; z < 1024; z++) {
                 noise[x][z] = floor(normalize(m_noise.fractal(octaves, x, z)) * m_size);
             }     
         }
-
-        // std::vector<cl::Platform> platforms;
-        // cl::Platform::get(&platforms);
-
-        // auto platform = platforms.front();
-
-        // std::vector<cl::Device> devices;
-        // platform.getDevices(CL_DEVICE_TYPE_GPU, &devices);
-
-        // auto device = devices.front();
-
-        // // cl_ulong maxBufferSizeInBytes = device.getInfo<CL_DEVICE_MAX_MEM_ALLOC_SIZE>();
-        // // cl_ulong totalNoiseBytes = m_size * m_size * sizeof(int);
-
-        // const std::string shaderSrc = R""""(
-            
-        // )"""";
-
-        // // Add the OpenCL source
-        // cl::Program::Sources sources(1, std::make_pair(shaderSrc.c_str(), shaderSrc.length() + 1));
-        // cl::Context context(device);
-        // cl::Program m_program(context, sources);
-
-        // cl_int err = m_program.build();
-        // UNUSED(err);
-        
-        // // Split to class 
-        // cl::Buffer noiseBuffer(context, CL_MEM_READ_ONLY, sizeof(noise), noise);
-
-        // cl_int error;
-
-        // // Split to class 
-        // cl::Kernel kernel(m_program, "octreeLODGeneration", &error);
-        
-        // kernel.setArg(0, noiseBuffer);
-        // cl::CommandQueue queue(context, device);
-        // for (int depth = 1; depth < 21; depth++) {
-        //     cl::Buffer writeBuffer(context, CL_MEM_READ_WRITE, sizeof(noise), noise);
-
-        //     kernel.setArg(1, m_size/depth);
-        //     kernel.setArg(2, writeBuffer);
-        //     queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(m_size*m_size), cl::NDRange(m_size/depth));
-        // }
-
-        // int output[sizeof(noise)];
-        // queue.enqueueReadBuffer(writeBuffer, CL_TRUE, 0, sizeof(output), output);
         
     }
 
@@ -120,7 +75,81 @@ namespace Boundless {
         m_octree->divide(rootNode);
         BD_CORE_INFO("Generating world...");
 
-        renderWorldAround(glm::vec3(2048,2048,2048));
+        renderWorldAround(glm::vec3(512,512,512));
+
+        BD_CORE_INFO("Running openCL...");
+
+
+        std::ifstream shaderSourceFile( "../cl/face_cull.cl" );
+
+        std::string shaderSrc( (std::istreambuf_iterator<char>(shaderSourceFile) ), (std::istreambuf_iterator<char>()    ) );
+
+        int err;
+        cl_device_id device_id;
+        clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
+        cl_context context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
+        cl_command_queue commands = clCreateCommandQueue(context, device_id, 0, &err);
+        const char* source = shaderSrc.c_str();
+        cl_program program = clCreateProgramWithSource(context, 1, (const char **) & source, NULL, &err);
+
+        clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+        cl_kernel kernel = clCreateKernel(program, "cullFaces", &err);
+        
+        uint totalItems = m_octree->m_nodes.size();
+        std::vector<cl_ulong> keys;
+        keys.reserve(totalItems);
+        std::vector<cl_uchar> vals;
+        vals.reserve(totalItems);        
+
+        for(auto kv : m_octree->m_nodes) {
+            keys.push_back(static_cast<cl_ulong>(kv.first));
+            vals.push_back(static_cast<cl_uchar>(kv.second));  
+        } 
+        
+        cl_mem octreeCodes = clCreateBuffer(context,  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  totalItems * sizeof(cl_ulong), NULL, NULL);
+        cl_mem octreeSolids = clCreateBuffer(context,  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  totalItems * sizeof(cl_uchar), NULL, NULL);
+        cl_mem masks = clCreateBuffer(context,  CL_MEM_WRITE_ONLY,  totalItems * sizeof(cl_uchar), NULL, NULL);
+        // Split to class 
+
+        err = clEnqueueWriteBuffer(commands, octreeCodes, CL_TRUE, 0, totalItems * sizeof(cl_ulong), keys.data(), 0, NULL, NULL);
+        err = clEnqueueWriteBuffer(commands, octreeSolids, CL_TRUE, 0, totalItems * sizeof(cl_uchar), vals.data(), 0, NULL, NULL);
+        
+        cl_int octreeSize = static_cast<cl_int>(1024);
+        cl_int totalNodes = static_cast<cl_int>(totalItems);
+        clSetKernelArg(kernel, 0, sizeof(cl_mem), &octreeCodes);
+        clSetKernelArg(kernel, 1, sizeof(cl_mem), &octreeSolids);
+        clSetKernelArg(kernel, 2, sizeof(cl_int), &octreeSize);
+        clSetKernelArg(kernel, 3, sizeof(cl_int), &totalNodes);
+        clSetKernelArg(kernel, 4, sizeof(cl_mem), &masks);
+
+        size_t local = 256;
+        // clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
+        size_t global = totalItems;
+        BD_CORE_TRACE("LOCAL: {}, GLOBAL: {}", local, global);
+        clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+        
+        clFinish(commands);
+
+        cl_uchar results[totalItems];
+        clEnqueueReadBuffer(commands, masks, CL_TRUE, 0, sizeof(cl_uchar) * totalItems, results, 0, NULL, NULL);
+ 
+        clFinish(commands);
+
+        for (uint i = 0; i < totalItems; i++) {
+            if (results[i] != 0) {
+                BD_CORE_TRACE("MASK: {}", results[i]);
+            }
+        }
+
+        clReleaseMemObject(octreeCodes);
+        clReleaseMemObject(octreeSolids);
+        clReleaseMemObject(masks);
+        clReleaseProgram(program);
+        clReleaseKernel(kernel);
+        clReleaseCommandQueue(commands);
+        clReleaseContext(context);
+
+        BD_CORE_INFO("Done...");
     }
 
     OctreeNode World::findIntersectingNode(const glm::vec3& position) {
