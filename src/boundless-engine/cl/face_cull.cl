@@ -1,18 +1,20 @@
 #define ELEMENTS_PER_GROUP 65536 //max # of elements to be processes by a group
 
-#define FACE_TOP = 1; // 000
-#define FACE_BOTTOM = 2; // 010
-#define FACE_LEFT = 4; // 100
-#define FACE_RIGHT = 8; // 1000
-#define FACE_FRONT = 16;  // 10000
-#define FACE_BACK = 32; // 100000
+#define FACE_TOP 1 // 000
+#define FACE_BOTTOM 2 // 010
+#define FACE_LEFT 4 // 100
+#define FACE_RIGHT 8 // 1000
+#define FACE_FRONT 16  // 10000
+#define FACE_BACK 32 // 100000
 
-#define LEFT_RIGHT_FACE_BITS_TEST = 1;  // 0b001
-#define FRONT_BACK_FACE_BITS_TEST = 2; // 0b010
-#define TOP_BOTTOM_FACE_BITS_TEST = 4; // 0b100
+#define LEFT_RIGHT_FACE_BITS_TEST 1  // 0b001
+#define FRONT_BACK_FACE_BITS_TEST 2 // 0b010
+#define TOP_BOTTOM_FACE_BITS_TEST 4 // 0b100
+#define TRUE 1
+#define FALSE 0
 
 // Leading zeros of 32 bit number
-inline int __clzsi2(int a) {
+int __clzsi2(int a) {
   uint x = (uint)a;
   int t = ((x & 0xFFFF0000) == 0) << 4;
   x >>= 16 - t;
@@ -30,7 +32,7 @@ inline int __clzsi2(int a) {
 }
 
 // leading zeros of 64 bit number
-inline int __clzdi2(ulong val)
+int __clzdi2(ulong val)
 {
   if (val >> 32)
     {
@@ -42,14 +44,14 @@ inline int __clzdi2(ulong val)
     }
 }
 
-inline ulong calculateSibling(ulong startLocation, uchar mask, uchar whileThis, bool backwardIsOr) {
+ulong calculateSibling(ulong startLocation, uchar mask, uchar whileThis, char backwardIsOr) {
         ulong target = startLocation;
         ulong path = 0;
         uchar count = 0;
         uchar latest = 0;
         while ((target & mask) == whileThis && target > 1) {
             latest = target & 7;
-            if (backwardIsOr) {
+            if (backwardIsOr == TRUE) {
                 path = path | ((latest | mask) << (3 * count));
             } else {
                 path = path | ((latest ^ mask) << (3 * count));
@@ -61,7 +63,7 @@ inline ulong calculateSibling(ulong startLocation, uchar mask, uchar whileThis, 
             return 1;
         } 
         
-        if (backwardIsOr) {
+        if (backwardIsOr == TRUE) {
             target = target ^ mask;
         } else {
             target = target | mask;
@@ -71,7 +73,7 @@ inline ulong calculateSibling(ulong startLocation, uchar mask, uchar whileThis, 
         return target;
     }
 
-inline int findLocationalCodeIndex(__global ulong* octreeCodes, int totalNodes, ulong locationalCode) 
+int findLocationalCodeIndex(__global ulong* octreeCodes, int totalNodes, ulong locationalCode) 
 { 
     int l = 0;
     while (l <= totalNodes) { 
@@ -86,53 +88,77 @@ inline int findLocationalCodeIndex(__global ulong* octreeCodes, int totalNodes, 
     return -1;
 } 
 
-inline bool isLeaf(__global ulong* octreeCodes, int totalNodes, ulong locationalCode) {
-    return findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode << 3) != -1;
-}
-
-inline bool isSolid(__global uchar* octreeSolids, ulong locationalCodeIndex) {
-    return octreeSolids[locationalCodeIndex] == 1;
-}
-
-inline bool isDirection(uchar localCode, uchar direction) {
-    if (direction == FACE_TOP) {
-        return (localCode & 4) == 0;
-    } else if (direction == FACE_BOTTOM) {
-        return (localCode & 4) == 4;
-    } else if (direction == FACE_FRONT) {
-        return (localCode & 2) == 2;
-    } else if (direction == FACE_BACK) {
-        return (localCode & 2) == 0;
-    } else if (direction == FACE_LEFT) {
-        return (localCode & 1) == 1;
-    } else if (direction == FACE_RIGHT) {
-        return (localCode & 1) == 0;
+char isLeaf(__global ulong* octreeCodes, int totalNodes, ulong locationalCode) {
+    if (findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode << 3) != -1) {
+        return TRUE;
     }
-    return false;
+    return FALSE;
 }
 
-inline uchar getDepth(ulong locationalCode) {
+char isSolid(__global uchar* octreeSolids, ulong locationalCodeIndex) {
+    if (octreeSolids[locationalCodeIndex] == 1) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+char isDirection(uchar localCode, uchar direction) {
+    if (direction == FACE_TOP) {
+        if ((localCode & 4) == 0) {
+            return TRUE;
+        }
+        return FALSE;
+    } else if (direction == FACE_BOTTOM) {
+        if ((localCode & 4) == 4) {
+            return TRUE;
+        }
+        return FALSE;
+    } else if (direction == FACE_FRONT) {
+        if ((localCode & 2) == 2) {
+            return TRUE;
+        }
+        return FALSE;
+    } else if (direction == FACE_BACK) {
+        if ((localCode & 2) == 0) {
+            return TRUE;
+        }
+        return FALSE;
+    } else if (direction == FACE_LEFT) {
+        if ((localCode & 1) == 1) {
+            return TRUE;
+        }
+        return FALSE;
+    } else if (direction == FACE_RIGHT) {
+        if ((localCode & 1) == 0) {
+            return TRUE;
+        }
+        return FALSE;
+    }
+    return FALSE;
+}
+
+uchar getDepth(ulong locationalCode) {
     return (63-__clzdi2(locationalCode))/3;
 }
 
-inline int getSize(int octreeSize, ulong locationalCode) {
+int getSize(int octreeSize, ulong locationalCode) {
     return octreeSize / pow((float)2, (float)getDepth(locationalCode));
 }
 
-inline bool visitAll(__global ulong* octreeCodes, __global uchar* octreeSolids, int octreeSize, int totalNodes, 
+char visitAll(__global ulong* octreeCodes, __global uchar* octreeSolids, int octreeSize, int totalNodes, 
               ulong locationalCode, uchar direction, ushort nodeSize, ulong sibling, 
-              ulong faceBitsTestMask, bool expectingZeroResult) {
-    if (!isDirection(locationalCode, direction) || getSize(octreeSize, locationalCode) > nodeSize)
-        return true;
+              ulong faceBitsTestMask, char expectingZeroResult) {
+    if (isDirection(locationalCode, direction) == FALSE || getSize(octreeSize, locationalCode) > nodeSize)
+        return TRUE;
     
-    if (!isLeaf(octreeCodes, totalNodes, locationalCode)) {
+    if (isLeaf(octreeCodes, totalNodes, locationalCode) == FALSE) {
         for (int i=0; i<8; i++) {
             ulong locCodeChild = (locationalCode<<3)|i;
-            if (!visitAll(octreeCodes, octreeSolids, octreeSize, totalNodes, locationalCode, direction, nodeSize, locCodeChild, faceBitsTestMask, expectingZeroResult)) {
-                return false;
+            if (visitAll(octreeCodes, octreeSolids, octreeSize, totalNodes, locationalCode, direction, nodeSize, locCodeChild, faceBitsTestMask, expectingZeroResult) == FALSE) {
+                return FALSE;
             }
         }
-        return true;
+        return TRUE;
     }
                     
     uchar depth = getDepth(locationalCode) - getDepth(sibling);
@@ -142,17 +168,17 @@ inline bool visitAll(__global ulong* octreeCodes, __global uchar* octreeSolids, 
         hyperFaceBitsTestMask = (hyperFaceBitsTestMask << 3) | faceBitsTestMask;
     }
     
-    bool solidFlag = true;
+    char solidFlag = TRUE;
     if (expectingZeroResult) {
         if ((hyperLocalCode & hyperFaceBitsTestMask) == hyperFaceBitsTestMask) {
-            if (!isSolid(octreeSolids, findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode))) {
-                solidFlag = false;
+            if (isSolid(octreeSolids, findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode)) == FALSE) {
+                solidFlag = FALSE;
             }
         }
     } else {
         if ((hyperLocalCode & hyperFaceBitsTestMask) == 0) {
-            if (!isSolid(octreeSolids, findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode))) {
-                solidFlag = false;
+            if (isSolid(octreeSolids, findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode)) == FALSE) {
+                solidFlag = FALSE;
             }
         }
     }
@@ -161,30 +187,30 @@ inline bool visitAll(__global ulong* octreeCodes, __global uchar* octreeSolids, 
 }
 
 
-inline bool checkIfSiblingIsSolid(__global ulong* octreeCodes, __global uchar* octreeSolids, int octreeSize, int totalNodes, 
+char checkIfSiblingIsSolid(__global ulong* octreeCodes, __global uchar* octreeSolids, int octreeSize, int totalNodes, 
                            ulong siblingLocationalCode, ushort nodeSize,
-                           ulong faceBitsTestMask, bool expectingZeroResult, uchar direction) {
+                           ulong faceBitsTestMask, char expectingZeroResult, uchar direction) {
     while (siblingLocationalCode > 1) {
         int siblingLocationalCodeIndex = findLocationalCodeIndex(octreeCodes, totalNodes, siblingLocationalCode);
         if (siblingLocationalCodeIndex != -1) {
             ulong sibling = siblingLocationalCode;
-            if (!isLeaf(octreeCodes, totalNodes, sibling)) {
+            if (isLeaf(octreeCodes, totalNodes, sibling) == FALSE) {
                 // Find its smaller children that might hiding our face
-                bool solidFlag = visitAll(octreeCodes, octreeSolids, octreeSize, totalNodes, siblingLocationalCode, direction, nodeSize, sibling, faceBitsTestMask, expectingZeroResult);
-                if (!solidFlag) {
-                    return false;
+                char solidFlag = visitAll(octreeCodes, octreeSolids, octreeSize, totalNodes, siblingLocationalCode, direction, nodeSize, sibling, faceBitsTestMask, expectingZeroResult);
+                if (solidFlag == FALSE) {
+                    return FALSE;
                 }
-            } else if (!isSolid(octreeSolids, siblingLocationalCodeIndex)) {
-                return false;
+            } else if (isSolid(octreeSolids, siblingLocationalCodeIndex) == FALSE) {
+                return FALSE;
             }
 
-            return true;
+            return TRUE;
         }
         siblingLocationalCode = siblingLocationalCode >> 3;
     }
 
     // Couldn't find surface
-    return true;
+    return TRUE;
 }
 
 __kernel void cullFaces(__global ulong* octreeCodes, __global uchar* octreeSolids, int octreeSize, int totalNodes, __global uchar* masks) {
@@ -194,26 +220,24 @@ __kernel void cullFaces(__global ulong* octreeCodes, __global uchar* octreeSolid
 
     int startIndex = wgId * ELEMENTS_PER_GROUP;
     int endIndex = startIndex + ELEMENTS_PER_GROUP;
-    if(endIndex > n){
-        endIndex = n;
+    if(endIndex > totalNodes){
+        endIndex = totalNodes;
     }
 
     for(int locationalCodeIndex=startIndex + itemId; locationalCodeIndex<endIndex; locationalCodeIndex+= wgSize){
         ulong locationalCode = octreeCodes[locationalCodeIndex];
-        
+
         uchar faceMask = 0;
-        if (isLeaf(octreeCodes, totalNodes, locationalCodeIndex)) {
+        if (isLeaf(octreeCodes, totalNodes, locationalCodeIndex) == TRUE) {
             masks[locationalCodeIndex] = faceMask;
-            return;
+            continue;
         }
 
-        if (!isSolid(octreeSolids, locationalCodeIndex)) {
+        if (isSolid(octreeSolids, locationalCodeIndex) == FALSE) {
             masks[locationalCodeIndex] = faceMask;
-            return;
+            continue;
         }
         
-        printf("Here!");
-
         ushort nodeSize = getSize(octreeSize, locationalCode);
 
         ulong left = 0;
@@ -223,61 +247,60 @@ __kernel void cullFaces(__global ulong* octreeCodes, __global uchar* octreeSolid
         ulong north = 0;
         ulong south = 0;
         if ((locationalCode & 4) == 4) { // Are we a top node
-            north = calculateSibling(locationalCode, 4, 4, false);
+            north = calculateSibling(locationalCode, 4, 4, FALSE);
             
             south = locationalCode ^ 4;
         } else { // We are a bottom node
-            south = calculateSibling(locationalCode, 4, 0, true);
+            south = calculateSibling(locationalCode, 4, 0, TRUE);
             
             north = locationalCode | 4;
         }
         // Get left and right
         if ((locationalCode & 1) == 1) { // Are we a right node?
-            right = calculateSibling(locationalCode, 1, 1, false);
+            right = calculateSibling(locationalCode, 1, 1, FALSE);
 
             left = locationalCode ^ 1;
         } else { // We are a right node
-            left = calculateSibling(locationalCode, 1, 0, true);
+            left = calculateSibling(locationalCode, 1, 0, TRUE);
 
             right = locationalCode | 1;
         }
 
         // Get back and front
         if ((locationalCode & 2) == 2) { // Are we a back node?
-            back = calculateSibling(locationalCode, 2, 2, false);
+            back = calculateSibling(locationalCode, 2, 2, FALSE);
 
             front = locationalCode ^ 2;
         } else { // We are a front node
-            front = calculateSibling(locationalCode, 2, 0, true);
+            front = calculateSibling(locationalCode, 2, 0, TRUE);
 
             back = locationalCode | 2;
         }
 
-        if (!checkIfSiblingIsSolid(octreeCodes, octreeSolids, octreeSize, totalNodes, north, nodeSize, TOP_BOTTOM_FACE_BITS_TEST, false, FACE_TOP)) {
+        if (checkIfSiblingIsSolid(octreeCodes, octreeSolids, octreeSize, totalNodes, north, nodeSize, TOP_BOTTOM_FACE_BITS_TEST, FALSE, FACE_TOP) == FALSE) {
             faceMask |= FACE_TOP;
         }
 
-        if (!checkIfSiblingIsSolid(octreeCodes, octreeSolids, octreeSize, totalNodes, south, nodeSize, TOP_BOTTOM_FACE_BITS_TEST, true, FACE_BOTTOM)) {
+        if (checkIfSiblingIsSolid(octreeCodes, octreeSolids, octreeSize, totalNodes, south, nodeSize, TOP_BOTTOM_FACE_BITS_TEST, TRUE, FACE_BOTTOM) == FALSE) {
             faceMask |= FACE_BOTTOM;
         }
 
-        if (!checkIfSiblingIsSolid(octreeCodes, octreeSolids, octreeSize, totalNodes, front, nodeSize, FRONT_BACK_FACE_BITS_TEST, true, FACE_FRONT)) {
+        if (checkIfSiblingIsSolid(octreeCodes, octreeSolids, octreeSize, totalNodes, front, nodeSize, FRONT_BACK_FACE_BITS_TEST, TRUE, FACE_FRONT) == FALSE) {
             faceMask |= FACE_FRONT;
         }
 
-        if (!checkIfSiblingIsSolid(octreeCodes, octreeSolids, octreeSize, totalNodes, back, nodeSize, FRONT_BACK_FACE_BITS_TEST, false, FACE_BACK)) {
+        if (checkIfSiblingIsSolid(octreeCodes, octreeSolids, octreeSize, totalNodes, back, nodeSize, FRONT_BACK_FACE_BITS_TEST, FALSE, FACE_BACK) == FALSE) {
             faceMask |= FACE_BACK;
         }
 
-        if (!checkIfSiblingIsSolid(octreeCodes, octreeSolids, octreeSize, totalNodes, left, nodeSize, LEFT_RIGHT_FACE_BITS_TEST, true, FACE_LEFT)) {
+        if (checkIfSiblingIsSolid(octreeCodes, octreeSolids, octreeSize, totalNodes, left, nodeSize, LEFT_RIGHT_FACE_BITS_TEST, TRUE, FACE_LEFT) == FALSE) {
             faceMask |= FACE_LEFT;
         }
 
-        if (!checkIfSiblingIsSolid(octreeCodes, octreeSolids, octreeSize, totalNodes, right, nodeSize, LEFT_RIGHT_FACE_BITS_TEST, false, FACE_RIGHT)) {
+        if (checkIfSiblingIsSolid(octreeCodes, octreeSolids, octreeSize, totalNodes, right, nodeSize, LEFT_RIGHT_FACE_BITS_TEST, FALSE, FACE_RIGHT) == FALSE) {
             faceMask |= FACE_RIGHT;
         }
 
-        printf("Setting mask!");
         masks[locationalCodeIndex] = faceMask;          
     }
 }

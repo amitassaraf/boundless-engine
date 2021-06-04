@@ -6,6 +6,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include <algorithm> 
 #include <fstream>
+#include "face_cull_tests.hpp"
 
 #define __CL_ENABLE_EXCEPTIONS
 #include <OpenCL/opencl.h>
@@ -77,6 +78,44 @@ namespace Boundless {
 
         renderWorldAround(glm::vec3(512,512,512));
 
+        BD_CORE_INFO("Running OpenCL test...");
+
+        uint totalItems = m_octree->m_nodes.size();
+        std::vector<cl_ulong> octreeCodes;
+        octreeCodes.reserve(totalItems);
+        std::vector<cl_uchar> octreeSolids;
+        octreeSolids.reserve(totalItems);
+
+        cl_int octreeSize = static_cast<cl_int>(1024);
+        cl_int totalNodes = static_cast<cl_int>(totalItems);
+
+        for(auto kv : m_octree->m_nodes) {
+            octreeCodes.push_back(static_cast<cl_ulong>(kv.first));
+        }
+
+        std::sort(octreeCodes.begin(), octreeCodes.end());
+
+        for (cl_ulong code : octreeCodes) {
+            octreeSolids.push_back(static_cast<cl_uchar>(m_octree->m_nodes.at(code)));
+        }
+
+        cl_uchar masksRez[totalItems];
+        for (cl_uint wgId = 0; wgId < totalItems / 65536; wgId++) {
+            BD_CORE_INFO("Group {}", wgId);
+            cullFaces(wgId, octreeCodes.data(), octreeSolids.data(), octreeSize, totalNodes, masksRez);
+        }
+
+        for (uint wgId = 0; wgId < totalItems; wgId++) {
+            cl_ulong locationalCode = octreeCodes[wgId];
+            uint8_t mask = m_octree->calculateFaceMask(locationalCode);
+            cl_uchar outMask = masksRez[wgId];
+            if (mask != outMask) {
+                BD_CORE_TRACE("MISMATCH {}: {}vs{}", locationalCode, mask, outMask);
+            }
+        }
+
+        return;
+
         BD_CORE_INFO("Running openCL...");
 
 
@@ -85,46 +124,60 @@ namespace Boundless {
         std::string shaderSrc( (std::istreambuf_iterator<char>(shaderSourceFile) ), (std::istreambuf_iterator<char>()    ) );
 
         int err;
-        cl_device_id device_id;
-        clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
+        cl_device_id devices_id[2];
+        clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 2, devices_id, NULL);
+        cl_device_id device_id = devices_id[1]; 
         cl_context context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
         cl_command_queue commands = clCreateCommandQueue(context, device_id, 0, &err);
         const char* source = shaderSrc.c_str();
         cl_program program = clCreateProgramWithSource(context, 1, (const char **) & source, NULL, &err);
+        BD_CORE_TRACE("ERROR 3: {}", err);
 
-        clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+        err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+        BD_CORE_TRACE("ERROR 99: {}", err);
+
+        if (err == CL_BUILD_PROGRAM_FAILURE) {
+            // Determine the size of the log
+            size_t log_size;
+            clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
+
+            // Allocate memory for the log
+            char *log = (char *) malloc(log_size);
+
+            // Get the log
+            clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
+
+            // Print the log
+            printf("%s\n", log);
+        }
+
         cl_kernel kernel = clCreateKernel(program, "cullFaces", &err);
         
-        uint totalItems = m_octree->m_nodes.size();
-        std::vector<cl_ulong> keys;
-        keys.reserve(totalItems);
-        std::vector<cl_uchar> vals;
-        vals.reserve(totalItems);        
-
-        for(auto kv : m_octree->m_nodes) {
-            keys.push_back(static_cast<cl_ulong>(kv.first));
-            vals.push_back(static_cast<cl_uchar>(kv.second));  
-        } 
         
-        cl_mem octreeCodes = clCreateBuffer(context,  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  totalItems * sizeof(cl_ulong), NULL, NULL);
-        cl_mem octreeSolids = clCreateBuffer(context,  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  totalItems * sizeof(cl_uchar), NULL, NULL);
-        cl_mem masks = clCreateBuffer(context,  CL_MEM_WRITE_ONLY,  totalItems * sizeof(cl_uchar), NULL, NULL);
+        cl_mem octreeCodesBuffer = clCreateBuffer(context,  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  totalItems * sizeof(cl_ulong), octreeCodes.data(), &err);
+        BD_CORE_TRACE("ERROR 8: {}", err);
+        cl_mem octreeSolidsBuffer = clCreateBuffer(context,  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  totalItems * sizeof(cl_uchar), octreeSolids.data(), &err);
+        BD_CORE_TRACE("ERROR 9: {}", err);
+        cl_mem masks = clCreateBuffer(context,  CL_MEM_READ_WRITE,  totalItems * sizeof(cl_uchar), NULL, &err);
+        BD_CORE_TRACE("ERROR 10: {}", err);
         // Split to class 
+        clFinish(commands);
 
-        err = clEnqueueWriteBuffer(commands, octreeCodes, CL_TRUE, 0, totalItems * sizeof(cl_ulong), keys.data(), 0, NULL, NULL);
-        err = clEnqueueWriteBuffer(commands, octreeSolids, CL_TRUE, 0, totalItems * sizeof(cl_uchar), vals.data(), 0, NULL, NULL);
+        // err = clEnqueueWriteBuffer(commands, octreeCodes, CL_TRUE, 0, totalItems * sizeof(cl_ulong), keys.data(), 0, NULL, NULL);
+        // BD_CORE_TRACE("ERROR 1: {}", err);
+        // err = clEnqueueWriteBuffer(commands, octreeSolids, CL_TRUE, 0, totalItems * sizeof(cl_uchar), vals.data(), 0, NULL, NULL);
+        // BD_CORE_TRACE("ERROR 2: {}", err);
         
-        cl_int octreeSize = static_cast<cl_int>(1024);
-        cl_int totalNodes = static_cast<cl_int>(totalItems);
-        clSetKernelArg(kernel, 0, sizeof(cl_mem), &octreeCodes);
-        clSetKernelArg(kernel, 1, sizeof(cl_mem), &octreeSolids);
+        clSetKernelArg(kernel, 0, sizeof(cl_mem), &octreeCodesBuffer);
+        clSetKernelArg(kernel, 1, sizeof(cl_mem), &octreeSolidsBuffer);
         clSetKernelArg(kernel, 2, sizeof(cl_int), &octreeSize);
         clSetKernelArg(kernel, 3, sizeof(cl_int), &totalNodes);
         clSetKernelArg(kernel, 4, sizeof(cl_mem), &masks);
 
-        size_t local = 256;
+        
         // clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
         size_t global = totalItems;
+        size_t local = totalItems / 256;
         BD_CORE_TRACE("LOCAL: {}, GLOBAL: {}", local, global);
         clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
         
@@ -136,13 +189,16 @@ namespace Boundless {
         clFinish(commands);
 
         for (uint i = 0; i < totalItems; i++) {
-            if (results[i] != 0) {
-                BD_CORE_TRACE("MASK: {}", results[i]);
+            cl_ulong locationalCode = octreeCodes[i];
+            uint8_t mask = m_octree->calculateFaceMask(locationalCode);
+            cl_uchar outMask = results[i];
+            if (mask != outMask) {
+                BD_CORE_TRACE("MISMATCH {}: {}vs{}", locationalCode, mask, outMask);
             }
         }
 
-        clReleaseMemObject(octreeCodes);
-        clReleaseMemObject(octreeSolids);
+        clReleaseMemObject(octreeCodesBuffer);
+        clReleaseMemObject(octreeSolidsBuffer);
         clReleaseMemObject(masks);
         clReleaseProgram(program);
         clReleaseKernel(kernel);
