@@ -11,6 +11,8 @@
 #define __CL_ENABLE_EXCEPTIONS
 #include <OpenCL/opencl.h>
 
+#define WORLD_SIZE 1024
+
 float scale     = 90.f;
 float lacunarity    = 0.9f;
 float persistance   = 1.3f;
@@ -28,16 +30,16 @@ float normalize(float input)
     return (normalized_x + 1.0f) / 2.0f;
 }
         
-int noise[1024][1024];
+int noise[WORLD_SIZE][WORLD_SIZE];
 
 namespace Boundless {
 
     World::World() : m_noise(SimplexNoise(0.1f/scale, 0.5f, lacunarity, persistance)) {
-        m_size = 1024u;
+        m_size = WORLD_SIZE;
         m_octree.reset(new Octree(m_size));
 
-        for (int x = 0; x < 1024; x++) {
-            for (int z = 0; z < 1024; z++) {
+        for (int x = 0; x < WORLD_SIZE; x++) {
+            for (int z = 0; z < WORLD_SIZE; z++) {
                 noise[x][z] = floor(normalize(m_noise.fractal(octaves, x, z)) * m_size);
             }     
         }
@@ -76,7 +78,7 @@ namespace Boundless {
         m_octree->divide(rootNode);
         BD_CORE_INFO("Generating world...");
 
-        renderWorldAround(glm::vec3(512,512,512));
+        renderWorldAround(glm::vec3(WORLD_SIZE / 2,WORLD_SIZE / 2,WORLD_SIZE / 2));
 
         BD_CORE_INFO("Running OpenCL test...");
 
@@ -86,7 +88,7 @@ namespace Boundless {
         std::vector<cl_uchar> octreeSolids;
         octreeSolids.reserve(totalItems);
 
-        cl_int octreeSize = static_cast<cl_int>(1024);
+        cl_int octreeSize = static_cast<cl_int>(WORLD_SIZE);
         cl_int totalNodes = static_cast<cl_int>(totalItems);
 
         for(auto kv : m_octree->m_nodes) {
@@ -96,11 +98,13 @@ namespace Boundless {
         std::sort(octreeCodes.begin(), octreeCodes.end());
 
         for (cl_ulong code : octreeCodes) {
-            octreeSolids.push_back(static_cast<cl_uchar>(m_octree->m_nodes.at(code)));
+            uint8_t solid = m_octree->m_nodes.at(code);
+            octreeSolids.push_back(static_cast<cl_uchar>(solid));
         }
 
         cl_uchar masksRez[totalItems];
-        for (cl_uint wgId = 0; wgId < totalItems / 65536; wgId++) {
+        auto groups = static_cast<cl_uint>(ceil(totalItems / 65536.0));
+        for (cl_uint wgId = 0; wgId < groups; wgId++) {
             BD_CORE_INFO("Group {}", wgId);
             cullFaces(wgId, octreeCodes.data(), octreeSolids.data(), octreeSize, totalNodes, masksRez);
         }
@@ -114,10 +118,10 @@ namespace Boundless {
             }
         }
 
-        return;
 
         BD_CORE_INFO("Running openCL...");
 
+        return;
 
         std::ifstream shaderSourceFile( "../cl/face_cull.cl" );
 

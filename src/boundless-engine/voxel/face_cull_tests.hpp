@@ -2,6 +2,7 @@
 #ifndef BD_FACE_CULL_TESTS_HPP_
 #define BD_FACE_CULL_TESTS_HPP_
 
+#include "core/core.hpp"
 
 #define __CL_ENABLE_EXCEPTIONS
 #include <OpenCL/opencl.h>

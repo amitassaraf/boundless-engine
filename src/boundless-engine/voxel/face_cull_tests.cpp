@@ -73,13 +73,13 @@ cl_ulong calculateSibling(cl_ulong startLocation, cl_uchar mask, cl_uchar whileT
         return target;
     }
 
-cl_int findLocationalCodeIndex(cl_ulong* octreeCodes, cl_int totalNodes, cl_ulong locationalCode) 
-{ 
-    cl_int l = 0;
-    while (l <= totalNodes) { 
-        cl_int m = l + (totalNodes - l) / 2; 
+cl_int findLocationalCodeIndex(const cl_ulong* octreeCodes, cl_uint totalNodes, cl_ulong locationalCode)
+{
+    cl_uint l = 0;
+    while (l <= totalNodes) {
+        cl_uint m = l + (totalNodes - l) / 2;
         if (octreeCodes[m] == locationalCode) 
-            return m; 
+            return static_cast<cl_int>(m);
         if (octreeCodes[m] < locationalCode) 
             l = m + 1;
         else
@@ -88,14 +88,14 @@ cl_int findLocationalCodeIndex(cl_ulong* octreeCodes, cl_int totalNodes, cl_ulon
     return -1;
 } 
 
-cl_char isLeaf(cl_ulong* octreeCodes, int totalNodes, cl_ulong locationalCode) {
-    if (findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode << 3) != -1) {
+cl_char isLeaf(cl_ulong* octreeCodes, cl_uint totalNodes, cl_ulong locationalCode) {
+    if (findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode << 3) == -1) {
         return TRUE;
     }
     return FALSE;
 }
 
-cl_char isSolid(cl_uchar* octreeSolids, cl_ulong locationalCodeIndex) {
+cl_char isSolid(const cl_uchar* octreeSolids, cl_ulong locationalCodeIndex) {
     if (octreeSolids[locationalCodeIndex] == 1) {
         return TRUE;
     }
@@ -142,25 +142,27 @@ cl_uchar getDepth(cl_ulong locationalCode) {
 }
 
 cl_int getSize(cl_int octreeSize, cl_ulong locationalCode) {
-    return octreeSize / pow((cl_float)2, (cl_float)getDepth(locationalCode));
+    return static_cast<cl_int>(static_cast<cl_float>(octreeSize) / pow(2.0f, (cl_float)getDepth(locationalCode)));
 }
 
 cl_char visitAll(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_int octreeSize, cl_int totalNodes, 
               cl_ulong locationalCode, cl_uchar direction, cl_ushort nodeSize, cl_ulong sibling, 
               cl_ulong faceBitsTestMask, cl_char expectingZeroResult) {
-    if (isDirection(locationalCode, direction) == FALSE || getSize(octreeSize, locationalCode) > nodeSize)
-        return TRUE;
-    
     if (isLeaf(octreeCodes, totalNodes, locationalCode) == FALSE) {
         for (cl_int i=0; i<8; i++) {
             cl_ulong locCodeChild = (locationalCode<<3)|i;
+
+            if (isDirection(locCodeChild, direction) == FALSE || getSize(octreeSize, locCodeChild) > nodeSize) {
+                continue;
+            }
+
             if (visitAll(octreeCodes, octreeSolids, octreeSize, totalNodes, locCodeChild, direction, nodeSize, locationalCode, faceBitsTestMask, expectingZeroResult) == FALSE) {
                 return FALSE;
             }
         }
         return TRUE;
     }
-                    
+
     cl_uchar depth = getDepth(locationalCode) - getDepth(sibling);
     cl_ulong hyperLocalCode = ((locationalCode >> (3 * depth)) << (3 * depth)) ^ locationalCode;
     cl_ulong hyperFaceBitsTestMask = faceBitsTestMask;
@@ -169,7 +171,7 @@ cl_char visitAll(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_int octreeSiz
     }
     
     cl_char solidFlag = TRUE;
-    if (expectingZeroResult) {
+    if (expectingZeroResult == TRUE) {
         if ((hyperLocalCode & hyperFaceBitsTestMask) == hyperFaceBitsTestMask) {
             if (isSolid(octreeSolids, findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode)) == FALSE) {
                 solidFlag = FALSE;
@@ -187,9 +189,9 @@ cl_char visitAll(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_int octreeSiz
 }
 
 
-cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_int octreeSize, cl_int totalNodes, 
+cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_int octreeSize, cl_uint totalNodes,
                            cl_ulong siblingLocationalCode, cl_ushort nodeSize,
-                           cl_ulong faceBitsTestMask, char expectingZeroResult, cl_uchar direction) {
+                           cl_ulong faceBitsTestMask, cl_char expectingZeroResult, cl_uchar direction) {
     while (siblingLocationalCode > 1) {
         cl_int siblingLocationalCodeIndex = findLocationalCodeIndex(octreeCodes, totalNodes, siblingLocationalCode);
         if (siblingLocationalCodeIndex != -1) {
@@ -226,7 +228,7 @@ void cullFaces(cl_uint wgId, cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_i
         cl_ulong locationalCode = octreeCodes[locationalCodeIndex];
 
         cl_uchar faceMask = 0;
-        if (isLeaf(octreeCodes, totalNodes, locationalCodeIndex) == TRUE) {
+        if (isLeaf(octreeCodes, totalNodes, locationalCode) == FALSE) {
             masks[locationalCodeIndex] = faceMask;
             continue;
         }
@@ -235,15 +237,15 @@ void cullFaces(cl_uint wgId, cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_i
             masks[locationalCodeIndex] = faceMask;
             continue;
         }
-        
+
         cl_ushort nodeSize = getSize(octreeSize, locationalCode);
 
-        cl_ulong left = 0;
-        cl_ulong right = 0;
-        cl_ulong back = 0;
-        cl_ulong front = 0;
-        cl_ulong north = 0;
-        cl_ulong south = 0;
+        cl_ulong left;
+        cl_ulong right;
+        cl_ulong back;
+        cl_ulong front;
+        cl_ulong north;
+        cl_ulong south;
         if ((locationalCode & 4) == 4) { // Are we a top node
             north = calculateSibling(locationalCode, 4, 4, FALSE);
             

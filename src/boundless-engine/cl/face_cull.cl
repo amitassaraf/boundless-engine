@@ -89,7 +89,7 @@ int findLocationalCodeIndex(__global ulong* octreeCodes, int totalNodes, ulong l
 } 
 
 char isLeaf(__global ulong* octreeCodes, int totalNodes, ulong locationalCode) {
-    if (findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode << 3) != -1) {
+    if (findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode << 3) == -1) {
         return TRUE;
     }
     return FALSE;
@@ -148,12 +148,14 @@ int getSize(int octreeSize, ulong locationalCode) {
 char visitAll(__global ulong* octreeCodes, __global uchar* octreeSolids, int octreeSize, int totalNodes, 
               ulong locationalCode, uchar direction, ushort nodeSize, ulong sibling, 
               ulong faceBitsTestMask, char expectingZeroResult) {
-    if (isDirection(locationalCode, direction) == FALSE || getSize(octreeSize, locationalCode) > nodeSize)
-        return TRUE;
-    
     if (isLeaf(octreeCodes, totalNodes, locationalCode) == FALSE) {
         for (int i=0; i<8; i++) {
             ulong locCodeChild = (locationalCode<<3)|i;
+
+            if (isDirection(locationalCode, direction) == FALSE || getSize(octreeSize, locationalCode) > nodeSize) {
+                return TRUE;
+            }
+
             if (visitAll(octreeCodes, octreeSolids, octreeSize, totalNodes, locationalCode, direction, nodeSize, locCodeChild, faceBitsTestMask, expectingZeroResult) == FALSE) {
                 return FALSE;
             }
@@ -169,7 +171,7 @@ char visitAll(__global ulong* octreeCodes, __global uchar* octreeSolids, int oct
     }
     
     char solidFlag = TRUE;
-    if (expectingZeroResult) {
+    if (expectingZeroResult == TRUE) {
         if ((hyperLocalCode & hyperFaceBitsTestMask) == hyperFaceBitsTestMask) {
             if (isSolid(octreeSolids, findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode)) == FALSE) {
                 solidFlag = FALSE;
@@ -228,7 +230,7 @@ __kernel void cullFaces(__global ulong* octreeCodes, __global uchar* octreeSolid
         ulong locationalCode = octreeCodes[locationalCodeIndex];
 
         uchar faceMask = 0;
-        if (isLeaf(octreeCodes, totalNodes, locationalCodeIndex) == TRUE) {
+        if (isLeaf(octreeCodes, totalNodes, locationalCode) == FALSE) {
             masks[locationalCodeIndex] = faceMask;
             continue;
         }
