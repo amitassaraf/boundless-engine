@@ -102,12 +102,15 @@ namespace Boundless {
             octreeSolids.push_back(static_cast<cl_uchar>(solid));
         }
 
+        BD_CORE_INFO("Running C++ Culling Tests...");
+
         cl_uchar masksRez[totalItems];
         auto groups = static_cast<cl_uint>(ceil(totalItems / 65536.0));
         for (cl_uint wgId = 0; wgId < groups; wgId++) {
-            BD_CORE_INFO("Group {}", wgId);
             cullFaces(wgId, octreeCodes.data(), octreeSolids.data(), octreeSize, totalNodes, masksRez);
         }
+
+        BD_CORE_INFO("Checking C++ Culling Tests...");
 
         for (uint wgId = 0; wgId < totalItems; wgId++) {
             cl_ulong locationalCode = octreeCodes[wgId];
@@ -119,27 +122,29 @@ namespace Boundless {
         }
 
 
-        BD_CORE_INFO("Running openCL...");
+        BD_CORE_INFO("Running Culling OpenCL...");
 
-        return;
-
-        std::ifstream shaderSourceFile( "../cl/face_cull.cl" );
+        std::ifstream shaderSourceFile( "/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/cl/face_cull.cl" );
 
         std::string shaderSrc( (std::istreambuf_iterator<char>(shaderSourceFile) ), (std::istreambuf_iterator<char>()    ) );
 
         int err;
         cl_device_id devices_id[2];
         clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 2, devices_id, NULL);
-        cl_device_id device_id = devices_id[1]; 
+        cl_device_id device_id = devices_id[0];
+        cl_char device_name[1024] = {0};
+        clGetDeviceInfo(device_id, CL_DEVICE_NAME, sizeof(device_name), &device_name, NULL);
+        BD_CORE_TRACE("Device: {}", device_name);
         cl_context context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
         cl_command_queue commands = clCreateCommandQueue(context, device_id, 0, &err);
         const char* source = shaderSrc.c_str();
         cl_program program = clCreateProgramWithSource(context, 1, (const char **) & source, NULL, &err);
         BD_CORE_TRACE("ERROR 3: {}", err);
 
+//        const char options[] = "–cl-std=CL1.2";
+
         err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
         BD_CORE_TRACE("ERROR 99: {}", err);
-
         if (err == CL_BUILD_PROGRAM_FAILURE) {
             // Determine the size of the log
             size_t log_size;
@@ -153,11 +158,14 @@ namespace Boundless {
 
             // Print the log
             printf("%s\n", log);
+
+            return;
         }
 
+        return;
+
         cl_kernel kernel = clCreateKernel(program, "cullFaces", &err);
-        
-        
+
         cl_mem octreeCodesBuffer = clCreateBuffer(context,  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  totalItems * sizeof(cl_ulong), octreeCodes.data(), &err);
         BD_CORE_TRACE("ERROR 8: {}", err);
         cl_mem octreeSolidsBuffer = clCreateBuffer(context,  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  totalItems * sizeof(cl_uchar), octreeSolids.data(), &err);
@@ -182,7 +190,7 @@ namespace Boundless {
         // clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
         size_t global = totalItems;
         size_t local = totalItems / 256;
-        BD_CORE_TRACE("LOCAL: {}, GLOBAL: {}", local, global);
+        BD_CORE_TRACE("Local Work Group: {}, Global Work Items: {}", local, global);
         clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
         
         clFinish(commands);
@@ -191,6 +199,10 @@ namespace Boundless {
         clEnqueueReadBuffer(commands, masks, CL_TRUE, 0, sizeof(cl_uchar) * totalItems, results, 0, NULL, NULL);
  
         clFinish(commands);
+
+        BD_CORE_INFO("Checking Culling OpenCL...");
+
+        return;
 
         for (uint i = 0; i < totalItems; i++) {
             cl_ulong locationalCode = octreeCodes[i];
@@ -209,7 +221,7 @@ namespace Boundless {
         clReleaseCommandQueue(commands);
         clReleaseContext(context);
 
-        BD_CORE_INFO("Done...");
+        BD_CORE_INFO("Done!");
     }
 
     OctreeNode World::findIntersectingNode(const glm::vec3& position) {

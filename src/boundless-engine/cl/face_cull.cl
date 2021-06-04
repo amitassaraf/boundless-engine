@@ -142,7 +142,7 @@ uchar getDepth(ulong locationalCode) {
 }
 
 int getSize(int octreeSize, ulong locationalCode) {
-    return octreeSize / pow((float)2, (float)getDepth(locationalCode));
+    return octreeSize / pow(2.0f, getDepth(locationalCode));
 }
 
 char visitAll(__global ulong* octreeCodes, __global uchar* octreeSolids, int octreeSize, int totalNodes, 
