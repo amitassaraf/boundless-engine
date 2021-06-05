@@ -145,50 +145,6 @@ cl_int getSize(cl_int octreeSize, cl_ulong locationalCode) {
     return static_cast<cl_int>(static_cast<cl_float>(octreeSize) / pow(2.0f, (cl_float)getDepth(locationalCode)));
 }
 
-cl_char visitAll(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_int octreeSize, cl_int totalNodes, 
-              cl_ulong locationalCode, cl_uchar direction, cl_ushort nodeSize, cl_ulong sibling, 
-              cl_ulong faceBitsTestMask, cl_char expectingZeroResult) {
-    if (isLeaf(octreeCodes, totalNodes, locationalCode) == FALSE) {
-        for (cl_int i=0; i<8; i++) {
-            cl_ulong locCodeChild = (locationalCode<<3)|i;
-
-            if (isDirection(locCodeChild, direction) == FALSE || getSize(octreeSize, locCodeChild) > nodeSize) {
-                continue;
-            }
-
-            if (visitAll(octreeCodes, octreeSolids, octreeSize, totalNodes, locCodeChild, direction, nodeSize, locationalCode, faceBitsTestMask, expectingZeroResult) == FALSE) {
-                return FALSE;
-            }
-        }
-        return TRUE;
-    }
-
-    cl_uchar depth = getDepth(locationalCode) - getDepth(sibling);
-    cl_ulong hyperLocalCode = ((locationalCode >> (3 * depth)) << (3 * depth)) ^ locationalCode;
-    cl_ulong hyperFaceBitsTestMask = faceBitsTestMask;
-    for (cl_uchar i = 0; i < depth - 1; i++) {
-        hyperFaceBitsTestMask = (hyperFaceBitsTestMask << 3) | faceBitsTestMask;
-    }
-    
-    cl_char solidFlag = TRUE;
-    if (expectingZeroResult == TRUE) {
-        if ((hyperLocalCode & hyperFaceBitsTestMask) == hyperFaceBitsTestMask) {
-            if (isSolid(octreeSolids, findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode)) == FALSE) {
-                solidFlag = FALSE;
-            }
-        }
-    } else {
-        if ((hyperLocalCode & hyperFaceBitsTestMask) == 0) {
-            if (isSolid(octreeSolids, findLocationalCodeIndex(octreeCodes, totalNodes, locationalCode)) == FALSE) {
-                solidFlag = FALSE;
-            }
-        }
-    }
-
-    return solidFlag;
-}
-
-
 cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_int octreeSize, cl_uint totalNodes,
                            cl_ulong siblingLocationalCode, cl_ushort nodeSize,
                            cl_ulong faceBitsTestMask, cl_char expectingZeroResult, cl_uchar direction) {
@@ -198,7 +154,119 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
             cl_ulong sibling = siblingLocationalCode;
             if (isLeaf(octreeCodes, totalNodes, sibling) == FALSE) {
                 // Find its smaller children that might hiding our face
-                cl_char solidFlag = visitAll(octreeCodes, octreeSolids, octreeSize, totalNodes, sibling, direction, nodeSize, siblingLocationalCode, faceBitsTestMask, expectingZeroResult);
+                cl_ulong currentLocationalCode = sibling;
+
+                // The following is an algorithm for iterating a Locational Code Octree system without recursion
+                // and without a stack. (As both are not supported in OpenCL).
+                // The constraints of the algorithm are bound by the depth maximum level of the Octree.
+                // This theoretically can support 256 depth levels (Way more than needed) due to standard OpenCL 1.2
+                // limitation of vectors size up to 16. Also when dealing with more than 21 depth levels, this
+                // entire method / kernel should probably be rewritten to increase performance.
+
+                // Using 2 x 64 bit numbers allows us to save up to 32 depth levels (We need 4 bits per level)
+                // our game supports Octree Locational codes up to 64 bits (21 depth levels)
+                // so this is more than enough.
+                cl_ulong2 childrenStack = {{0, 0}};
+                cl_char solidFlag = TRUE;
+
+                while (currentLocationalCode != 0) {
+                    // If the current node is not a leaf, dive into it's children.
+                    if (isLeaf(octreeCodes, totalNodes, currentLocationalCode) == FALSE) {
+                        // Find which child we left at previously (If any) using our childrenStack
+                        cl_uchar currentDepth = getDepth(currentLocationalCode);
+                        cl_uchar i;
+                        cl_uchar divingIntoNode = FALSE;
+                        // Choose which number in the stack we should address (each ulong supports 16 depth levels)
+                        // >= 16 because first scalar is 0-15 depth, seconds scalar is 16-31 (32 depth levels).
+                        if (currentDepth >= 16) {
+                            currentDepth = currentDepth - 16;
+                            i = (childrenStack.s[1] >> (currentDepth * 4)) & 8;
+                        } else {
+                            i = (childrenStack.s[0] >> (currentDepth * 4)) & 8;
+                        }
+
+                        if (i == 0) {
+                            i = 1;
+                        }
+                        i--;
+
+                        // Iterate the children.
+                        for (; i<8; i++) {
+                            cl_ulong locCodeChild = (currentLocationalCode<<3)|i;
+
+                            // Check if this child is relevant to examine (might not be in the direction we
+                            // are coming to siblingLocationalCode or might be bigger)
+                            // This is not part of the iteration algorithm.
+                            if (isDirection(locCodeChild, direction) == FALSE || getSize(octreeSize, locCodeChild) > nodeSize) {
+                                continue;
+                            }
+
+                            // Before diving into a child, save which child we left at in the childrenStack so when we
+                            // iterate up again, we do are not stuck in an inifite loop and go over children
+                            // we have previously visited
+                            cl_uchar childDepth = getDepth(locCodeChild);
+                            if (childDepth >= 16) {
+                                childDepth = childDepth - 16;
+                                childrenStack.s[1] = (((childrenStack.s[1] >> (childDepth * 4)) | (i + 1)) << (childDepth * 4)) | childrenStack.s[1];
+                            } else {
+                                childrenStack.s[0] = (((childrenStack.s[0] >> (childDepth * 4)) | (i + 1)) << (childDepth * 4)) | childrenStack.s[0];
+                            }
+
+                            // Dive into the child
+                            currentLocationalCode = locCodeChild;
+                            divingIntoNode = TRUE;
+                            break;
+                        }
+
+                        if (divingIntoNode) {
+                            continue;
+                        }
+
+                        // Once we finish all the children for a node, we should reset it's children stack and move
+                        // back up to it's parent. (We can reset the children stack by always XORing with 8 as the
+                        // for loop will always end at 8.
+                        currentDepth = getDepth(currentLocationalCode);
+                        if (currentDepth >= 16) {
+                            currentDepth = currentDepth - 16;
+                            childrenStack.s[1] = (((childrenStack.s[1] >> (currentDepth * 4)) ^ 8) << (currentDepth * 4)) | childrenStack.s[1];
+                        } else {
+                            childrenStack.s[0] = (((childrenStack.s[0] >> (currentDepth * 4)) ^ 8) << (currentDepth * 4)) | childrenStack.s[0];
+                        }
+
+                        // Node is checked, go back to the parent.
+                        currentLocationalCode = currentLocationalCode >> 3;
+                    } else {
+                        // We have reached a leaf node, lets find if it fits our criteria then check if it is air
+                        // This is not part of the iteration algorithm.
+                        cl_uchar depth = getDepth(currentLocationalCode) - getDepth(siblingLocationalCode);
+                        cl_ulong hyperLocalCode = ((currentLocationalCode >> (3 * depth)) << (3 * depth)) ^ currentLocationalCode;
+                        cl_ulong hyperFaceBitsTestMask = faceBitsTestMask;
+                        for (cl_uchar i = 0; i < depth - 1; i++) {
+                            hyperFaceBitsTestMask = (hyperFaceBitsTestMask << 3) | faceBitsTestMask;
+                        }
+
+                        // If we find air, game's over. We can mark this face as solid and no need to continue iteration.
+                        if (expectingZeroResult == TRUE) {
+                            if ((hyperLocalCode & hyperFaceBitsTestMask) == hyperFaceBitsTestMask) {
+                                if (isSolid(octreeSolids, findLocationalCodeIndex(octreeCodes, totalNodes, currentLocationalCode)) == FALSE) {
+                                    solidFlag = FALSE;
+                                    break;
+                                }
+                            }
+                        } else {
+                            if ((hyperLocalCode & hyperFaceBitsTestMask) == 0) {
+                                if (isSolid(octreeSolids, findLocationalCodeIndex(octreeCodes, totalNodes, currentLocationalCode)) == FALSE) {
+                                    solidFlag = FALSE;
+                                    break;
+                                }
+                            }
+                        }
+                        // Back to the iteration algorithm
+                        // Leaf is checked, go back to the parent.
+                        currentLocationalCode = currentLocationalCode >> 3;
+                    }
+                }
+
                 if (solidFlag == FALSE) {
                     return FALSE;
                 }

@@ -117,6 +117,7 @@ namespace Boundless {
             uint8_t mask = m_octree->calculateFaceMask(locationalCode);
             cl_uchar outMask = masksRez[wgId];
             if (mask != outMask) {
+                m_octree->calculateFaceMask(locationalCode);
                 BD_CORE_TRACE("MISMATCH {}: {}vs{}", locationalCode, mask, outMask);
             }
         }
