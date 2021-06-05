@@ -180,9 +180,9 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                         // >= 16 because first scalar is 0-15 depth, seconds scalar is 16-31 (32 depth levels).
                         if (currentDepth >= 16) {
                             currentDepth = currentDepth - 16;
-                            i = (childrenStack.s[1] >> (currentDepth * 4)) & 8;
+                            i = (childrenStack.s[1] >> (currentDepth * 4)) & 0xf;
                         } else {
-                            i = (childrenStack.s[0] >> (currentDepth * 4)) & 8;
+                            i = (childrenStack.s[0] >> (currentDepth * 4)) & 0xf;
                         }
 
                         if (i == 0) {
@@ -204,12 +204,12 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                             // Before diving into a child, save which child we left at in the childrenStack so when we
                             // iterate up again, we do are not stuck in an inifite loop and go over children
                             // we have previously visited
-                            cl_uchar childDepth = getDepth(locCodeChild);
-                            if (childDepth >= 16) {
-                                childDepth = childDepth - 16;
-                                childrenStack.s[1] = (((childrenStack.s[1] >> (childDepth * 4)) | (i + 1)) << (childDepth * 4)) | childrenStack.s[1];
+                            currentDepth = getDepth(currentLocationalCode);
+                            if (currentDepth >= 16) {
+                                currentDepth = currentDepth - 16;
+                                childrenStack.s[1] = (((childrenStack.s[1] >> (currentDepth * 4)) | (i + 1)) << (currentDepth * 4)) | childrenStack.s[1];
                             } else {
-                                childrenStack.s[0] = (((childrenStack.s[0] >> (childDepth * 4)) | (i + 1)) << (childDepth * 4)) | childrenStack.s[0];
+                                childrenStack.s[0] = (((childrenStack.s[0] >> (currentDepth * 4)) | (i + 1)) << (currentDepth * 4)) | childrenStack.s[0];
                             }
 
                             // Dive into the child
@@ -218,7 +218,7 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                             break;
                         }
 
-                        if (divingIntoNode) {
+                        if (divingIntoNode == TRUE) {
                             continue;
                         }
 
