@@ -187,6 +187,8 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
 
                         if (i == 0) {
                             i = 1;
+                        } else {
+                            i += 1;
                         }
                         i--;
 
