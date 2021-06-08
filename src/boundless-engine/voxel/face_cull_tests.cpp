@@ -159,44 +159,29 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                 // The following is an algorithm for iterating a Locational Code Octree system without recursion
                 // and without a stack. (As both are not supported in OpenCL).
                 // The constraints of the algorithm are bound by the depth maximum level of the Octree.
-                // This theoretically can support 256 depth levels (Way more than needed) due to standard OpenCL 1.2
+                // This theoretically can support 336 depth levels (Way more than needed) due to standard OpenCL 1.2
                 // limitation of vectors size up to 16. Also when dealing with more than 21 depth levels, this
                 // entire method / kernel should probably be rewritten to increase performance.
-                //
-                // This can actually be a 3 bit solution (0-7).
 
-                // Using 2 x 64 bit numbers allows us to save up to 32 depth levels (We need 4 bits per level)
-                // our game supports Octree Locational codes up to 64 bits (21 depth levels)
-                // so this is more than enough.
-                cl_ulong2 childrenStack = {{0, 0}};
+                // Using a single 64 bit number as our childrenStack allows us to save up to 21 depth levels
+                // (We need 3 bits per level) our game supports Octree Locational codes up to 64 bits (21 depth levels)
+                // so this is more than enough. Though if our game had locational codes that needed more than 21
+                // depth levels or a single depth level needs more than 3 bits, this single 64 bit number can
+                // be extended to a vector of ulongs as required.
+                cl_ulong childrenStack = 0;
                 cl_char solidFlag = TRUE;
 
                 while (currentLocationalCode != 0) {
                     // If the current node is not a leaf, dive into it's children.
                     if (isLeaf(octreeCodes, totalNodes, currentLocationalCode) == FALSE) {
+                        cl_uchar divingIntoNode = FALSE;
+
                         // Find which child we left at previously (If any) using our childrenStack
                         cl_uchar currentDepth = getDepth(currentLocationalCode);
-                        cl_uchar i;
-                        cl_uchar divingIntoNode = FALSE;
-                        // Choose which number in the stack we should address (each ulong supports 16 depth levels)
-                        // >= 16 because first scalar is 0-15 depth, seconds scalar is 16-31 (32 depth levels).
-                        if (currentDepth >= 16) {
-                            currentDepth = currentDepth - 16;
-                            i = (childrenStack.s[1] >> (currentDepth * 4)) & 0xf;
-                            // Once we read from the stack, as a stack, we "pop" the bits by setting them to 0
-                            childrenStack.s[1] = (((childrenStack.s[1] >> (currentDepth * 4)) & 0) << (currentDepth * 4)) | (childrenStack.s[1] & ((0x1 << (currentDepth * 4)) - 1));
-                        } else {
-                            i = (childrenStack.s[0] >> (currentDepth * 4)) & 0xf;
-                            // Once we read from the stack, as a stack, we "pop" the bits by setting them to 0
-                            childrenStack.s[0] = (((childrenStack.s[0] >> (currentDepth * 4)) & 0) << (currentDepth * 4)) | (childrenStack.s[0] & ((0x1 << (currentDepth * 4)) - 1));
-                        }
-
-                        if (i == 0) {
-                            i = 1;
-                        } else {
-                            i += 1;
-                        }
-                        i--;
+                        // Query the stack at our current depth level to get the state
+                        cl_uchar i = (childrenStack >> (currentDepth * 3)) & 0x7;
+                        // Once we read from the stack, as it is a stack, we "pop" the bits by setting them to 0
+                        childrenStack = ((childrenStack >> (currentDepth * 4)) << (currentDepth * 4)) | (childrenStack & ((0x1 << (currentDepth * 3)) - 1));
 
                         // Iterate the children.
                         for (; i<8; i++) {
@@ -210,15 +195,9 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                             }
 
                             // Before diving into a child, save which child we left at in the childrenStack so when we
-                            // iterate up again, we do are not stuck in an inifite loop and go over children
-                            // we have previously visited
-                            currentDepth = getDepth(currentLocationalCode);
-                            if (currentDepth >= 16) {
-                                currentDepth = currentDepth - 16;
-                                childrenStack.s[1] = (((childrenStack.s[1] >> (currentDepth * 4)) | (i + 1)) << (currentDepth * 4)) | (childrenStack.s[1] & ((0x1 << (currentDepth * 4)) - 1));;
-                            } else {
-                                childrenStack.s[0] = (((childrenStack.s[0] >> (currentDepth * 4)) | (i + 1)) << (currentDepth * 4)) | (childrenStack.s[0] & ((0x1 << (currentDepth * 4)) - 1));;
-                            }
+                            // iterate up again, we do are not stuck in an infinite loop and go over children
+                            // we have previously visited.
+                            childrenStack = (((childrenStack >> (currentDepth * 3) | (i + 1)) << (currentDepth * 3)) | (childrenStack & ((0x1 << (currentDepth * 3)) - 1)));
 
                             // Dive into the child
                             currentLocationalCode = locCodeChild;
@@ -231,15 +210,8 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                         }
 
                         // Once we finish all the children for a node, we should reset it's children stack and move
-                        // back up to it's parent. (We can reset the children stack by always XORing with 8 as the
-                        // for loop will always end at 8.
-                        currentDepth = getDepth(currentLocationalCode);
-                        if (currentDepth >= 16) {
-                            currentDepth = currentDepth - 16;
-                            childrenStack.s[1] = (((childrenStack.s[1] >> (currentDepth * 4)) ^ 8) << (currentDepth * 4)) | (childrenStack.s[1] & ((0x1 << (currentDepth * 4)) - 1));;
-                        } else {
-                            childrenStack.s[0] = (((childrenStack.s[0] >> (currentDepth * 4)) ^ 8) << (currentDepth * 4)) | (childrenStack.s[0] & ((0x1 << (currentDepth * 4)) - 1));;
-                        }
+                        // back up to it's parent.
+                        childrenStack = ((childrenStack >> (currentDepth * 4)) << (currentDepth * 4)) | (childrenStack & ((0x1 << (currentDepth * 3)) - 1));
 
                         // Node is checked, go back to the parent.
                         currentLocationalCode = currentLocationalCode >> 3;
