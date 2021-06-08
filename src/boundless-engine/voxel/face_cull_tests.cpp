@@ -162,12 +162,14 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                 // This theoretically can support 256 depth levels (Way more than needed) due to standard OpenCL 1.2
                 // limitation of vectors size up to 16. Also when dealing with more than 21 depth levels, this
                 // entire method / kernel should probably be rewritten to increase performance.
-                //
-                // This can actually be a 3 bit solution (0-7).
 
                 // Using 2 x 64 bit numbers allows us to save up to 32 depth levels (We need 4 bits per level)
                 // our game supports Octree Locational codes up to 64 bits (21 depth levels)
                 // so this is more than enough.
+
+                // We need 4 bits per level, because we need 0-7 to represent each node we left on, and 8 to represent
+                // the end of a node. Sadly there is no way to do this with less than 4 bits per depth level.
+
                 cl_ulong2 childrenStack = {{0, 0}};
                 cl_char solidFlag = TRUE;
 
@@ -184,19 +186,12 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                             currentDepth = currentDepth - 16;
                             i = (childrenStack.s[1] >> (currentDepth * 4)) & 0xf;
                             // Once we read from the stack, as a stack, we "pop" the bits by setting them to 0
-                            childrenStack.s[1] = (((childrenStack.s[1] >> (currentDepth * 4)) & 0) << (currentDepth * 4)) | (childrenStack.s[1] & ((0x1 << (currentDepth * 4)) - 1));
+                            childrenStack.s[1] = ((childrenStack.s[1] >> (currentDepth * 5)) << (currentDepth * 5)) | (childrenStack.s[1] & ((0x1 << (currentDepth * 4)) - 1));
                         } else {
                             i = (childrenStack.s[0] >> (currentDepth * 4)) & 0xf;
                             // Once we read from the stack, as a stack, we "pop" the bits by setting them to 0
-                            childrenStack.s[0] = (((childrenStack.s[0] >> (currentDepth * 4)) & 0) << (currentDepth * 4)) | (childrenStack.s[0] & ((0x1 << (currentDepth * 4)) - 1));
+                            childrenStack.s[0] = ((childrenStack.s[0] >> (currentDepth * 5)) << (currentDepth * 5)) | (childrenStack.s[0] & ((0x1 << (currentDepth * 4)) - 1));
                         }
-
-                        if (i == 0) {
-                            i = 1;
-                        } else {
-                            i += 1;
-                        }
-                        i--;
 
                         // Iterate the children.
                         for (; i<8; i++) {
@@ -236,13 +231,18 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                         currentDepth = getDepth(currentLocationalCode);
                         if (currentDepth >= 16) {
                             currentDepth = currentDepth - 16;
-                            childrenStack.s[1] = (((childrenStack.s[1] >> (currentDepth * 4)) ^ 8) << (currentDepth * 4)) | (childrenStack.s[1] & ((0x1 << (currentDepth * 4)) - 1));;
+                            childrenStack.s[1] = ((childrenStack.s[1] >> (currentDepth * 5)) << (currentDepth * 5)) | (childrenStack.s[1] & ((0x1 << (currentDepth * 4)) - 1));;
                         } else {
-                            childrenStack.s[0] = (((childrenStack.s[0] >> (currentDepth * 4)) ^ 8) << (currentDepth * 4)) | (childrenStack.s[0] & ((0x1 << (currentDepth * 4)) - 1));;
+                            childrenStack.s[0] = ((childrenStack.s[0] >> (currentDepth * 5)) << (currentDepth * 5)) | (childrenStack.s[0] & ((0x1 << (currentDepth * 4)) - 1));;
                         }
 
                         // Node is checked, go back to the parent.
                         currentLocationalCode = currentLocationalCode >> 3;
+
+                        if (currentLocationalCode == sibling) {
+                            currentLocationalCode = 0;
+                            // Exit out of loop
+                        }
                     } else {
                         // We have reached a leaf node, lets find if it fits our criteria then check if it is air
                         // This is not part of the iteration algorithm.
@@ -314,6 +314,7 @@ void cullFaces(cl_uint wgId, cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_i
             continue;
         }
 
+        BD_CORE_TRACE("Doing: {}", locationalCode);
         cl_ushort nodeSize = getSize(octreeSize, locationalCode);
 
         cl_ulong left;
