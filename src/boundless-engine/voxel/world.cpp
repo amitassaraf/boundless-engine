@@ -133,7 +133,7 @@ namespace Boundless {
         int err;
         cl_device_id devices_id[2];
         clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 2, devices_id, NULL);
-        cl_device_id device_id = devices_id[0];
+        cl_device_id device_id = devices_id[1];
         cl_char device_name[1024] = {0};
         clGetDeviceInfo(device_id, CL_DEVICE_NAME, sizeof(device_name), &device_name, NULL);
         BD_CORE_TRACE("Device: {}", device_name);
@@ -204,11 +204,14 @@ namespace Boundless {
 
         for (uint i = 0; i < totalItems; i++) {
             cl_ulong locationalCode = octreeCodes[i];
-            uint8_t mask = m_octree->calculateFaceMask(locationalCode);
+//            uint8_t mask = m_octree->calculateFaceMask(locationalCode);
             cl_uchar outMask = results[i];
-            if (mask != outMask) {
-                BD_CORE_TRACE("MISMATCH {}: {}vs{}", locationalCode, mask, outMask);
-            }
+            BD_CORE_TRACE("Mask for {} is {}", locationalCode, outMask);
+//            if (mask != outMask) {
+//                BD_CORE_TRACE("MISMATCH {}: {}vs{}", locationalCode, mask, outMask);
+//            } else if (outMask != 0) {
+//                BD_CORE_TRACE("Got some non zeros here...");
+//            }
         }
 
         clReleaseMemObject(octreeCodesBuffer);
