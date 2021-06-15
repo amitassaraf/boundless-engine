@@ -186,11 +186,11 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                             currentDepth = currentDepth - 16;
                             i = (childrenStack.s[1] >> (currentDepth * 4)) & 0xf;
                             // Once we read from the stack, as a stack, we "pop" the bits by setting them to 0
-                            childrenStack.s[1] = ((childrenStack.s[1] >> (currentDepth * 5)) << (currentDepth * 5)) | (childrenStack.s[1] & ((0x1 << (currentDepth * 4)) - 1));
+                            childrenStack.s[1] = ((childrenStack.s[1] >> ((currentDepth + 1) * 4)) << ((currentDepth + 1) * 4)) | (childrenStack.s[1] & (((cl_ulong)1 << (currentDepth * 4)) - 1));
                         } else {
                             i = (childrenStack.s[0] >> (currentDepth * 4)) & 0xf;
                             // Once we read from the stack, as a stack, we "pop" the bits by setting them to 0
-                            childrenStack.s[0] = ((childrenStack.s[0] >> (currentDepth * 5)) << (currentDepth * 5)) | (childrenStack.s[0] & ((0x1 << (currentDepth * 4)) - 1));
+                            childrenStack.s[0] = ((childrenStack.s[0] >> ((currentDepth + 1) * 4)) << ((currentDepth + 1) * 4)) | (childrenStack.s[0] & (((cl_ulong)1 << (currentDepth * 4)) - 1));
                         }
 
                         // Iterate the children.
@@ -210,9 +210,9 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                             currentDepth = getDepth(currentLocationalCode);
                             if (currentDepth >= 16) {
                                 currentDepth = currentDepth - 16;
-                                childrenStack.s[1] = (((childrenStack.s[1] >> (currentDepth * 4)) | (i + 1)) << (currentDepth * 4)) | (childrenStack.s[1] & ((0x1 << (currentDepth * 4)) - 1));;
+                                childrenStack.s[1] = (((childrenStack.s[1] >> (currentDepth * 4)) | (i + 1)) << (currentDepth * 4)) | (childrenStack.s[1] & (((cl_ulong)1 << (currentDepth * 4)) - 1));
                             } else {
-                                childrenStack.s[0] = (((childrenStack.s[0] >> (currentDepth * 4)) | (i + 1)) << (currentDepth * 4)) | (childrenStack.s[0] & ((0x1 << (currentDepth * 4)) - 1));;
+                                childrenStack.s[0] = (((childrenStack.s[0] >> (currentDepth * 4)) | (i + 1)) << (currentDepth * 4)) | (childrenStack.s[0] & (((cl_ulong)1 << (currentDepth * 4)) - 1));
                             }
 
                             // Dive into the child
@@ -231,18 +231,18 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                         currentDepth = getDepth(currentLocationalCode);
                         if (currentDepth >= 16) {
                             currentDepth = currentDepth - 16;
-                            childrenStack.s[1] = ((childrenStack.s[1] >> (currentDepth * 5)) << (currentDepth * 5)) | (childrenStack.s[1] & ((0x1 << (currentDepth * 4)) - 1));;
+                            childrenStack.s[1] = ((childrenStack.s[1] >> ((currentDepth + 1) * 4)) << ((currentDepth + 1) * 4)) | (childrenStack.s[1] & (((cl_ulong)1 << (currentDepth * 4)) - 1));;
                         } else {
-                            childrenStack.s[0] = ((childrenStack.s[0] >> (currentDepth * 5)) << (currentDepth * 5)) | (childrenStack.s[0] & ((0x1 << (currentDepth * 4)) - 1));;
+                            childrenStack.s[0] = ((childrenStack.s[0] >> ((currentDepth + 1) * 4)) << ((currentDepth + 1) * 4)) | (childrenStack.s[0] & (((cl_ulong)1 << (currentDepth * 4)) - 1));;
                         }
-
-                        // Node is checked, go back to the parent.
-                        currentLocationalCode = currentLocationalCode >> 3;
 
                         if (currentLocationalCode == sibling) {
                             currentLocationalCode = 0;
                             // Exit out of loop
                         }
+
+                        // Node is checked, go back to the parent.
+                        currentLocationalCode = currentLocationalCode >> 3;
                     } else {
                         // We have reached a leaf node, lets find if it fits our criteria then check if it is air
                         // This is not part of the iteration algorithm.
@@ -314,7 +314,6 @@ void cullFaces(cl_uint wgId, cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_i
             continue;
         }
 
-        BD_CORE_TRACE("Doing: {}", locationalCode);
         cl_ushort nodeSize = getSize(octreeSize, locationalCode);
 
         cl_ulong left;

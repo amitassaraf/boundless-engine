@@ -27,6 +27,10 @@ namespace Boundless {
             case ShaderDataType::IVEC2:     return sizeof(int) * 2;
             case ShaderDataType::IVEC3:     return sizeof(int) * 3;
             case ShaderDataType::IVEC4:     return sizeof(int) * 4;
+            case ShaderDataType::UIVEC1:     return sizeof(uint64_t);
+            case ShaderDataType::UIVEC2:     return sizeof(uint64_t) * 2;
+            case ShaderDataType::UIVEC3:     return sizeof(uint64_t) * 3;
+            case ShaderDataType::UIVEC4:     return sizeof(uint64_t) * 4;
             case ShaderDataType::BOOL:      return 1;
             case ShaderDataType::NONE:      break;
         }
@@ -49,6 +53,10 @@ namespace Boundless {
             case ShaderDataType::IVEC2:     return 2;
             case ShaderDataType::IVEC3:     return 3;
             case ShaderDataType::IVEC4:     return 4;
+            case ShaderDataType::UIVEC1:     return 1;
+            case ShaderDataType::UIVEC2:     return 2;
+            case ShaderDataType::UIVEC3:     return 3;
+            case ShaderDataType::UIVEC4:     return 4;
             case ShaderDataType::BOOL:      return 1;
             case ShaderDataType::NONE:      break;
         }

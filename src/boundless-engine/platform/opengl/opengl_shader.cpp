@@ -151,6 +151,10 @@ namespace Boundless {
             case ShaderDataType::IVEC2:     return GL_INT;
             case ShaderDataType::IVEC3:     return GL_INT;
             case ShaderDataType::IVEC4:     return GL_INT;
+            case ShaderDataType::UIVEC1:     return GL_UNSIGNED_INT64_ARB;
+            case ShaderDataType::UIVEC2:     return GL_UNSIGNED_INT64_ARB;
+            case ShaderDataType::UIVEC3:     return GL_UNSIGNED_INT64_ARB;
+            case ShaderDataType::UIVEC4:     return GL_UNSIGNED_INT64_ARB;
             case ShaderDataType::BOOL:      return GL_BOOL;
             case ShaderDataType::NONE:      break;
         }

@@ -47,6 +47,20 @@ namespace Boundless {
                          calculateOffset(rights, 0x1u, nodeSize, 2u) - OctreeNode::m_octreeSize);
     }
 
+    uint64_t OctreeNode::getPackedChunk() const {
+        uint16_t nodeSize = log2(getSize());
+        uint64_t tops = m_locationalCode & BIT64_TOP_BOTTOM_FACE_BITS_TEST;
+        uint64_t rights = m_locationalCode & BIT64_LEFT_RIGHT_FACE_BITS_TEST;
+        uint16_t lsb = __builtin_clzll(m_locationalCode);
+        uint64_t fronts = ((m_locationalCode ^ BIT64_FRONT_BACK_FACE_BITS_TEST) << lsb) >> lsb & BIT64_FRONT_BACK_FACE_BITS_TEST;
+
+        uint64_t packed = (((((calculateOffset(fronts, 0x2u, nodeSize, 1u) << 16)
+                        | calculateOffset(rights, 0x1u, nodeSize, 2u) - OctreeNode::m_octreeSize) << 16)
+                        | calculateOffset(tops, 0x4u, nodeSize, 0u)) << 16) | nodeSize;
+        return packed;
+    }
+
+
     std::uint16_t OctreeNode::getSize() const {
         return m_octreeSize / pow(2u, getDepth());
     }

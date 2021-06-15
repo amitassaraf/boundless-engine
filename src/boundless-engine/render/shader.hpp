@@ -10,7 +10,7 @@
 namespace Boundless {
 
     enum class ShaderDataType {
-        NONE = 0, VEC1, VEC2, VEC3, VEC4, MAT3, MAT4, IVEC1, IVEC2, IVEC3, IVEC4, BOOL
+        NONE = 0, VEC1, VEC2, VEC3, VEC4, MAT3, MAT4, IVEC1, IVEC2, IVEC3, IVEC4, BOOL, UIVEC1, UIVEC2, UIVEC3, UIVEC4
     };
 
     uint32_t getShaderDataTypeSize(ShaderDataType type);

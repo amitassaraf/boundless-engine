@@ -13,6 +13,13 @@ namespace Boundless {
         glBindBuffer(GL_ARRAY_BUFFER, 0);  
     }
 
+    OpenGLVertexBuffer::OpenGLVertexBuffer(uint64_t* verticies, uint32_t size) : m_size(size) {
+        glGenBuffers(1, &m_rendererId);
+        glBindBuffer(GL_ARRAY_BUFFER, m_rendererId);
+        glBufferData(GL_ARRAY_BUFFER, size, verticies, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
     OpenGLVertexBuffer::~OpenGLVertexBuffer() {
         glDeleteBuffers(1, &m_rendererId);
     }

@@ -20,6 +20,7 @@ namespace Boundless {
             virtual uint32_t getCount() const = 0;
 
             static VertexBuffer* create(float* verticies, uint32_t size);
+            static VertexBuffer* create(uint64_t* verticies, uint32_t size);
     };
 
     class IndexBuffer {

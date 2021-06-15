@@ -81,7 +81,7 @@ namespace Boundless {
         renderWorldAround(glm::vec3(WORLD_SIZE / 2,WORLD_SIZE / 2,WORLD_SIZE / 2));
 
         BD_CORE_INFO("Running OpenCL test...");
-
+//
         uint totalItems = m_octree->m_nodes.size();
         std::vector<cl_ulong> octreeCodes;
         octreeCodes.reserve(totalItems);
@@ -107,6 +107,7 @@ namespace Boundless {
         cl_uchar masksRez[totalItems];
         auto groups = static_cast<cl_uint>(ceil(totalItems / 65536.0));
         for (cl_uint wgId = 0; wgId < groups; wgId++) {
+            BD_CORE_TRACE("Group {}", wgId);
             cullFaces(wgId, octreeCodes.data(), octreeSolids.data(), octreeSize, totalNodes, masksRez);
         }
 
@@ -173,32 +174,32 @@ namespace Boundless {
         BD_CORE_TRACE("ERROR 9: {}", err);
         cl_mem masks = clCreateBuffer(context,  CL_MEM_READ_WRITE,  totalItems * sizeof(cl_uchar), NULL, &err);
         BD_CORE_TRACE("ERROR 10: {}", err);
-        // Split to class 
+        // Split to class
         clFinish(commands);
 
         // err = clEnqueueWriteBuffer(commands, octreeCodes, CL_TRUE, 0, totalItems * sizeof(cl_ulong), keys.data(), 0, NULL, NULL);
         // BD_CORE_TRACE("ERROR 1: {}", err);
         // err = clEnqueueWriteBuffer(commands, octreeSolids, CL_TRUE, 0, totalItems * sizeof(cl_uchar), vals.data(), 0, NULL, NULL);
         // BD_CORE_TRACE("ERROR 2: {}", err);
-        
+
         clSetKernelArg(kernel, 0, sizeof(cl_mem), &octreeCodesBuffer);
         clSetKernelArg(kernel, 1, sizeof(cl_mem), &octreeSolidsBuffer);
         clSetKernelArg(kernel, 2, sizeof(cl_int), &octreeSize);
         clSetKernelArg(kernel, 3, sizeof(cl_int), &totalNodes);
         clSetKernelArg(kernel, 4, sizeof(cl_mem), &masks);
 
-        
+
         // clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
         size_t global = totalItems;
         size_t local = totalItems / 256;
         BD_CORE_TRACE("Local Work Group: {}, Global Work Items: {}", local, global);
         clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
-        
+
         clFinish(commands);
 
         cl_uchar results[totalItems];
         clEnqueueReadBuffer(commands, masks, CL_TRUE, 0, sizeof(cl_uchar) * totalItems, results, 0, NULL, NULL);
- 
+
         clFinish(commands);
 
         BD_CORE_INFO("Checking Culling OpenCL...");

@@ -19,6 +19,7 @@ namespace Boundless {
 
             std::size_t getDepth() const;
             glm::vec3 getChunkOffset() const;
+            std::uint64_t getPackedChunk() const;
             std::uint16_t getOctreeSize() const;
             std::uint16_t getSize() const;
             bool isSolid();

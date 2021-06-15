@@ -14,6 +14,7 @@ namespace Boundless {
     class OpenGLVertexBuffer : public VertexBuffer {
         public:
             OpenGLVertexBuffer(float* verticies, uint32_t size);
+            OpenGLVertexBuffer(uint64_t* verticies, uint32_t size);
             virtual ~OpenGLVertexBuffer();
 
             virtual void bind() const override;
