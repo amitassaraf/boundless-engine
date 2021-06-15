@@ -102,26 +102,26 @@ namespace Boundless {
             octreeSolids.push_back(static_cast<cl_uchar>(solid));
         }
 
-        BD_CORE_INFO("Running C++ Culling Tests...");
-
-        cl_uchar masksRez[totalItems];
-        auto groups = static_cast<cl_uint>(ceil(totalItems / 65536.0));
-        for (cl_uint wgId = 0; wgId < groups; wgId++) {
-            BD_CORE_TRACE("Group {}", wgId);
-            cullFaces(wgId, octreeCodes.data(), octreeSolids.data(), octreeSize, totalNodes, masksRez);
-        }
-
-        BD_CORE_INFO("Checking C++ Culling Tests...");
-
-        for (uint wgId = 0; wgId < totalItems; wgId++) {
-            cl_ulong locationalCode = octreeCodes[wgId];
-            uint8_t mask = m_octree->calculateFaceMask(locationalCode);
-            cl_uchar outMask = masksRez[wgId];
-            if (mask != outMask) {
-                m_octree->calculateFaceMask(locationalCode);
-                BD_CORE_TRACE("MISMATCH {}: {}vs{}", locationalCode, mask, outMask);
-            }
-        }
+//        BD_CORE_INFO("Running C++ Culling Tests...");
+//
+//        cl_uchar masksRez[totalItems];
+//        auto groups = static_cast<cl_uint>(ceil(totalItems / 65536.0));
+//        for (cl_uint wgId = 0; wgId < groups; wgId++) {
+//            BD_CORE_TRACE("Group {}", wgId);
+//            cullFaces(wgId, octreeCodes.data(), octreeSolids.data(), octreeSize, totalNodes, masksRez);
+//        }
+//
+//        BD_CORE_INFO("Checking C++ Culling Tests...");
+//
+//        for (uint wgId = 0; wgId < totalItems; wgId++) {
+//            cl_ulong locationalCode = octreeCodes[wgId];
+//            uint8_t mask = m_octree->calculateFaceMask(locationalCode);
+//            cl_uchar outMask = masksRez[wgId];
+//            if (mask != outMask) {
+//                m_octree->calculateFaceMask(locationalCode);
+//                BD_CORE_TRACE("MISMATCH {}: {}vs{}", locationalCode, mask, outMask);
+//            }
+//        }
 
 
         BD_CORE_INFO("Running Culling OpenCL...");
@@ -164,8 +164,6 @@ namespace Boundless {
             return;
         }
 
-        return;
-
         cl_kernel kernel = clCreateKernel(program, "cullFaces", &err);
 
         cl_mem octreeCodesBuffer = clCreateBuffer(context,  CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,  totalItems * sizeof(cl_ulong), octreeCodes.data(), &err);
@@ -203,8 +201,6 @@ namespace Boundless {
         clFinish(commands);
 
         BD_CORE_INFO("Checking Culling OpenCL...");
-
-        return;
 
         for (uint i = 0; i < totalItems; i++) {
             cl_ulong locationalCode = octreeCodes[i];
