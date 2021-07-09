@@ -3,17 +3,27 @@
 #define BD_COMPUTE_BUFFER_HPP_
 
 #include <cstdint>
+#include "compute_context.hpp"
 
 namespace Boundless {
 
+    enum class ComputeBufferFlags {
+        READ_WRITE = 0,
+        WRITE_ONLY,
+        READ_ONLY,
+        HOST_PTR,
+        ALLOC_HOST_PTR,
+        COPY_HOST_PTR
+    };
+
     class ComputeBuffer {
         public:
+            ComputeBuffer();
+            ComputeBuffer(const Ref<ComputeContext>& context, size_t flags, size_t bufferSize, void* ptr);
             virtual ~ComputeBuffer() {}
 
-            virtual void bind() const = 0;
-            virtual void unbind() const = 0;
+            static ComputeBuffer* create(const Ref<ComputeContext>& context, size_t flags, size_t bufferSize, void* ptr);
 
-            static ComputeBuffer* create();
     };
 
 }

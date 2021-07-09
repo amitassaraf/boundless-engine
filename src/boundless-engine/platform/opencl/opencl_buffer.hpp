@@ -4,16 +4,19 @@
 
 #include "compute/buffer.hpp"
 #include "logging/logger.hpp"
+#include "opencl_context.hpp"
+#include <OpenCL/opencl.h>
 
 namespace Boundless {
 
     class OpenCLComputeBuffer : public ComputeBuffer {
         public:
-            OpenCLComputeBuffer();
-            virtual ~OpenCLComputeBuffer();
+            OpenCLComputeBuffer(const Ref<OpenCLContext>& context, size_t flags, size_t bufferSize, void* ptr);
+            ~OpenCLComputeBuffer() override;
 
-            virtual void bind() const override;
-            virtual void unbind() const override;
+            [[nodiscard]] cl_mem getCLBuffer() const { return m_buffer; };
+        private:
+            cl_mem m_buffer;
     };
 }
 

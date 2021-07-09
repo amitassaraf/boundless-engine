@@ -5,14 +5,22 @@
 
 namespace Boundless {
 
-    ComputeBuffer* ComputeBuffer::create() {
+    ComputeBuffer::ComputeBuffer() = default;
+    ComputeBuffer::ComputeBuffer(const Ref<ComputeContext>& context, size_t flags, size_t bufferSize, void* ptr) {
+        UNUSED(context);
+        UNUSED(bufferSize);
+        UNUSED(flags);
+        UNUSED(ptr);
+    }
+
+    ComputeBuffer* ComputeBuffer::create(const Ref<ComputeContext>& context, size_t flags, size_t bufferSize, void* ptr) {
         switch (Compute::getApi()) {
             case ComputeAPI::NONE:
                 BD_CORE_ERROR("Compute API None is not supported");
                 throw std::runtime_error("Compute API None is not supported.");
                 break;
             case ComputeAPI::OPEN_CL:
-                return new OpenCLComputeBuffer();
+                return new OpenCLComputeBuffer(reinterpret_cast<const Ref<OpenCLContext>&>(context), flags, bufferSize, ptr);
                 break;
         }
 
