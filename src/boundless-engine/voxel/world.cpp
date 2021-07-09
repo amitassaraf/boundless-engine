@@ -6,6 +6,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include <algorithm> 
 #include <fstream>
+#include <cmath>
 #include "face_cull_tests.hpp"
 
 #define __CL_ENABLE_EXCEPTIONS
@@ -173,45 +174,67 @@ namespace Boundless {
         cl_mem masks = clCreateBuffer(context,  CL_MEM_READ_WRITE,  totalItems * sizeof(cl_uchar), NULL, &err);
         BD_CORE_TRACE("ERROR 10: {}", err);
         // Split to class
-        clFinish(commands);
+        err = clFinish(commands);
+        BD_CORE_TRACE("ERROR 31: {}", err);
 
         // err = clEnqueueWriteBuffer(commands, octreeCodes, CL_TRUE, 0, totalItems * sizeof(cl_ulong), keys.data(), 0, NULL, NULL);
         // BD_CORE_TRACE("ERROR 1: {}", err);
         // err = clEnqueueWriteBuffer(commands, octreeSolids, CL_TRUE, 0, totalItems * sizeof(cl_uchar), vals.data(), 0, NULL, NULL);
         // BD_CORE_TRACE("ERROR 2: {}", err);
 
-        clSetKernelArg(kernel, 0, sizeof(cl_mem), &octreeCodesBuffer);
-        clSetKernelArg(kernel, 1, sizeof(cl_mem), &octreeSolidsBuffer);
-        clSetKernelArg(kernel, 2, sizeof(cl_int), &octreeSize);
-        clSetKernelArg(kernel, 3, sizeof(cl_int), &totalNodes);
-        clSetKernelArg(kernel, 4, sizeof(cl_mem), &masks);
+        err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &octreeCodesBuffer);
+        BD_CORE_TRACE("ERROR 32: {}", err);
+        err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &octreeSolidsBuffer);
+        BD_CORE_TRACE("ERROR 33: {}", err);
+        err = clSetKernelArg(kernel, 2, sizeof(cl_int), &octreeSize);
+        BD_CORE_TRACE("ERROR 34: {}", err);
+        err = clSetKernelArg(kernel, 3, sizeof(cl_int), &totalNodes);
+        BD_CORE_TRACE("ERROR 35: {}", err);
+        err = clSetKernelArg(kernel, 4, sizeof(cl_mem), &masks);
+        BD_CORE_TRACE("ERROR 36: {}", err);
 
+//        size_t maxWorkGroupSize;
+//        err = clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &maxWorkGroupSize, NULL);
+//        BD_CORE_TRACE("ERROR 55: {}", err);
+//        BD_CORE_TRACE("Max Global WS: {}", maxWorkGroupSize);
 
         // clGetKernelWorkGroupInfo(kernel, device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
-        size_t global = totalItems;
-        size_t local = totalItems / 256;
-        BD_CORE_TRACE("Local Work Group: {}, Global Work Items: {}", local, global);
-        clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+        size_t maxWorkGroupSize = 256;
+        size_t global = totalItems / maxWorkGroupSize;
 
-        clFinish(commands);
+        // Find the nearest power of 2
+        global--;
+        global |= global >> 1;
+        global |= global >> 2;
+        global |= global >> 4;
+        global |= global >> 8;
+        global++;
+
+        BD_CORE_TRACE("Local Work Group: {}, Global Work Items: {}", maxWorkGroupSize, global);
+        err = clEnqueueNDRangeKernel(commands, kernel, 1, NULL, &global, &maxWorkGroupSize, 0, NULL, NULL);
+        BD_CORE_TRACE("ERROR 37: {}", err);
+
+        err = clFinish(commands);
+        BD_CORE_TRACE("ERROR 38: {}", err);
 
         cl_uchar results[totalItems];
-        clEnqueueReadBuffer(commands, masks, CL_TRUE, 0, sizeof(cl_uchar) * totalItems, results, 0, NULL, NULL);
+        err = clEnqueueReadBuffer(commands, masks, CL_TRUE, 0, sizeof(cl_uchar) * totalItems, results, 0, NULL, NULL);
+        BD_CORE_TRACE("ERROR 39: {}", err);
 
-        clFinish(commands);
+        err = clFinish(commands);
+        BD_CORE_TRACE("ERROR 40: {}", err);
 
         BD_CORE_INFO("Checking Culling OpenCL...");
 
+
         for (uint i = 0; i < totalItems; i++) {
             cl_ulong locationalCode = octreeCodes[i];
-//            uint8_t mask = m_octree->calculateFaceMask(locationalCode);
+            uint8_t mask = m_octree->calculateFaceMask(locationalCode);
             cl_uchar outMask = results[i];
-            BD_CORE_TRACE("Mask for {} is {}", locationalCode, outMask);
-//            if (mask != outMask) {
-//                BD_CORE_TRACE("MISMATCH {}: {}vs{}", locationalCode, mask, outMask);
-//            } else if (outMask != 0) {
-//                BD_CORE_TRACE("Got some non zeros here...");
-//            }
+//            BD_CORE_TRACE("Mask for {} is {}", locationalCode, outMask);
+            if (mask != outMask) {
+                BD_CORE_TRACE("MISMATCH {}: {}vs{}", locationalCode, mask, outMask);
+            }
         }
 
         clReleaseMemObject(octreeCodesBuffer);

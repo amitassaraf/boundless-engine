@@ -301,7 +301,7 @@ __kernel void cullFaces(__global ulong* octreeCodes, __global uchar* octreeSolid
         endIndex = totalNodes;
     }
 
-    for(uint locationalCodeIndex=startIndex; locationalCodeIndex<endIndex; locationalCodeIndex++){
+    for(uint locationalCodeIndex=startIndex + itemId; locationalCodeIndex<endIndex; locationalCodeIndex+=wgSize){
         ulong locationalCode = octreeCodes[locationalCodeIndex];
 
         uchar faceMask = 0;
