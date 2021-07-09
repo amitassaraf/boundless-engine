@@ -8,7 +8,7 @@
 
 #define __CL_ENABLE_EXCEPTIONS
 
-float scale = 40.f;
+float scale = 120.f;
 float lacunarity = 0.8f;
 float persistance = 1.6f;
 
