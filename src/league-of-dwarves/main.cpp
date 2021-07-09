@@ -6,6 +6,11 @@
 #include <ThreadPool.h>
 #include <thread>
 #include <random>
+#include "platform/opencl/opencl_program.hpp"
+#include "platform/opencl/opencl_buffer.hpp"
+#include "platform/opencl/opencl_context.hpp"
+#include "platform/opencl/opencl_device.hpp"
+#include "platform/opencl/opencl_command_queue.hpp"
 
 class LeagueOfDwarves : public Boundless::Game {
 public:
@@ -41,7 +46,7 @@ public:
         m_windowLayer.reset(new Boundless::WindowLayer(m_eventManager));
         this->pushLayer(m_windowLayer.get());
         m_camera.reset(new Boundless::PerspectiveCamera(m_eventManager, m_windowLayer->getWidth(), m_windowLayer->getHeight()));
-        m_camera->setPosition(glm::vec3(512, 512, 512));
+        m_camera->setPosition(glm::vec3(WORLD_SIZE / 2, WORLD_SIZE / 2, WORLD_SIZE / 2));
         m_pool.reset(new ThreadPool(std::thread::hardware_concurrency()));
         this->pushLayer(m_camera.get());
         this->pushLayer(new Boundless::FPSCounterLayer(m_eventManager));
@@ -73,6 +78,21 @@ public:
 
     }
 
+    int findLocationalCodeIndex(std::vector<uint64_t> octreeCodes, int totalNodes, uint64_t locationalCode)
+    {
+        int l = 0;
+        while (l <= totalNodes) {
+            int m = l + (totalNodes - l) / 2;
+            if (octreeCodes[m] == locationalCode)
+                return m;
+            if (octreeCodes[m] < locationalCode)
+                l = m + 1;
+            else
+                totalNodes = m - 1;
+        }
+        return -1;
+    }
+
     void calcRenderNodes(Boundless::World& world) {
         BD_CORE_INFO("Traversing Meshes...");
 
@@ -90,7 +110,9 @@ public:
 
             chunks.push_back(nodeLocationalCode);
         });
-        
+
+        std::sort(chunks.begin(), chunks.end());
+
         BD_CORE_INFO("Calculating face masks for {} nodes...", nodes);
 
         float cubeVertices[3 * 8 * 2] = {
@@ -113,17 +135,116 @@ public:
         };
         m_vb->setLayout(vertexLayout);
 
+        uint totalItems = world.getOctree()->m_nodes.size();
+        std::vector<uint64_t> octreeCodes;
+        octreeCodes.reserve(totalItems);
+        std::vector<uint8_t> octreeSolids;
+        octreeSolids.reserve(totalItems);
+
+        int octreeSize = static_cast<int>(WORLD_SIZE);
+        int totalNodes = static_cast<int>(totalItems);
+
+        for (auto kv : world.getOctree()->m_nodes) {
+            octreeCodes.push_back(kv.first);
+        }
+
+        std::sort(octreeCodes.begin(), octreeCodes.end());
+
+        for (uint64_t code : octreeCodes) {
+            uint8_t solid = world.getOctree()->m_nodes.at(code);
+            octreeSolids.push_back(solid);
+        }
+
+        BD_CORE_INFO("Running Culling OpenCL...");
+
+        Boundless::Ref<Boundless::ComputeDevice> computeDevice;
+        computeDevice.reset(Boundless::ComputeDevice::create());
+
+        Boundless::Ref<Boundless::ComputeContext> computeContext;
+        computeContext.reset(Boundless::ComputeContext::create(computeDevice));
+
+        Boundless::Ref<Boundless::ComputeCommandQueue> computeCommands;
+        computeCommands.reset(Boundless::ComputeCommandQueue::create(computeContext, computeDevice));
+
+        Boundless::Ref<Boundless::ComputeProgram> computeProgram;
+        computeProgram.reset(Boundless::ComputeProgram::create(
+                computeContext,
+                computeDevice,
+                "/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/cl/face_cull.cl",
+                "cullFaces")
+        );
+
+        Boundless::Ref<Boundless::ComputeBuffer> octreeCodesBuffer;
+        octreeCodesBuffer.reset(Boundless::ComputeBuffer::create(
+                computeContext,
+                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                totalItems * sizeof(cl_ulong),
+                octreeCodes.data())
+        );
+
+        Boundless::Ref<Boundless::ComputeBuffer> octreeSolidsBuffer;
+        octreeSolidsBuffer.reset(Boundless::ComputeBuffer::create(
+                computeContext,
+                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                totalItems * sizeof(cl_uchar),
+                octreeSolids.data())
+        );
+
+        Boundless::Ref<Boundless::ComputeBuffer> masks;
+        masks.reset(Boundless::ComputeBuffer::create(
+                computeContext,
+                CL_MEM_READ_WRITE,
+                totalItems * sizeof(cl_uchar),
+                nullptr)
+        );
+
+        computeCommands->flushCommands();
+
+        computeProgram->addArgument(0, octreeCodesBuffer);
+        computeProgram->addArgument(1, octreeSolidsBuffer);
+        computeProgram->addArgument(2, sizeof(cl_int), &octreeSize);
+        computeProgram->addArgument(3, sizeof(cl_int), &totalNodes);
+        computeProgram->addArgument(4, masks);
+
+        size_t maxWorkGroupSize;
+        computeDevice->getDeviceInformation(computeProgram, CL_KERNEL_WORK_GROUP_SIZE, &maxWorkGroupSize);
+
+        BD_CORE_TRACE("Max Global WS: {}", maxWorkGroupSize);
+
+        size_t global = totalItems / maxWorkGroupSize;
+
+        // Change global to the nearest power of 2
+        TRANSFORM_16_BIT_NEAREST_POWER_OF_TWO(global)
+
+        std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+        BD_CORE_TRACE("Local Work Group: {}, Global Work Items: {}", maxWorkGroupSize, global);
+
+        computeCommands->enqueueTask(computeProgram, 1, 0, global, maxWorkGroupSize);
+        computeCommands->flushCommands();
+
+        std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> time_span = t2 - t1;
+        BD_CORE_TRACE("It took: {} milliseconds for {} items.", time_span.count(), totalItems);
+
+        uint8_t* results = new uint8_t[totalItems];
+
+        computeCommands->enqueueRead(masks, true, 0, sizeof(uint8_t) * totalItems, results);
+        computeCommands->flushCommands();
+
         std::unordered_map<uint8_t, std::vector<uint64_t> > maskToChunk;
 
-        for (uint64_t chunk : chunks) {
-            uint8_t mask = world.getOctree()->calculateFaceMask(chunk);
-            if (mask != 0) {
-                maskToChunk[mask].push_back(chunk);
+        for (uint i = 0; i < totalItems; i++) {
+            if (std::binary_search(chunks.begin(), chunks.end(), octreeCodes[i])) {
+                uint8_t mask = results[i];
+                if (mask != 0) {
+                    maskToChunk[mask].push_back(octreeCodes[i]);
+                }
             }
         }
 
+        delete[] results;
         BD_CORE_INFO("Generating meshes for {} nodes...", nodes);
-        
+
         for (int i = 1; i < 64; i++ ) {
             uint8_t faceMask = i;
 

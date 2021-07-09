@@ -8,6 +8,8 @@
 #include "core/core.hpp"
 #include <SimplexNoise.h>
 
+#define WORLD_SIZE 4096
+
 namespace Boundless {
 
     class World {
