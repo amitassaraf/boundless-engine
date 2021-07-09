@@ -8,9 +8,9 @@
 
 #define __CL_ENABLE_EXCEPTIONS
 
-float scale = 60.f;
-float lacunarity = 1.2f;
-float persistance = 1.9f;
+float scale = 40.f;
+float lacunarity = 0.8f;
+float persistance = 1.6f;
 
 const int octaves = static_cast<int>(3 + std::log(scale)); // Estimate number of octaves needed for the current scale
 
