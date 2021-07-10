@@ -8,7 +8,7 @@
 
 #define __CL_ENABLE_EXCEPTIONS
 
-float scale = 20.f;
+float scale = 120.f;
 float lacunarity = 0.8f;
 float persistance = 1.6f;
 
@@ -111,7 +111,7 @@ namespace Boundless {
                                   chunkLocation.z + (size / 2.0f));
             auto distance = abs(glm::length(camera - chunkCenter));
 
-            if (distance < (size * 250)) {
+            if (distance < size * 150) {
                 if (size > 1 && m_octree->isLeaf(node)) {
                     divideNode(node, chunkLocation);
                 }

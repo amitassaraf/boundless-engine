@@ -96,24 +96,15 @@ public:
     void calcRenderNodes(Boundless::World& world) {
         BD_CORE_INFO("Traversing Meshes...");
 
-        std::vector<uint64_t> chunks;
-        int nodes = 0;
+        auto key_selector = [](auto pair){return pair.first;};
+        std::vector<uint64_t> chunks(world.getOctree()->m_nodes.size());
+        transform(world.getOctree()->m_nodes.begin(), world.getOctree()->m_nodes.end(), chunks.begin(), key_selector);
+
         m_toRender.clear();
-        Boundless::OctreeNode root = world.getOctree()->getRootNode();
-        world.getOctree()->visitAll(root, [&](uint64_t nodeLocationalCode, Boundless::OctreeNode& node) {
-            nodes += 1;
-            UNUSED(nodeLocationalCode);
-
-            if (!world.getOctree()->isLeaf(node) || !node.isSolid()) {
-                return;
-            }
-
-            chunks.push_back(nodeLocationalCode);
-        });
 
         std::sort(chunks.begin(), chunks.end());
 
-        BD_CORE_INFO("Calculating face masks for {} nodes...", nodes);
+        BD_CORE_INFO("Calculating face masks...");
 
         float cubeVertices[3 * 8 * 2] = {
             0, 0, 0,   0, -1,  0,  // 0, nv front
@@ -240,14 +231,14 @@ public:
         for (uint i = 0; i < totalItems; i++) {
             if (std::binary_search(chunks.begin(), chunks.end(), octreeCodes[i])) {
                 uint8_t mask = results[i];
-                if (mask != 0) {
+                if (mask != 0 && (!world.getOctree()->nodeExists(octreeCodes[i] << 3u) || world.getOctree()->m_nodes.at(octreeCodes[i]) == 0u)) {
                     maskToChunk[mask].push_back(octreeCodes[i]);
                 }
             }
         }
 
         delete[] results;
-        BD_CORE_INFO("Generating meshes for {} nodes...", nodes);
+        BD_CORE_INFO("Generating meshes...");
 
         for (int i = 1; i < 64; i++ ) {
             uint8_t faceMask = i;
