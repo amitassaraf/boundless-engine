@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/entityx/cmake")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/bullet3")
+set (CMAKE_PREFIX_PATH lib_directory ${CMAKE_PREFIX_PATH})
 
 # Disabled cotire due to issues with GL includes, renable later if needed
 # set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/cotire/CMake")
@@ -114,6 +115,9 @@ else()
     include_directories( ${OpenAL_INCLUDE_DIR})
 endif()
 
+find_package(FastNoise2 REQUIRED)
+find_package(FastNoise2 CONFIG REQUIRED)
+
 find_package(spdlog REQUIRED)
 
 FIND_PACKAGE( entityx REQUIRED)
@@ -125,6 +129,9 @@ FIND_PACKAGE( Bullet REQUIRED)
 if (Bullet_FOUND)
     include_directories(${Bullet_INCLUDE_DIRS})
 endif()
+
+#set(FASTNOISE2_NOISETOOL OFF CACHE BOOL "Build Noise Tool" FORCE) #example if don't need the graph tool
+#add_subdirectory("third_party/FastNoise2")
 
 
 # Add third party libaries
@@ -145,11 +152,11 @@ target_include_directories(BoundlessEngine PUBLIC ${CMAKE_SOURCE_DIR}/src/boundl
 if(APPLE)
     target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
          ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} GLEW::GLEW glfw OpenCL::OpenCL 
-         "-framework OpenCL" spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${ENTITYX_LIBRARIES} ${Bullet_LIBRARIES}) 
+         "-framework OpenCL" spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${ENTITYX_LIBRARIES} ${Bullet_LIBRARIES} FastNoise2::FastNoise)
 else()
     target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
          ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} GLEW::GLEW glfw OpenCL::OpenCL 
-         spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${ENTITYX_LIBRARIES} ${Bullet_LIBRARIES}) 
+         spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${ENTITYX_LIBRARIES} ${Bullet_LIBRARIES} FastNoise2::FastNoise)
 endif()
 # cotire(BoundlessEngine)
 

@@ -219,6 +219,10 @@ public:
         std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
         BD_CORE_TRACE("Local Work Group: {}, Global Work Items: {}", maxWorkGroupSize, global);
 
+        if (maxWorkGroupSize > global) {
+            maxWorkGroupSize = global;
+        }
+
         computeCommands->enqueueTask(computeProgram, 1, 0, global, maxWorkGroupSize);
         computeCommands->flushCommands();
 
