@@ -127,23 +127,14 @@ public:
         m_vb->setLayout(vertexLayout);
 
         uint totalItems = world.getOctree()->m_nodes.size();
-        std::vector<uint64_t> octreeCodes;
-        octreeCodes.reserve(totalItems);
         std::vector<uint8_t> octreeSolids;
         octreeSolids.reserve(totalItems);
 
         int octreeSize = static_cast<int>(WORLD_SIZE);
         int totalNodes = static_cast<int>(totalItems);
 
-        for (auto kv : world.getOctree()->m_nodes) {
-            octreeCodes.push_back(kv.first);
-        }
-
-        std::sort(octreeCodes.begin(), octreeCodes.end());
-
-        for (uint64_t code : octreeCodes) {
-            uint8_t solid = world.getOctree()->m_nodes.at(code);
-            octreeSolids.push_back(solid);
+        for (uint64_t code : chunks) {
+            octreeSolids.push_back(world.getOctree()->m_nodes.at(code));
         }
 
         BD_CORE_INFO("Running Culling OpenCL...");
@@ -170,7 +161,7 @@ public:
                 computeContext,
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                 totalItems * sizeof(cl_ulong),
-                octreeCodes.data())
+                chunks.data())
         );
 
         Boundless::Ref<Boundless::ComputeBuffer> octreeSolidsBuffer;
@@ -229,11 +220,9 @@ public:
         std::unordered_map<uint8_t, std::vector<uint64_t> > maskToChunk;
 
         for (uint i = 0; i < totalItems; i++) {
-            if (std::binary_search(chunks.begin(), chunks.end(), octreeCodes[i])) {
-                uint8_t mask = results[i];
-                if (mask != 0 && (!world.getOctree()->nodeExists(octreeCodes[i] << 3u) || world.getOctree()->m_nodes.at(octreeCodes[i]) == 0u)) {
-                    maskToChunk[mask].push_back(octreeCodes[i]);
-                }
+            uint8_t mask = results[i];
+            if (mask != 0 && (!world.getOctree()->nodeExists(chunks[i] << 3u) || world.getOctree()->m_nodes.at(chunks[i]) == 0u)) {
+                maskToChunk[mask].push_back(chunks[i]);
             }
         }
 

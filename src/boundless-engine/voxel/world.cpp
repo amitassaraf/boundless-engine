@@ -111,7 +111,7 @@ namespace Boundless {
                                   chunkLocation.z + (size / 2.0f));
             auto distance = abs(glm::length(camera - chunkCenter));
 
-            if (distance < size * 150) {
+            if (distance < size * 200) {
                 if (size > 1 && m_octree->isLeaf(node)) {
                     divideNode(node, chunkLocation);
                 }
