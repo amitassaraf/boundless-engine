@@ -1,5 +1,6 @@
 #include <GL/glew.h>
 #include <boundless.h>
+#include <memory>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/transform.hpp>
 #include <algorithm> 
@@ -35,6 +36,10 @@ public:
     Boundless::Ref<Boundless::Texture> m_ssaoColorBuffer;
     Boundless::Ref<Boundless::Texture> m_ssaoColorBufferBlur;
     Boundless::Ref<Boundless::VertexArray> m_quad;
+    Boundless::Ref<Boundless::ComputeDevice> m_computeDevice;
+    Boundless::Ref<Boundless::ComputeContext> m_computeContext;
+    Boundless::Ref<Boundless::ComputeProgram> m_computeProgram;
+    Boundless::Ref<Boundless::ComputeCommandQueue> m_computeCommands;
     std::vector<glm::vec3> m_ssaoKernel;
     glm::vec3 lightPos = glm::vec3(2.0, 4.0, -2.0);
     glm::vec3 lightColor = glm::vec3(0.2, 0.2, 0.7);
@@ -43,13 +48,27 @@ public:
 
     LeagueOfDwarves() {
         BD_GAME_INFO("Starting league of dwarves.");
-        m_windowLayer.reset(new Boundless::WindowLayer(m_eventManager));
+        m_windowLayer = std::make_shared<Boundless::WindowLayer>(m_eventManager);
         this->pushLayer(m_windowLayer.get());
-        m_camera.reset(new Boundless::PerspectiveCamera(m_eventManager, m_windowLayer->getWidth(), m_windowLayer->getHeight()));
+        m_camera = std::make_shared<Boundless::PerspectiveCamera>(m_eventManager, m_windowLayer->getWidth(), m_windowLayer->getHeight());
         m_camera->setPosition(glm::vec3(WORLD_SIZE / 2, WORLD_SIZE / 2, WORLD_SIZE / 2));
-        m_pool.reset(new ThreadPool(std::thread::hardware_concurrency()));
+        m_pool = std::make_unique<ThreadPool>(std::thread::hardware_concurrency());
         this->pushLayer(m_camera.get());
         this->pushLayer(new Boundless::FPSCounterLayer(m_eventManager));
+
+        m_computeDevice.reset(Boundless::ComputeDevice::create());
+
+        m_computeContext.reset(Boundless::ComputeContext::create(m_computeDevice));
+
+        m_computeCommands.reset(Boundless::ComputeCommandQueue::create(m_computeContext, m_computeDevice));
+
+        m_computeProgram.reset(Boundless::ComputeProgram::create(
+                m_computeContext,
+                m_computeDevice,
+                "/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/cl/face_cull.cl",
+                "cullFaces")
+        );
+
     }
 
     ~LeagueOfDwarves() {
@@ -139,26 +158,9 @@ public:
 
         BD_CORE_INFO("Running Culling OpenCL...");
 
-        Boundless::Ref<Boundless::ComputeDevice> computeDevice;
-        computeDevice.reset(Boundless::ComputeDevice::create());
-
-        Boundless::Ref<Boundless::ComputeContext> computeContext;
-        computeContext.reset(Boundless::ComputeContext::create(computeDevice));
-
-        Boundless::Ref<Boundless::ComputeCommandQueue> computeCommands;
-        computeCommands.reset(Boundless::ComputeCommandQueue::create(computeContext, computeDevice));
-
-        Boundless::Ref<Boundless::ComputeProgram> computeProgram;
-        computeProgram.reset(Boundless::ComputeProgram::create(
-                computeContext,
-                computeDevice,
-                "/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/cl/face_cull.cl",
-                "cullFaces")
-        );
-
         Boundless::Ref<Boundless::ComputeBuffer> octreeCodesBuffer;
         octreeCodesBuffer.reset(Boundless::ComputeBuffer::create(
-                computeContext,
+                m_computeContext,
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                 totalItems * sizeof(cl_ulong),
                 chunks.data())
@@ -166,7 +168,7 @@ public:
 
         Boundless::Ref<Boundless::ComputeBuffer> octreeSolidsBuffer;
         octreeSolidsBuffer.reset(Boundless::ComputeBuffer::create(
-                computeContext,
+                m_computeContext,
                 CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                 totalItems * sizeof(cl_uchar),
                 octreeSolids.data())
@@ -174,22 +176,22 @@ public:
 
         Boundless::Ref<Boundless::ComputeBuffer> masks;
         masks.reset(Boundless::ComputeBuffer::create(
-                computeContext,
+                m_computeContext,
                 CL_MEM_READ_WRITE,
                 totalItems * sizeof(cl_uchar),
                 nullptr)
         );
 
-        computeCommands->flushCommands();
+        m_computeCommands->flushCommands();
 
-        computeProgram->addArgument(0, octreeCodesBuffer);
-        computeProgram->addArgument(1, octreeSolidsBuffer);
-        computeProgram->addArgument(2, sizeof(cl_int), &octreeSize);
-        computeProgram->addArgument(3, sizeof(cl_int), &totalNodes);
-        computeProgram->addArgument(4, masks);
+        m_computeProgram->addArgument(0, octreeCodesBuffer);
+        m_computeProgram->addArgument(1, octreeSolidsBuffer);
+        m_computeProgram->addArgument(2, sizeof(cl_int), &octreeSize);
+        m_computeProgram->addArgument(3, sizeof(cl_int), &totalNodes);
+        m_computeProgram->addArgument(4, masks);
 
         size_t maxWorkGroupSize;
-        computeDevice->getDeviceInformation(computeProgram, CL_KERNEL_WORK_GROUP_SIZE, &maxWorkGroupSize);
+        m_computeDevice->getDeviceInformation(m_computeProgram, CL_KERNEL_WORK_GROUP_SIZE, &maxWorkGroupSize);
 
         BD_CORE_TRACE("Max Global WS: {}", maxWorkGroupSize);
 
@@ -205,8 +207,8 @@ public:
             maxWorkGroupSize = global;
         }
 
-        computeCommands->enqueueTask(computeProgram, 1, 0, global, maxWorkGroupSize);
-        computeCommands->flushCommands();
+        m_computeCommands->enqueueTask(m_computeProgram, 1, 0, global, maxWorkGroupSize);
+        m_computeCommands->flushCommands();
 
         std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> time_span = t2 - t1;
@@ -214,8 +216,8 @@ public:
 
         uint8_t* results = new uint8_t[totalItems];
 
-        computeCommands->enqueueRead(masks, true, 0, sizeof(uint8_t) * totalItems, results);
-        computeCommands->flushCommands();
+        m_computeCommands->enqueueRead(masks, true, 0, sizeof(uint8_t) * totalItems, results);
+        m_computeCommands->flushCommands();
 
         std::unordered_map<uint8_t, std::vector<uint64_t> > maskToChunk;
 

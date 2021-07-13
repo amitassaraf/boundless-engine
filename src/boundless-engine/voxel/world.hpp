@@ -4,11 +4,13 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <vector>
 #include "voxel/octree.hpp"
 #include "core/core.hpp"
 #include <SimplexNoise.h>
 
-#define WORLD_SIZE 4096
+#define WORLD_SIZE 8
+#define TILE_SIZE 1024
 
 namespace Boundless {
 
@@ -24,6 +26,7 @@ namespace Boundless {
             bool divideNode(OctreeNode& node, const glm::vec3& referenceOffset);
             inline Scope<Octree>& getOctree() { return m_octree; }
         private:
+            std::vector<Scope<Octree> > m_tiles;
             Scope<Octree> m_octree;
             uint16_t m_size;
             SimplexNoise m_noise;

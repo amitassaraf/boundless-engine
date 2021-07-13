@@ -8,9 +8,9 @@
 
 #define __CL_ENABLE_EXCEPTIONS
 
-float scale = 120.f;
+float scale = 300.f;
 float lacunarity = 0.8f;
-float persistance = 1.6f;
+float persistance = 2.6f;
 
 const int octaves = static_cast<int>(3 + std::log(scale)); // Estimate number of octaves needed for the current scale
 
@@ -28,7 +28,7 @@ int noise[WORLD_SIZE][WORLD_SIZE];
 
 namespace Boundless {
 
-    World::World() : m_noise(SimplexNoise(0.1f / scale, 0.5f, lacunarity, persistance)) {
+    World::World() : m_noise(SimplexNoise(0.1f / scale, 0.1f, lacunarity, persistance)) {
         m_size = WORLD_SIZE;
         m_octree.reset(new Octree(m_size));
 
