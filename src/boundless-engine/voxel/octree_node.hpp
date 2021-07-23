@@ -5,9 +5,9 @@
 #include <cstdint>
 #include <stdexcept>
 #include <cstddef>
-#include "voxel.hpp"
 #include "core/core.hpp"
 #include "logging/logger.hpp"
+#include <glm/vec3.hpp>
 
 namespace Boundless {
     class OctreeNode {
@@ -24,7 +24,7 @@ namespace Boundless {
             std::uint16_t getSize() const;
             bool isSolid();
             std::uint64_t getLocationalCode() const;
-            
+
         private:
             uint8_t m_voxel;
             std::uint64_t m_locationalCode;

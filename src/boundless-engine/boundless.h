@@ -6,7 +6,7 @@
 
 #include "core/game.hpp"
 #include "layers/window_layer.hpp"
-#include "voxel/world.hpp"
+#include "voxel/tile.hpp"
 #include "render/renderer.hpp"
 #include "render/renderer_api.hpp"
 #include "render/render_command.hpp"

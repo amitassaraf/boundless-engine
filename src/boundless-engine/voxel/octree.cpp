@@ -20,14 +20,14 @@ namespace Boundless {
         m_nodes.erase(locationalCode);
     }
 
-    OctreeNode Octree::getParentNode(OctreeNode& node) {
-        const uint64_t locCodeParent = node.getLocationalCode()>>3;
+    OctreeNode Octree::getParentNode(OctreeNode &node) {
+        const uint64_t locCodeParent = node.getLocationalCode() >> 3;
         return getNodeAt(locCodeParent);
     }
 
-    bool Octree::nodeExists(uint64_t locationalCode) const { 
+    bool Octree::nodeExists(uint64_t locationalCode) const {
         return m_nodes.count(locationalCode) > 0;
-    } 
+    }
 
     OctreeNode Octree::getNodeAt(uint64_t locationalCode) {
         return OctreeNode(locationalCode, m_nodes.at(locationalCode));
@@ -37,11 +37,60 @@ namespace Boundless {
         m_nodes[locCode] = voxel;
     }
 
-    void Octree::divide(OctreeNode& node) {
-        for (int i=0; i<8; i++) {
-            uint64_t childLocationalCode = (node.getLocationalCode() << 3) | i;
-            m_nodes[childLocationalCode] = 1u;
+    bool Octree::collapseNode(OctreeNode &lodNode) {
+        bool solid = false;
+        this->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode, OctreeNode &node) {
+            UNUSED(nodeLocationalCode);
+
+            if (node.isSolid()) {
+                solid = true;
+            }
+            this->erase(nodeLocationalCode);
+        });
+        this->setNodeAt(lodNode.getLocationalCode(), solid ? 1u : 0u);
+        return true;
+    }
+
+    bool Octree::divideNode(OctreeNode &lodNode, const glm::vec3 &referenceOffset,
+                            const std::function<int(const glm::vec3 &, uint16_t)>& shouldDivide) {
+        int aboveBelowOrDivide = shouldDivide(referenceOffset, lodNode.getSize());
+        if (aboveBelowOrDivide == 0) {
+
+            for (int i = 0; i < 8; i++) {
+                uint64_t childLocationalCode = (lodNode.getLocationalCode() << 3) | i;
+                m_nodes[childLocationalCode] = 1u;
+            }
+
+            this->setNodeAt(lodNode.getLocationalCode(), 0u);
+            return true;
+        } else if (aboveBelowOrDivide == 1) {
+            this->setNodeAt(lodNode.getLocationalCode(), 1u);
+        } else if (aboveBelowOrDivide == -1) {
+            this->setNodeAt(lodNode.getLocationalCode(), 0u);
         }
+        return false;
+    }
+
+    OctreeNode Octree::findIntersectingNode(const glm::vec3 &position) {
+        OctreeNode rootNode = this->getRootNode();
+        uint64_t closestNode = 1u;
+        this->visitAllConditional(rootNode, [&](uint64_t nodeLocationalCode, OctreeNode &node) {
+            glm::vec3 chunkLocation = node.getChunkOffset();
+            uint16_t size = node.getSize();
+
+            if (chunkLocation.x >= position.x && chunkLocation.x + size < position.x) {
+                if (chunkLocation.z >= position.z && chunkLocation.z + size < position.z) {
+                    if (chunkLocation.y >= position.y && chunkLocation.y + size < position.y) {
+                        closestNode = nodeLocationalCode;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        });
+
+        return this->getNodeAt(closestNode);
     }
 
     uint64_t calculateSibling(uint64_t startLocation, uint8_t mask, uint8_t whileThis, bool backwardIsOr) {
@@ -61,8 +110,8 @@ namespace Boundless {
         }
         if (target == 1u) {
             return 1u;
-        } 
-        
+        }
+
         if (backwardIsOr) {
             target = target ^ mask;
         } else {
@@ -91,24 +140,28 @@ namespace Boundless {
         return false;
     }
 
-    bool checkIfSiblingIsSolid(Octree* octree, uint64_t siblingLocationalCode, uint16_t nodeSize, uint64_t faceBitsTestMask, bool expectingZeroResult, uint8_t direction) {
+    bool
+    checkIfSiblingIsSolid(Octree *octree, uint64_t siblingLocationalCode, uint16_t nodeSize, uint64_t faceBitsTestMask,
+                          bool expectingZeroResult, uint8_t direction) {
         while (siblingLocationalCode > 1u) {
             if (octree->nodeExists(siblingLocationalCode)) {
                 OctreeNode sibling = octree->getNodeAt(siblingLocationalCode);
                 if (!octree->isLeaf(sibling)) {
                     // Find its smaller children that might hiding our face
                     bool solidFlag = true;
-                    octree->visitAll(sibling, [&](uint64_t nodeLocationalCode, OctreeNode& node) {
-                        if (!isDirection(nodeLocationalCode, direction) || !octree->isLeaf(node) || node.getSize() > nodeSize)
+                    octree->visitAll(sibling, [&](uint64_t nodeLocationalCode, OctreeNode &node) {
+                        if (!isDirection(nodeLocationalCode, direction) || !octree->isLeaf(node) ||
+                            node.getSize() > nodeSize)
                             return;
-                        
+
                         uint8_t depth = node.getDepth() - sibling.getDepth();
-                        uint64_t hyperLocalCode = ((nodeLocationalCode >> (3u * depth)) << (3u * depth)) ^ nodeLocationalCode;
+                        uint64_t hyperLocalCode =
+                                ((nodeLocationalCode >> (3u * depth)) << (3u * depth)) ^ nodeLocationalCode;
                         uint64_t hyperFaceBitsTestMask = faceBitsTestMask;
                         for (uint8_t i = 0u; i < depth - 1u; i++) {
                             hyperFaceBitsTestMask = (hyperFaceBitsTestMask << 3u) | faceBitsTestMask;
                         }
-                        
+
                         if (expectingZeroResult) {
                             if ((hyperLocalCode & hyperFaceBitsTestMask) == hyperFaceBitsTestMask) {
                                 if (!node.isSolid()) {
@@ -122,7 +175,7 @@ namespace Boundless {
                                 }
                             }
                         }
-                        
+
                     });
                     if (!solidFlag) {
                         return false;
@@ -140,7 +193,7 @@ namespace Boundless {
         return true;
     }
 
-    bool Octree::isLeaf(OctreeNode& node) const {
+    bool Octree::isLeaf(OctreeNode &node) const {
         return !nodeExists(node.getLocationalCode() << 3u);
     }
 
@@ -161,11 +214,11 @@ namespace Boundless {
         uint64_t south = 0;
         if ((node.getLocationalCode() & 4u) == 4u) { // Are we a top node
             north = calculateSibling(node.getLocationalCode(), 4u, 4u, false);
-            
+
             south = node.getLocationalCode() ^ 4u;
         } else { // We are a bottom node
             south = calculateSibling(node.getLocationalCode(), 4u, 0u, true);
-            
+
             north = node.getLocationalCode() | 4u;
         }
         // Get left and right
@@ -222,26 +275,27 @@ namespace Boundless {
         return faceMask;
     }
 
-    void Octree::visitAll(OctreeNode& node, std::function< void(uint64_t nodeLocationalCode, OctreeNode& node) > lambda) {
+    void Octree::visitAll(OctreeNode &node, std::function<void(uint64_t nodeLocationalCode, OctreeNode &node)> lambda) {
         if (isLeaf(node)) {
             return;
         }
 
-        for (int i=0; i<8; i++) {
-            const uint64_t locCodeChild = (node.getLocationalCode()<<3)|i;
+        for (int i = 0; i < 8; i++) {
+            const uint64_t locCodeChild = (node.getLocationalCode() << 3) | i;
             OctreeNode child = getNodeAt(locCodeChild);
             lambda(locCodeChild, child);
             visitAll(child, lambda);
         }
     }
 
-    void Octree::visitAllConditional(OctreeNode& node, std::function< bool(uint64_t nodeLocationalCode, OctreeNode& node) > lambda) {
+    void Octree::visitAllConditional(OctreeNode &node,
+                                     std::function<bool(uint64_t nodeLocationalCode, OctreeNode &node)> lambda) {
         if (isLeaf(node)) {
             return;
         }
 
-        for (int i=0; i<8; i++) {
-            const uint64_t locCodeChild = (node.getLocationalCode()<<3)|i;
+        for (int i = 0; i < 8; i++) {
+            const uint64_t locCodeChild = (node.getLocationalCode() << 3) | i;
             OctreeNode child = getNodeAt(locCodeChild);
             bool visit = lambda(locCodeChild, child);
             if (visit) {
@@ -250,20 +304,22 @@ namespace Boundless {
         }
     }
 
-    void Octree::visitAllBottomUp(OctreeNode& node, std::function< void(uint64_t nodeLocationalCode, OctreeNode& node) > lambda) {
+    void Octree::visitAllBottomUp(OctreeNode &node,
+                                  std::function<void(uint64_t nodeLocationalCode, OctreeNode &node)> lambda) {
         if (isLeaf(node)) {
             return;
         }
 
-        for (int i=0; i<8; i++) {
-            const uint64_t locCodeChild = (node.getLocationalCode()<<3)|i;
+        for (int i = 0; i < 8; i++) {
+            const uint64_t locCodeChild = (node.getLocationalCode() << 3) | i;
             OctreeNode child = getNodeAt(locCodeChild);
             visitAllBottomUp(child, lambda);
             lambda(locCodeChild, child);
         }
     }
 
-    void Octree::visitAllBy3DDistance(OctreeNode& node, uint16_t maxDistance, std::function< void(uint64_t nodeLocationalCode, OctreeNode& node) > lambda) {
+    void Octree::visitAllBy3DDistance(OctreeNode &node, uint16_t maxDistance,
+                                      std::function<void(uint64_t nodeLocationalCode, OctreeNode &node)> lambda) {
         if (isLeaf(node)) {
             return;
         }
@@ -277,8 +333,8 @@ namespace Boundless {
             visitAllBy3DDistance(parent, maxDistance - node.getSize(), lambda);
         }
 
-        for (int i=0; i<8; i++) {
-            const uint64_t locCodeChild = (node.getLocationalCode()<<3)|i;
+        for (int i = 0; i < 8; i++) {
+            const uint64_t locCodeChild = (node.getLocationalCode() << 3) | i;
             OctreeNode child = getNodeAt(locCodeChild);
             lambda(locCodeChild, child);
             visitAllBy3DDistance(child, maxDistance - node.getSize(), lambda);

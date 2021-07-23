@@ -1,12 +1,8 @@
-#include "voxel/world.hpp"
-#include "core/core.hpp"
-#include <glm/vec3.hpp>
-#include "logging/logger.hpp"
-#include <glm/gtx/string_cast.hpp>
-#include <cmath>
-#include <ratio>
+//
+// Created by Amit Assaraf on 17/07/2021.
+//
 
-#define __CL_ENABLE_EXCEPTIONS
+#include "world.hpp"
 
 float scale = 300.f;
 float lacunarity = 0.8f;
@@ -24,23 +20,32 @@ float normalize(float input) {
     return (normalized_x + 1.0f) / 2.0f;
 }
 
-int noise[WORLD_SIZE][WORLD_SIZE];
+int noise[WORLD_SIZE * TILE_SIZE][WORLD_SIZE * TILE_SIZE];
 
 namespace Boundless {
 
     World::World() : m_noise(SimplexNoise(0.1f / scale, 0.1f, lacunarity, persistance)) {
-        m_size = WORLD_SIZE;
-        m_octree.reset(new Octree(m_size));
-
-        for (int x = 0; x < WORLD_SIZE; x++) {
-            for (int z = 0; z < WORLD_SIZE; z++) {
-                noise[x][z] = floor(normalize(m_noise.fractal(octaves, x, z)) * m_size);
+        for (int x = 0; x < TILE_SIZE * WORLD_SIZE; x++) {
+            for (int z = 0; z < TILE_SIZE * WORLD_SIZE; z++) {
+                noise[x][z] = floor(normalize(m_noise.fractal(octaves, x, z)) * (TILE_SIZE));
             }
         }
 
+        for (int x = 0; x < WORLD_SIZE; x++) {
+            for (int z = 0; z < WORLD_SIZE; z++) {
+                Ref<Tile> tile = std::make_shared<Tile>(x, z);
+
+                tile->initialize(Boundless::World::shouldDivide);
+                m_tiles.push_back(tile);
+
+            }
+        }
     }
 
-    World::~World() {
+    void World::update(const glm::vec3 &lodCenter) {
+        for (const Ref<Tile>& tile : m_tiles) {
+            tile->updateLOD(lodCenter, Boundless::World::shouldDivide);
+        }
     }
 
     int World::shouldDivide(const glm::vec3 &chunkOffset, uint16_t nodeSize) {
@@ -67,91 +72,6 @@ namespace Boundless {
         return above;
     }
 
-    void World::generateWorld() {
-        OctreeNode rootNode = m_octree->getRootNode();
-        m_octree->divide(rootNode);
-        BD_CORE_INFO("Generating world...");
-
-        renderWorldAround(glm::vec3(WORLD_SIZE / 2, WORLD_SIZE / 2, WORLD_SIZE / 2));
-    }
-
-    OctreeNode World::findIntersectingNode(const glm::vec3 &position) {
-        OctreeNode rootNode = m_octree->getRootNode();
-        uint64_t closestNode = 1u;
-        m_octree->visitAllConditional(rootNode, [&](uint64_t nodeLocationalCode, OctreeNode &node) {
-            glm::vec3 chunkLocation = node.getChunkOffset();
-            uint16_t size = node.getSize();
-
-            if (chunkLocation.x >= position.x && chunkLocation.x + size < position.x) {
-                if (chunkLocation.z >= position.z && chunkLocation.z + size < position.z) {
-                    if (chunkLocation.y >= position.y && chunkLocation.y + size < position.y) {
-                        closestNode = nodeLocationalCode;
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        });
-
-        return m_octree->getNodeAt(closestNode);
-    }
-
-    void World::renderWorldAround(const glm::vec3 &playerPosition) {
-        glm::vec3 camera = playerPosition;
-
-        BD_CORE_INFO("Calculating LODs...");
-        OctreeNode rootNode = m_octree->getRootNode();
-        m_octree->visitAllConditional(rootNode, [&](uint64_t nodeLocationalCode, OctreeNode &node) {
-            UNUSED(nodeLocationalCode);
-
-            glm::vec3 chunkLocation = node.getChunkOffset();
-            uint16_t size = node.getSize();
-            glm::vec3 chunkCenter(chunkLocation.x + (size / 2.0f), chunkLocation.y + (size / 2.0f),
-                                  chunkLocation.z + (size / 2.0f));
-            auto distance = abs(glm::length(camera - chunkCenter));
-
-            if (distance < size * 200) {
-                if (size > 1 && m_octree->isLeaf(node)) {
-                    divideNode(node, chunkLocation);
-                }
-
-                return true;
-            } else if (!m_octree->isLeaf(node) && size < m_octree->m_size) {
-                collapseNode(node);
-            }
-            return false;
-        });
-
-        BD_CORE_INFO("Done!");
-    }
-
-    bool World::collapseNode(OctreeNode &lodNode) {
-        bool solid = false;
-        m_octree->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode, OctreeNode &node) {
-            UNUSED(nodeLocationalCode);
-
-            if (node.isSolid()) {
-                solid = true;
-            }
-            m_octree->erase(nodeLocationalCode);
-        });
-        m_octree->setNodeAt(lodNode.getLocationalCode(), solid ? 1u : 0u);
-        return true;
-    }
-
-    bool World::divideNode(OctreeNode &lodNode, const glm::vec3 &referenceOffset) {
-        int aboveBelowOrDivide = this->shouldDivide(referenceOffset, lodNode.getSize());
-        if (aboveBelowOrDivide == 0) {
-            m_octree->divide(lodNode);
-            m_octree->setNodeAt(lodNode.getLocationalCode(), 0u);
-            return true;
-        } else if (aboveBelowOrDivide == 1) {
-            m_octree->setNodeAt(lodNode.getLocationalCode(), 1u);
-        } else if (aboveBelowOrDivide == -1) {
-            m_octree->setNodeAt(lodNode.getLocationalCode(), 0u);
-        }
-        return false;
-    }
+    World::~World() = default;
 
 }

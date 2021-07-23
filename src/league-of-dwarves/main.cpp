@@ -1,12 +1,11 @@
 #include <GL/glew.h>
 #include <boundless.h>
 #include <memory>
-#include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/transform.hpp>
-#include <algorithm> 
 #include <ThreadPool.h>
 #include <thread>
 #include <random>
+#include <voxel/world.hpp>
 #include "platform/opencl/opencl_program.hpp"
 #include "platform/opencl/opencl_buffer.hpp"
 #include "platform/opencl/opencl_context.hpp"
@@ -22,11 +21,11 @@ public:
     Boundless::Ref<Boundless::Shader> m_ssaoLightingShader;
     Boundless::Ref<Boundless::PerspectiveCamera> m_camera;
     Boundless::Ref<Boundless::WindowLayer> m_windowLayer;
-    Boundless::World world;
     Boundless::Scope<ThreadPool> m_pool;
     Boundless::Ref<Boundless::Texture> m_gPosition;
     Boundless::Ref<Boundless::Texture> m_gNormal;
     Boundless::Ref<Boundless::Texture> m_gAlbedo;
+    Boundless::World m_world;
     std::vector<glm::vec3> m_ssaoNoise;
     Boundless::Ref<Boundless::Texture> m_noiseTexture;
     Boundless::Ref<Boundless::FrameBuffer> m_ssaoFBO;
@@ -51,7 +50,7 @@ public:
         m_windowLayer = std::make_shared<Boundless::WindowLayer>(m_eventManager);
         this->pushLayer(m_windowLayer.get());
         m_camera = std::make_shared<Boundless::PerspectiveCamera>(m_eventManager, m_windowLayer->getWidth(), m_windowLayer->getHeight());
-        m_camera->setPosition(glm::vec3(WORLD_SIZE / 2, WORLD_SIZE / 2, WORLD_SIZE / 2));
+        m_camera->setPosition(glm::vec3(TILE_SIZE / 2, TILE_SIZE / 2, TILE_SIZE / 2));
         m_pool = std::make_unique<ThreadPool>(std::thread::hardware_concurrency());
         this->pushLayer(m_camera.get());
         this->pushLayer(new Boundless::FPSCounterLayer(m_eventManager));
@@ -112,16 +111,8 @@ public:
         return -1;
     }
 
-    void calcRenderNodes(Boundless::World& world) {
-        BD_CORE_INFO("Traversing Meshes...");
-
-        auto key_selector = [](auto pair){return pair.first;};
-        std::vector<uint64_t> chunks(world.getOctree()->m_nodes.size());
-        transform(world.getOctree()->m_nodes.begin(), world.getOctree()->m_nodes.end(), chunks.begin(), key_selector);
-
-        m_toRender.clear();
-
-        std::sort(chunks.begin(), chunks.end());
+    void calcRenderNodes(Boundless::Tile& tile) {
+        std::vector<uint64_t> chunks = *tile.getRawNodes();
 
         BD_CORE_INFO("Calculating face masks...");
 
@@ -145,15 +136,15 @@ public:
         };
         m_vb->setLayout(vertexLayout);
 
-        uint totalItems = world.getOctree()->m_nodes.size();
+        uint totalItems = tile.getOctree()->m_nodes.size();
         std::vector<uint8_t> octreeSolids;
         octreeSolids.reserve(totalItems);
 
-        int octreeSize = static_cast<int>(WORLD_SIZE);
+        int octreeSize = static_cast<int>(TILE_SIZE);
         int totalNodes = static_cast<int>(totalItems);
 
         for (uint64_t code : chunks) {
-            octreeSolids.push_back(world.getOctree()->m_nodes.at(code));
+            octreeSolids.push_back(tile.getOctree()->m_nodes.at(code));
         }
 
         BD_CORE_INFO("Running Culling OpenCL...");
@@ -214,7 +205,7 @@ public:
         std::chrono::duration<double, std::milli> time_span = t2 - t1;
         BD_CORE_TRACE("It took: {} milliseconds for {} items.", time_span.count(), totalItems);
 
-        uint8_t* results = new uint8_t[totalItems];
+        auto* results = new uint8_t[totalItems];
 
         m_computeCommands->enqueueRead(masks, true, 0, sizeof(uint8_t) * totalItems, results);
         m_computeCommands->flushCommands();
@@ -223,7 +214,7 @@ public:
 
         for (uint i = 0; i < totalItems; i++) {
             uint8_t mask = results[i];
-            if (mask != 0 && (!world.getOctree()->nodeExists(chunks[i] << 3u) || world.getOctree()->m_nodes.at(chunks[i]) == 0u)) {
+            if (mask != 0 && (!tile.getOctree()->nodeExists(chunks[i] << 3u) || tile.getOctree()->m_nodes.at(chunks[i]) == 0u)) {
                 maskToChunk[mask].push_back(chunks[i]);
             }
         }
@@ -237,8 +228,8 @@ public:
             std::vector<float> cubePositions;
             uint32_t instanceCount = 0u;
             for (uint64_t chunkLocation : maskToChunk[faceMask]) {
-                Boundless::OctreeNode chunk = world.getOctree()->getNodeAt(chunkLocation);
-                glm::vec3 offset = chunk.getChunkOffset();
+                Boundless::OctreeNode chunk = tile.getOctree()->getNodeAt(chunkLocation);
+                glm::vec3 offset = chunk.getChunkOffset() + tile.getTileOffset();
                 cubePositions.push_back(offset.x);
                 cubePositions.push_back(offset.y);
                 cubePositions.push_back(offset.z);
@@ -299,9 +290,7 @@ public:
             m_ib.reset(Boundless::IndexBuffer::create(indicies, cubeIndices.size()));
             faceMesh->setIndexBuffer(m_ib);
 
-            if (instanceCount > 0u) {
-                m_toRender.push_back(std::make_pair(faceMesh, instanceCount));
-            }
+            m_toRender.emplace_back(faceMesh, instanceCount);
         }
     }
 
@@ -310,9 +299,23 @@ public:
     }  
 
     void initialize() override {
-        world.generateWorld();
+        const std::vector<Boundless::Ref<Boundless::Tile> >& tiles = m_world.getTiles();
 
-        calcRenderNodes(world);
+        std::vector<std::future<void> > results;
+        for (const Boundless::Ref<Boundless::Tile> &tile : tiles) {
+            results.emplace_back(m_pool->enqueue([&]() {
+                tile->updateLOD(m_camera->getPosition(), Boundless::World::shouldDivide);
+            }));
+        }
+
+        for (auto && result : results) {
+            result.get();
+        }
+
+        m_toRender.clear();
+        for (const Boundless::Ref<Boundless::Tile> &tile : tiles) {
+            calcRenderNodes(*tile);
+        }
 
         m_shader.reset(Boundless::Shader::create("/Users/amitassaraf/workspace/league_of_dwarves/assets/shaders/opengl/world"));
         m_ssaoShader.reset(Boundless::Shader::create("/Users/amitassaraf/workspace/league_of_dwarves/assets/shaders/opengl/world_ssao"));
@@ -323,12 +326,16 @@ public:
             Boundless::Ref<Boundless::KeyPressedEvent> keyPressedEvent = std::dynamic_pointer_cast<Boundless::KeyPressedEvent> (event);
             
             if (keyPressedEvent->getKeyCode() == 84) {
-                m_pool->enqueue([&]() { 
-                    world.renderWorldAround(m_camera->getPosition());
-                });
-                
+                for (const Boundless::Ref<Boundless::Tile> &tile : tiles) {
+                    m_pool->enqueue([&]() {
+                        tile->updateLOD(m_camera->getPosition(), Boundless::World::shouldDivide);
+                    });
+                }
             } else if (keyPressedEvent->getKeyCode() == 82) {
-                calcRenderNodes(world);
+                m_toRender.clear();
+                for (const Boundless::Ref<Boundless::Tile> &tile : tiles) {
+                    calcRenderNodes(*tile);
+                }
             }
         });
 
@@ -392,12 +399,12 @@ public:
         std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
         std::default_random_engine generator;
         std::vector<glm::vec3> ssaoKernel;
-        for (unsigned int i = 0; i < 32; ++i)
+        for (unsigned int i = 0; i < 16; ++i)
         {
             glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
             sample = glm::normalize(sample);
             sample *= randomFloats(generator);
-            float scale = float(i) / 32.0;
+            float scale = float(i) / 16.0f;
 
             // scale samples s.t. they're more aligned to center of kernel
             scale = lerp(0.1f, 1.0f, scale * scale);
@@ -443,7 +450,7 @@ public:
         
         Boundless::RenderCommand::fillMode();
 
-        for (auto pair : m_toRender) {
+        for (const auto& pair : m_toRender) {
             pair.first->bind();
             Boundless::Renderer::submitInstanced(pair.first, pair.second);
         }
@@ -460,7 +467,7 @@ public:
         m_ssaoShader->setUniform("noiseTexture", 2);
         m_ssaoShader->setUniform("screenDimensions", glm::vec2(m_windowLayer->getWidth(), m_windowLayer->getHeight()));
         // Send kernel + rotation to shader
-        for (unsigned int i = 0; i < 32; ++i) {
+        for (unsigned int i = 0; i < 16; ++i) {
             m_ssaoShader->setUniform("samples[" + std::to_string(i) + "]", m_ssaoKernel[i]);
         }
         m_ssaoShader->setUniform("projection", m_camera->getProjectionMatrix());
@@ -489,7 +496,7 @@ public:
         Boundless::Renderer::submit(m_quad);
         m_quad->unbind();
         m_ssaoBlurFBO->unbind();
-        
+
 
         // 3. lighting pass
         Boundless::RenderCommand::clear();
@@ -498,7 +505,7 @@ public:
         m_ssaoLightingShader->setUniform("gNormal", 1);
         m_ssaoLightingShader->setUniform("gAlbedo", 2);
         m_ssaoLightingShader->setUniform("ssao", 3);
-        
+
 
         glm::vec3 lightPosView = glm::vec3(m_camera->getViewMatrix() * glm::vec4(lightPos, 1.0));
         m_ssaoLightingShader->setUniform("light.Position", lightPosView);

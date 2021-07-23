@@ -1,40 +1,35 @@
+//
+// Created by Amit Assaraf on 17/07/2021.
+//
+
 #pragma once
 #ifndef BD_WORLD_HPP_
 #define BD_WORLD_HPP_
 
-#include <cstdint>
-#include <cstddef>
-#include <vector>
-#include "voxel/octree.hpp"
-#include "core/core.hpp"
+#include "tile.hpp"
 #include <SimplexNoise.h>
 
 #define WORLD_SIZE 8
-#define TILE_SIZE 1024
 
 namespace Boundless {
 
     class World {
-        public:
-            World();
-            ~World();
-            void generateWorld();
-            void renderWorldAround(const glm::vec3& playerPosition);
-            OctreeNode findIntersectingNode(const glm::vec3& position);
-            int shouldDivide(const glm::vec3& chunkOffset, uint16_t nodeSize);
-            bool collapseNode(OctreeNode& node);
-            bool divideNode(OctreeNode& node, const glm::vec3& referenceOffset);
-            inline Scope<Octree>& getOctree() { return m_octree; }
-        private:
-            std::vector<Scope<Octree> > m_tiles;
-            Scope<Octree> m_octree;
-            uint16_t m_size;
-            SimplexNoise m_noise;
+    public:
+        World();
+        ~World();
+
+        void update(const glm::vec3 &lodCenter);
+        static int shouldDivide(const glm::vec3 &chunkOffset, uint16_t nodeSize);
+
+        inline const std::vector<Ref<Tile> >& getTiles() const { return m_tiles; }
+
+    private:
+        std::vector<Ref<Tile> > m_tiles;
+        SimplexNoise m_noise;
+
     };
 
 }
 
-#define COLLAPSE 0
-#define DIVIDE 1
 
-#endif // !BD_WORLD_HPP_
+#endif //BD_WORLD_HPP_
