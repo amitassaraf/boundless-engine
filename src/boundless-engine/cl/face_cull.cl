@@ -156,7 +156,7 @@ char checkIfSiblingIsSolid(__global ulong* octreeCodes, __global uchar* octreeSo
                 ulong currentLocationalCode = sibling;
 
                 // The following is an algorithm for iterating a Locational Code Octree system without recursion
-                // and without a stack. (As both are not supported in OpenCL).
+                // and without a memory allocated stack. (As both are not supported in OpenCL).
                 // The constraints of the algorithm are bound by the depth maximum level of the Octree.
                 // This theoretically can support 256 depth levels (Way more than needed) due to standard OpenCL 1.2
                 // limitation of vectors size up to 16. Also when dealing with more than 21 depth levels, this
@@ -204,7 +204,7 @@ char checkIfSiblingIsSolid(__global ulong* octreeCodes, __global uchar* octreeSo
                             }
 
                             // Before diving into a child, save which child we left at in the childrenStack so when we
-                            // iterate up again, we do are not stuck in an inifite loop and go over children
+                            // iterate up again, we do are not stuck in an infinite loop and go over children
                             // we have previously visited
                             currentDepth = getDepth(currentLocationalCode);
                             if (currentDepth >= 16) {
@@ -225,8 +225,7 @@ char checkIfSiblingIsSolid(__global ulong* octreeCodes, __global uchar* octreeSo
                         }
 
                         // Once we finish all the children for a node, we should reset it's children stack and move
-                        // back up to it's parent. (We can reset the children stack by always XORing with 8 as the
-                        // for loop will always end at 8.
+                        // back up to it's parent.  (We do this by shifting down and then up, resetting the tail)
                         currentDepth = getDepth(currentLocationalCode);
                         if (currentDepth >= 16) {
                             currentDepth = currentDepth - 16;

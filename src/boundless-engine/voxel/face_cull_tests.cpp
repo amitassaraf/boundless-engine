@@ -157,7 +157,7 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                 cl_ulong currentLocationalCode = sibling;
 
                 // The following is an algorithm for iterating a Locational Code Octree system without recursion
-                // and without a stack. (As both are not supported in OpenCL).
+                // and without a memory allocated stack. (As both are not supported in OpenCL).
                 // The constraints of the algorithm are bound by the depth maximum level of the Octree.
                 // This theoretically can support 256 depth levels (Way more than needed) due to standard OpenCL 1.2
                 // limitation of vectors size up to 16. Also when dealing with more than 21 depth levels, this
@@ -226,8 +226,7 @@ cl_char checkIfSiblingIsSolid(cl_ulong* octreeCodes, cl_uchar* octreeSolids, cl_
                         }
 
                         // Once we finish all the children for a node, we should reset it's children stack and move
-                        // back up to it's parent. (We can reset the children stack by always XORing with 8 as the
-                        // for loop will always end at 8.
+                        // back up to it's parent.  (We do this by shifting down and then up, resetting the tail)
                         currentDepth = getDepth(currentLocationalCode);
                         if (currentDepth >= 16) {
                             currentDepth = currentDepth - 16;

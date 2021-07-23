@@ -36,6 +36,7 @@ namespace Boundless {
         glm::vec3 camera = lodCenter;
 
         BD_CORE_TRACE("Updating LOD of {}, {}", m_location.x, m_location.y);
+        std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
         uint64_t rootNode = m_octree->getRootNode();
         m_octree->visitAllConditional(rootNode, [&](uint64_t nodeLocationalCode) {
@@ -58,6 +59,10 @@ namespace Boundless {
             }
             return false;
         });
+
+        std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> time_span = t2 - t1;
+        BD_CORE_TRACE("It took: {} milliseconds.", time_span.count());
 
         BD_CORE_TRACE("Done {}, {}", m_location.x, m_location.y);
 
