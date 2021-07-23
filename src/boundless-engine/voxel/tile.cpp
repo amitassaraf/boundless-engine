@@ -26,8 +26,8 @@ namespace Boundless {
     }
 
     void Tile::initialize(const std::function<int(const glm::vec3 &, uint16_t)> &shouldSubdivide) {
-        OctreeNode rootNode = m_octree->getRootNode();
-        glm::vec3 chunkLocation = rootNode.getChunkOffset() + glm::vec3(m_location.x, 0, m_location.y);
+        uint64_t rootNode = m_octree->getRootNode();
+        glm::vec3 chunkLocation = OctreeNode::getChunkOffset(rootNode, m_octree->m_size) + glm::vec3(m_location.x, 0, m_location.y);
         m_octree->divideNode(rootNode, chunkLocation, shouldSubdivide);
     }
 
@@ -37,24 +37,24 @@ namespace Boundless {
 
         BD_CORE_TRACE("Updating LOD of {}, {}", m_location.x, m_location.y);
 
-        OctreeNode rootNode = m_octree->getRootNode();
-        m_octree->visitAllConditional(rootNode, [&](uint64_t nodeLocationalCode, OctreeNode &node) {
+        uint64_t rootNode = m_octree->getRootNode();
+        m_octree->visitAllConditional(rootNode, [&](uint64_t nodeLocationalCode) {
             UNUSED(nodeLocationalCode);
 
-            glm::vec3 chunkLocation = node.getChunkOffset() + glm::vec3(m_location.x, 0, m_location.y);
-            uint16_t size = node.getSize();
+            glm::vec3 chunkLocation = OctreeNode::getChunkOffset(nodeLocationalCode, m_octree->m_size) + glm::vec3(m_location.x, 0, m_location.y);
+            uint16_t size = OctreeNode::getSize(nodeLocationalCode, m_octree->m_size);
             glm::vec3 chunkCenter(chunkLocation.x + (size / 2.0f), chunkLocation.y + (size / 2.0f),
                                   chunkLocation.z + (size / 2.0f));
             auto distance = abs(glm::length(camera - chunkCenter));
 
             if (distance < size * 400) {
-                if (size > 1 && m_octree->isLeaf(node)) {
-                    m_octree->divideNode(node, chunkLocation, shouldSubdivide);
+                if (size > 1 && m_octree->isLeaf(nodeLocationalCode)) {
+                    m_octree->divideNode(nodeLocationalCode, chunkLocation, shouldSubdivide);
                 }
 
                 return true;
-            } else if (!m_octree->isLeaf(node) && size < TILE_SIZE) {
-                m_octree->collapseNode(node);
+            } else if (!m_octree->isLeaf(nodeLocationalCode) && size < TILE_SIZE) {
+                m_octree->collapseNode(nodeLocationalCode);
             }
             return false;
         });

@@ -12,22 +12,12 @@
 namespace Boundless {
     class OctreeNode {
         public:
-            static std::uint16_t m_octreeSize;
-
-            OctreeNode(uint64_t locationalCode, uint8_t voxel);
-            ~OctreeNode() {}
-
-            std::size_t getDepth() const;
-            glm::vec3 getChunkOffset() const;
-            std::uint64_t getPackedChunk() const;
-            std::uint16_t getOctreeSize() const;
-            std::uint16_t getSize() const;
-            bool isSolid();
-            std::uint64_t getLocationalCode() const;
-
+            static std::size_t getDepth(std::uint64_t locationalCode);
+            static glm::vec3 getChunkOffset(std::uint64_t locationalCode, std::uint16_t octreeSize);
+            static std::uint64_t getPackedChunk(std::uint64_t locationalCode, std::uint16_t octreeSize);
+            static std::uint16_t getSize(std::uint64_t locationalCode, std::uint16_t octreeSize);
         private:
-            uint8_t m_voxel;
-            std::uint64_t m_locationalCode;
+            OctreeNode() = default;;
     };
 
 }

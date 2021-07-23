@@ -228,12 +228,11 @@ public:
             std::vector<float> cubePositions;
             uint32_t instanceCount = 0u;
             for (uint64_t chunkLocation : maskToChunk[faceMask]) {
-                Boundless::OctreeNode chunk = tile.getOctree()->getNodeAt(chunkLocation);
-                glm::vec3 offset = chunk.getChunkOffset() + tile.getTileOffset();
+                glm::vec3 offset = Boundless::OctreeNode::getChunkOffset(chunkLocation, tile.getOctree()->m_size) + tile.getTileOffset();
                 cubePositions.push_back(offset.x);
                 cubePositions.push_back(offset.y);
                 cubePositions.push_back(offset.z);
-                cubePositions.push_back((float)chunk.getSize());
+                cubePositions.push_back((float)Boundless::OctreeNode::getSize(chunkLocation, tile.getOctree()->m_size));
                     
                 instanceCount += 1u;
             }
