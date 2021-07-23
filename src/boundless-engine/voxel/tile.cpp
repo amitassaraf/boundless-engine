@@ -28,7 +28,8 @@ namespace Boundless {
     void Tile::initialize(const std::function<int(const glm::vec3 &, uint16_t)> &shouldSubdivide) {
         uint64_t rootNode = m_octree->getRootNode();
         glm::vec3 chunkLocation = OctreeNode::getChunkOffset(rootNode, m_octree->m_size) + glm::vec3(m_location.x, 0, m_location.y);
-        m_octree->divideNode(rootNode, chunkLocation, shouldSubdivide);
+        uint16_t size = OctreeNode::getSize(rootNode, m_octree->m_size);
+        m_octree->divideNode(rootNode, chunkLocation, size, shouldSubdivide);
     }
 
     void Tile::updateLOD(const glm::vec3 &lodCenter,
@@ -48,9 +49,9 @@ namespace Boundless {
                                   chunkLocation.z + (size / 2.0f));
             auto distance = abs(glm::length(camera - chunkCenter));
 
-            if (distance < size * 400) {
+            if (distance < size * 600) {
                 if (size > 1 && m_octree->isLeaf(nodeLocationalCode)) {
-                    m_octree->divideNode(nodeLocationalCode, chunkLocation, shouldSubdivide);
+                    m_octree->divideNode(nodeLocationalCode, chunkLocation, size, shouldSubdivide);
                 }
 
                 return true;

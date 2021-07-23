@@ -9,7 +9,7 @@
 #include "core/core.hpp"
 #include <glm/vec2.hpp>
 
-#define TILE_SIZE 1024
+#define TILE_SIZE 512
 
 namespace Boundless {
 

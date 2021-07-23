@@ -4,9 +4,9 @@
 
 #include "world.hpp"
 
-float scale = 300.f;
+float scale = 100.f;
 float lacunarity = 0.8f;
-float persistance = 2.6f;
+float persistance = 1.1f;
 
 const int octaves = static_cast<int>(3 + std::log(scale)); // Estimate number of octaves needed for the current scale
 
