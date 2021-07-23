@@ -78,7 +78,7 @@ set(GAME_SOURCES
 )
 
 # Add boost, glew, glfw, glm
-FIND_PACKAGE( Boost 1.75 COMPONENTS system filesystem REQUIRED )
+FIND_PACKAGE( Boost 1.75 COMPONENTS system thread filesystem REQUIRED )
 if (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIR})
 endif()
@@ -136,10 +136,11 @@ endif()
 
 # Add third party libaries
 include_directories("third_party/eventpp/include")
-include_directories("third_party/ThreadPool")
+#include_directories("third_party/ThreadPool")
 include_directories("third_party/SimplexNoise/src")
 include_directories("third_party/OpenCL-Registry/api/2.1")
 include_directories("third_party/FastNoise2/include")
+include_directories("third_party/boost_threadpool/boost")
 
 set(SIMPLEX_NOISE
     "third_party/SimplexNoise/src/SimplexNoise.cpp"

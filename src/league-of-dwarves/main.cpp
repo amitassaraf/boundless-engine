@@ -2,7 +2,7 @@
 #include <boundless.h>
 #include <memory>
 #include <glm/gtx/transform.hpp>
-#include <ThreadPool.h>
+#include "threadpool.hpp"
 #include <thread>
 #include <random>
 #include <voxel/world.hpp>
@@ -21,7 +21,7 @@ public:
     Boundless::Ref<Boundless::Shader> m_ssaoLightingShader;
     Boundless::Ref<Boundless::PerspectiveCamera> m_camera;
     Boundless::Ref<Boundless::WindowLayer> m_windowLayer;
-    Boundless::Scope<ThreadPool> m_pool;
+    Boundless::Scope<boost::threadpool::pool> m_pool;
     Boundless::Ref<Boundless::Texture> m_gPosition;
     Boundless::Ref<Boundless::Texture> m_gNormal;
     Boundless::Ref<Boundless::Texture> m_gAlbedo;
@@ -51,7 +51,7 @@ public:
         this->pushLayer(m_windowLayer.get());
         m_camera = std::make_shared<Boundless::PerspectiveCamera>(m_eventManager, m_windowLayer->getWidth(), m_windowLayer->getHeight());
         m_camera->setPosition(glm::vec3(TILE_SIZE / 2, TILE_SIZE / 2, TILE_SIZE / 2));
-        m_pool = std::make_unique<ThreadPool>(std::thread::hardware_concurrency());
+        m_pool = std::make_unique<boost::threadpool::pool>(std::thread::hardware_concurrency());
         this->pushLayer(m_camera.get());
         this->pushLayer(new Boundless::FPSCounterLayer(m_eventManager));
 
@@ -301,16 +301,13 @@ public:
     void initialize() override {
         const std::vector<Boundless::Ref<Boundless::Tile> >& tiles = m_world.getTiles();
 
-        std::vector<std::future<void> > results;
         for (const Boundless::Ref<Boundless::Tile> &tile : tiles) {
-            results.emplace_back(m_pool->enqueue([&]() {
+            m_pool->schedule([&]() {
                 tile->updateLOD(m_camera->getPosition(), Boundless::World::shouldDivide);
-            }));
+            });
         }
 
-        for (auto && result : results) {
-            result.get();
-        }
+        m_pool->wait();
 
         m_toRender.clear();
         for (const Boundless::Ref<Boundless::Tile> &tile : tiles) {
@@ -327,7 +324,7 @@ public:
             
             if (keyPressedEvent->getKeyCode() == 84) {
                 for (const Boundless::Ref<Boundless::Tile> &tile : tiles) {
-                    m_pool->enqueue([&]() {
+                    m_pool->schedule([&]() {
                         tile->updateLOD(m_camera->getPosition(), Boundless::World::shouldDivide);
                     });
                 }
