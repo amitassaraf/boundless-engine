@@ -20,7 +20,7 @@ float normalize(float min, float max, float input) {
 
 float noise[WORLD_SIZE * TILE_SIZE][WORLD_SIZE * TILE_SIZE];
 
-FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree( "FwAAAIC/AACAPwAAgL8AAIA/FQAAAAAACtejPAAAwD8XAAAAgL8AAIA/AACAvwAAgD8RAAIAAAAAACBAEAAAAABAGQATAMP1KD8NAAQAAAAAACBACQAAZmYmPwAAAAA/AQQAAAAAAAAAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzcxMPgAzMzM/AAAAAD8=" );
+FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree( "FwAAAIC/AACAPwAAAL8AAEA/EwBcj8I+IgCPwpVASOF6PxcAAACAvwAAgD8AAIC/AACAPxUAAAAAAArXozwAAMA/FwAAAIC/AACAPwAAgL8AAIA/EQACAAAAAAAgQBAAAAAAQBkAEwDD9Sg/DQAEAAAAAAAgQAkAAGZmJj8AAAAAPwEEAAAAAAAAAEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM3MTD4AMzMzPwAAAAA/" );
 
 namespace Boundless {
 
@@ -29,22 +29,23 @@ namespace Boundless {
         int size = TILE_SIZE * WORLD_SIZE;
         std::vector<float> noiseOutput(size * size);
 
-        FastNoise::OutputMinMax minMax = fnGenerator->GenUniformGrid2D(noiseOutput.data(), 0, 0, size,  size, 0.0007f, 1337);
+        FastNoise::OutputMinMax minMax = fnGenerator->GenUniformGrid2D(noiseOutput.data(), 0, 0, size,  size, 0.003f, 1337);
 
         int index = 0;
         for (int z = 0; z < size; z++) {
             for (int x = 0; x < size; x++) {
-                noise[x][z] = floor(normalize(minMax.min, minMax.max, noiseOutput[index++]) * TILE_SIZE);
+                noise[x][z] = floor(normalize(minMax.min, minMax.max, noiseOutput[index++]) * (TILE_SIZE * WORLD_HEIGHT));
             }
         }
 
         for (int x = 0; x < WORLD_SIZE; x++) {
             for (int z = 0; z < WORLD_SIZE; z++) {
-                Ref<Tile> tile = std::make_shared<Tile>(x, z);
+                for (int y = 0; y < WORLD_HEIGHT; y++) {
+                    Ref<Tile> tile = std::make_shared<Tile>(x, y, z);
 
-                tile->initialize(Boundless::World::shouldDivide);
-                m_tiles.push_back(tile);
-
+                    tile->initialize(Boundless::World::shouldDivide);
+                    m_tiles.push_back(tile);
+                }
             }
         }
     }

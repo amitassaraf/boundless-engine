@@ -11,7 +11,7 @@ namespace Boundless {
 
     auto key_selector = [](auto pair){return pair.first;};
 
-    Tile::Tile(int xOffset, int zOffset) : m_location(xOffset * TILE_SIZE, zOffset * TILE_SIZE) {
+    Tile::Tile(float xOffset, float yOffset, float zOffset) : m_location(xOffset * TILE_SIZE, yOffset * TILE_SIZE, zOffset * TILE_SIZE) {
         m_octree = std::make_unique<Octree>(TILE_SIZE);
     }
 
@@ -27,7 +27,7 @@ namespace Boundless {
 
     void Tile::initialize(const std::function<int(const glm::vec3 &, uint16_t)> &shouldSubdivide) {
         uint64_t rootNode = m_octree->getRootNode();
-        glm::vec3 chunkLocation = OctreeNode::getChunkOffset(rootNode, m_octree->m_size) + glm::vec3(m_location.x, 0, m_location.y);
+        glm::vec3 chunkLocation = OctreeNode::getChunkOffset(rootNode, m_octree->m_size) + m_location;
         uint16_t size = OctreeNode::getSize(rootNode, m_octree->m_size);
         m_octree->divideNode(rootNode, chunkLocation, size, shouldSubdivide);
     }
@@ -43,13 +43,13 @@ namespace Boundless {
         m_octree->visitAllConditional(rootNode, [&](uint64_t nodeLocationalCode) {
             UNUSED(nodeLocationalCode);
 
-            glm::vec3 chunkLocation = OctreeNode::getChunkOffset(nodeLocationalCode, m_octree->m_size) + glm::vec3(m_location.x, 0, m_location.y);
+            glm::vec3 chunkLocation = OctreeNode::getChunkOffset(nodeLocationalCode, m_octree->m_size) + m_location;
             uint16_t size = OctreeNode::getSize(nodeLocationalCode, m_octree->m_size);
             glm::vec3 chunkCenter(chunkLocation.x + (size / 2.0f), chunkLocation.y + (size / 2.0f),
                                   chunkLocation.z + (size / 2.0f));
             auto distance = abs(glm::length(camera - chunkCenter));
 
-            if (distance < size * 600) {
+            if (distance < size * LOD_DISTANCE) {
                 if (size > 1 && m_octree->isLeaf(nodeLocationalCode)) {
                     m_octree->divideNode(nodeLocationalCode, chunkLocation, size, shouldSubdivide);
                 }
