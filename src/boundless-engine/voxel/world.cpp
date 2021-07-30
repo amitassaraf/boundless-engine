@@ -11,10 +11,7 @@ float persistance = 0.8f;
 
 const int octaves = static_cast<int>(3 + std::log(scale)); // Estimate number of octaves needed for the current scale
 
-const float min = -1.0f;
-const float max = 1.0f;
-
-float normalize(float input) {
+float normalize(float min, float max, float input) {
     float average = (min + max) / 2.0f;
     float range = (max - min) / 2.0f;
     float normalized_x = (input - average) / range;
@@ -23,26 +20,21 @@ float normalize(float input) {
 
 float noise[WORLD_SIZE * TILE_SIZE][WORLD_SIZE * TILE_SIZE];
 
-FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree( "EwDNzMw9CQA=" );
+FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree( "FwAAAIC/AACAPwAAgL8AAIA/FQAAAAAACtejPAAAwD8XAAAAgL8AAIA/AACAvwAAgD8RAAIAAAAAACBAEAAAAABAGQATAMP1KD8NAAQAAAAAACBACQAAZmYmPwAAAAA/AQQAAAAAAAAAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzcxMPgAzMzM/AAAAAD8=" );
 
 namespace Boundless {
 
     World::World() : m_noise(SimplexNoise(0.1f / scale, 0.1f, lacunarity, persistance)) {
         // Create an array of floats to store the noise output in
         int size = TILE_SIZE * WORLD_SIZE;
-        std::vector<float> noiseOutput(size * size * size);
+        std::vector<float> noiseOutput(size * size);
 
-        fnGenerator->GenUniformGrid3D(noiseOutput.data(), 0, 0, 0, size,  size, size, 0.02f, 1337);
+        FastNoise::OutputMinMax minMax = fnGenerator->GenUniformGrid2D(noiseOutput.data(), 0, 0, size,  size, 0.0007f, 1337);
+
         int index = 0;
         for (int z = 0; z < size; z++) {
-            for (int y = 0; y < size; y++) {
-                for (int x = 0; x < size; x++) {
-
-                    float noiseValue = noiseOutput[index++];
-                    if (noise[x][z] < noiseValue) {
-                        noise[x][z] = noiseValue;
-                    }
-                }
+            for (int x = 0; x < size; x++) {
+                noise[x][z] = floor(normalize(minMax.min, minMax.max, noiseOutput[index++]) * TILE_SIZE);
             }
         }
 
@@ -74,7 +66,7 @@ namespace Boundless {
 
         for (int x = chunkOffset.x; x < chunkOffset.x + nodeSize; x += step) {
             for (int z = chunkOffset.z; z < chunkOffset.z + nodeSize; z += step) {
-                float normalized = floor(noise[x][z] * TILE_SIZE);
+                float normalized = noise[x][z];
                 if (nodeSize > 1.0f && normalized >= chunkOffset.y && normalized < chunkOffset.y + nodeSize) {
                     return 0;
                 } else if (normalized >= chunkOffset.y + nodeSize) {
