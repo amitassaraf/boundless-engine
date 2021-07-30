@@ -3,10 +3,11 @@
 //
 
 #include "world.hpp"
+#include "FastNoise/FastNoise.h"
 
 float scale = 100.f;
 float lacunarity = 0.8f;
-float persistance = 1.1f;
+float persistance = 0.8f;
 
 const int octaves = static_cast<int>(3 + std::log(scale)); // Estimate number of octaves needed for the current scale
 
@@ -20,14 +21,28 @@ float normalize(float input) {
     return (normalized_x + 1.0f) / 2.0f;
 }
 
-int noise[WORLD_SIZE * TILE_SIZE][WORLD_SIZE * TILE_SIZE];
+float noise[WORLD_SIZE * TILE_SIZE][WORLD_SIZE * TILE_SIZE];
+
+FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree( "EwDNzMw9CQA=" );
 
 namespace Boundless {
 
     World::World() : m_noise(SimplexNoise(0.1f / scale, 0.1f, lacunarity, persistance)) {
-        for (int x = 0; x < TILE_SIZE * WORLD_SIZE; x++) {
-            for (int z = 0; z < TILE_SIZE * WORLD_SIZE; z++) {
-                noise[x][z] = floor(normalize(m_noise.fractal(octaves, x, z)) * (TILE_SIZE));
+        // Create an array of floats to store the noise output in
+        int size = TILE_SIZE * WORLD_SIZE;
+        std::vector<float> noiseOutput(size * size * size);
+
+        fnGenerator->GenUniformGrid3D(noiseOutput.data(), 0, 0, 0, size,  size, size, 0.02f, 1337);
+        int index = 0;
+        for (int z = 0; z < size; z++) {
+            for (int y = 0; y < size; y++) {
+                for (int x = 0; x < size; x++) {
+
+                    float noiseValue = noiseOutput[index++];
+                    if (noise[x][z] < noiseValue) {
+                        noise[x][z] = noiseValue;
+                    }
+                }
             }
         }
 
@@ -59,7 +74,7 @@ namespace Boundless {
 
         for (int x = chunkOffset.x; x < chunkOffset.x + nodeSize; x += step) {
             for (int z = chunkOffset.z; z < chunkOffset.z + nodeSize; z += step) {
-                float normalized = noise[x][z];
+                float normalized = floor(noise[x][z] * TILE_SIZE);
                 if (nodeSize > 1.0f && normalized >= chunkOffset.y && normalized < chunkOffset.y + nodeSize) {
                     return 0;
                 } else if (normalized >= chunkOffset.y + nodeSize) {

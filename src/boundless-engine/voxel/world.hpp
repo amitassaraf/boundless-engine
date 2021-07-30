@@ -9,7 +9,7 @@
 #include "tile.hpp"
 #include <SimplexNoise.h>
 
-#define WORLD_SIZE 16
+#define WORLD_SIZE 1
 
 namespace Boundless {
 
