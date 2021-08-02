@@ -5,12 +5,6 @@
 #include "world.hpp"
 #include "FastNoise/FastNoise.h"
 
-float scale = 100.f;
-float lacunarity = 0.8f;
-float persistance = 0.8f;
-
-const int octaves = static_cast<int>(3 + std::log(scale)); // Estimate number of octaves needed for the current scale
-
 float normalize(float min, float max, float input) {
     float average = (min + max) / 2.0f;
     float range = (max - min) / 2.0f;
@@ -24,7 +18,7 @@ FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree( "FwAAAIC
 
 namespace Boundless {
 
-    World::World() : m_noise(SimplexNoise(0.1f / scale, 0.1f, lacunarity, persistance)) {
+    World::World() {
         // Create an array of floats to store the noise output in
         int size = TILE_SIZE * WORLD_SIZE;
         std::vector<float> noiseOutput(size * size);

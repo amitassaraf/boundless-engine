@@ -233,7 +233,7 @@ public:
                 cubePositions.push_back(offset.y);
                 cubePositions.push_back(offset.z);
                 cubePositions.push_back((float)Boundless::OctreeNode::getSize(chunkLocation, tile.getOctree()->m_size));
-                    
+
                 instanceCount += 1u;
             }
 
@@ -444,7 +444,7 @@ public:
         m_shader->setUniform("view", m_camera->getViewMatrix());
         m_shader->setUniform("projection", m_camera->getProjectionMatrix());
         
-        Boundless::RenderCommand::fillMode();
+//        Boundless::RenderCommand::wireframeMode();
 
         for (const auto& pair : m_toRender) {
             pair.first->bind();
@@ -452,6 +452,8 @@ public:
         }
         
         m_gBuffer->unbind();
+
+//        Boundless::RenderCommand::fillMode();
         
         // 2. generate SSAO texture
         m_ssaoFBO->bind();

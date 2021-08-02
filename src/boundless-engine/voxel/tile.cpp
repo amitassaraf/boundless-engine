@@ -41,8 +41,6 @@ namespace Boundless {
 
         uint64_t rootNode = m_octree->getRootNode();
         m_octree->visitAllConditional(rootNode, [&](uint64_t nodeLocationalCode) {
-            UNUSED(nodeLocationalCode);
-
             glm::vec3 chunkLocation = OctreeNode::getChunkOffset(nodeLocationalCode, m_octree->m_size) + m_location;
             uint16_t size = OctreeNode::getSize(nodeLocationalCode, m_octree->m_size);
             glm::vec3 chunkCenter(chunkLocation.x + (size / 2.0f), chunkLocation.y + (size / 2.0f),
@@ -51,7 +49,7 @@ namespace Boundless {
 
             if (distance < size * LOD_DISTANCE) {
                 if (size > 1 && m_octree->isLeaf(nodeLocationalCode)) {
-                    m_octree->divideNode(nodeLocationalCode, chunkLocation, size, shouldSubdivide);
+                    return m_octree->divideNode(nodeLocationalCode, chunkLocation, size, shouldSubdivide);
                 }
 
                 return true;

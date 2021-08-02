@@ -37,8 +37,6 @@ namespace Boundless {
     bool Octree::collapseNode(uint64_t lodNode) {
         bool solid = false;
         this->visitAllBottomUp(lodNode, [&](uint64_t nodeLocationalCode) {
-            UNUSED(nodeLocationalCode);
-
             if (this->isSolid(nodeLocationalCode)) {
                 solid = true;
             }
@@ -56,7 +54,7 @@ namespace Boundless {
 
             for (int i = 0; i < 8; i++) {
                 uint64_t childLocationalCode = (lodNode << 3) | i;
-                m_nodes[childLocationalCode] = 1u;
+                m_nodes[childLocationalCode] = 0u;
             }
 
             this->setNodeAt(lodNode, 0u);

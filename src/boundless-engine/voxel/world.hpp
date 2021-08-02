@@ -26,7 +26,6 @@ namespace Boundless {
 
     private:
         std::vector<Ref<Tile> > m_tiles;
-        SimplexNoise m_noise;
 
     };
 

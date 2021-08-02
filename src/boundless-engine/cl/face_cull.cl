@@ -152,7 +152,7 @@ char checkIfSiblingIsSolid(__global ulong* octreeCodes, __global uchar* octreeSo
         if (siblingLocationalCodeIndex != -1) {
             ulong sibling = siblingLocationalCode;
             if (isLeaf(octreeCodes, totalNodes, sibling) == FALSE) {
-                // Find its smaller children that might hiding our face
+                // Find its smaller children that might hide our face
                 ulong currentLocationalCode = sibling;
 
                 // The following is an algorithm for iterating a Locational Code Octree system without recursion
@@ -170,10 +170,10 @@ char checkIfSiblingIsSolid(__global ulong* octreeCodes, __global uchar* octreeSo
                 // the end of a node. Sadly there is no way to do this with less than 4 bits per depth level.
 
                 ulong2 childrenStack;
-                char solidFlag = TRUE;
+                char solidFlag = FALSE;
 
                 while (currentLocationalCode != 0) {
-                    // If the current node is not a leaf, dive into it's children.
+                    // If the current node is not a leaf, dive into its children.
                     if (isLeaf(octreeCodes, totalNodes, currentLocationalCode) == FALSE) {
                         // Find which child we left at previously (If any) using our childrenStack
                         uchar currentDepth = getDepth(currentLocationalCode);
@@ -225,7 +225,7 @@ char checkIfSiblingIsSolid(__global ulong* octreeCodes, __global uchar* octreeSo
                         }
 
                         // Once we finish all the children for a node, we should reset it's children stack and move
-                        // back up to it's parent.  (We do this by shifting down and then up, resetting the tail)
+                        // back up to its parent.  (We do this by shifting down and then up, resetting the tail)
                         currentDepth = getDepth(currentLocationalCode);
                         if (currentDepth >= 16) {
                             currentDepth = currentDepth - 16;
