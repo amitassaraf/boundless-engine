@@ -9,8 +9,8 @@
 #include "core/core.hpp"
 #include <glm/vec2.hpp>
 
-#define TILE_SIZE 512
-#define LOD_DISTANCE 200
+#define TILE_SIZE 1024
+#define LOD_DISTANCE 400
 
 namespace Boundless {
 

@@ -50,7 +50,7 @@ public:
         m_windowLayer = std::make_shared<Boundless::WindowLayer>(m_eventManager);
         this->pushLayer(m_windowLayer.get());
         m_camera = std::make_shared<Boundless::PerspectiveCamera>(m_eventManager, m_windowLayer->getWidth(), m_windowLayer->getHeight());
-        m_camera->setPosition(glm::vec3(TILE_SIZE / 2, TILE_SIZE / 2, TILE_SIZE / 2));
+        m_camera->setPosition(glm::vec3((WORLD_SIZE * TILE_SIZE) / 2, (WORLD_HEIGHT * TILE_SIZE) / 2, (WORLD_SIZE * TILE_SIZE) / 2));
         m_pool = std::make_unique<boost::threadpool::pool>(std::thread::hardware_concurrency());
         this->pushLayer(m_camera.get());
         this->pushLayer(new Boundless::FPSCounterLayer(m_eventManager));

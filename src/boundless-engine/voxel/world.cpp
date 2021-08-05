@@ -14,7 +14,7 @@ float normalize(float min, float max, float input) {
 
 float noise[WORLD_SIZE * TILE_SIZE][WORLD_SIZE * TILE_SIZE];
 
-FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree( "FwAAAIC/AACAPwAAAL8AAEA/EwBcj8I+IgCPwpVASOF6PxcAAACAvwAAgD8AAIC/AACAPxUAAAAAAArXozwAAMA/FwAAAIC/AACAPwAAgL8AAIA/EQACAAAAAAAgQBAAAAAAQBkAEwDD9Sg/DQAEAAAAAAAgQAkAAGZmJj8AAAAAPwEEAAAAAAAAAEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM3MTD4AMzMzPwAAAAA/" );
+FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree( "GQAlAM3MzD7NzMw+AACAPwAAgD8XAAAAgL8AAIA/AACAvwAAgD8TAAAAgD8iAJqZeUDXo3A/FwAAAIC/AACAPwAAgL8AAIA/FQAAAAAACtcjvbgexT8XAAAAgL8AAIA/AACAvwAAgD8RAAMAAACamRk/EADNzEw/GQATADMzMz8NAAUAAAC4HiVACQAAKVxPPwAfhWs/AQQAAAAAAAAAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAuB6FPgDsUTg+AK5HYT4Aj8J1vg==" );
 
 namespace Boundless {
 
@@ -23,7 +23,7 @@ namespace Boundless {
         int size = TILE_SIZE * WORLD_SIZE;
         std::vector<float> noiseOutput(size * size);
 
-        FastNoise::OutputMinMax minMax = fnGenerator->GenUniformGrid2D(noiseOutput.data(), 0, 0, size,  size, 0.003f, 1337);
+        FastNoise::OutputMinMax minMax = fnGenerator->GenUniformGrid2D(noiseOutput.data(), 0, 0, size,  size, 0.001f, 1337);
 
         int index = 0;
         for (int z = 0; z < size; z++) {
