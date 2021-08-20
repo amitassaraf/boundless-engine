@@ -2,7 +2,7 @@
 
 #define TILE_SIZE 512
 #define WORLD_SIZE 16
-#define WORLD_HEIGHT 1
+#define WORLD_HEIGHT 4
 
 #include <memory>
 

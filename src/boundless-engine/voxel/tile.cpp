@@ -61,7 +61,7 @@ namespace Boundless {
         int index = 0;
         for (int z = 0; z < TILE_SIZE; z++) {
             for (int x = 0; x < TILE_SIZE; x++) {
-                noise[x][z] = floor(normalize(-1, 1, noiseOutput[index++]) * (TILE_SIZE * WORLD_HEIGHT));
+                noise[x][z] = floor(normalize(-1, 1, noiseOutput[index++]) * (TILE_SIZE * WORLD_HEIGHT) - m_location.y);
             }
         }
 
