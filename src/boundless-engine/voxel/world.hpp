@@ -6,11 +6,9 @@
 #ifndef BD_WORLD_HPP_
 #define BD_WORLD_HPP_
 
+#include "core/core.hpp"
 #include "tile.hpp"
 #include <SimplexNoise.h>
-
-#define WORLD_SIZE 16
-#define WORLD_HEIGHT 4
 
 namespace Boundless {
 
@@ -20,7 +18,7 @@ namespace Boundless {
         ~World();
 
         void update(const glm::vec3 &lodCenter);
-        static int shouldDivide(const glm::vec3 &chunkOffset, uint16_t nodeSize);
+        static int shouldDivide(const glm::vec3 &chunkOffset, uint16_t nodeSize, std::vector<std::vector<float> >&);
 
         inline const std::vector<Ref<Tile> >& getTiles() const { return m_tiles; }
 

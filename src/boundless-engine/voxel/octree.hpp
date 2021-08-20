@@ -26,7 +26,8 @@ namespace Boundless {
         bool collapseNode(uint64_t node);
 
         bool divideNode(uint64_t node, const glm::vec3 &referenceOffset, const std::uint16_t &referenceSize,
-                        const std::function<int(const glm::vec3 &chunkOffset, uint16_t nodeSize)>& lambda);
+                        const std::function<int(const glm::vec3 &chunkOffset, uint16_t nodeSize, std::vector<std::vector<float> >&)>& lambda,
+                        std::vector<std::vector<float> >& noise);
 
 
         void visitAll(uint64_t node, std::function<void(uint64_t nodeLocationalCode)> lambda);

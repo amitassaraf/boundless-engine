@@ -531,6 +531,7 @@ public:
         if ( currentTime - previousTime >= 1.0 ) {
             // Display the frame count here any way you want.
             BD_CORE_TRACE("FPS: {}", frameCount);
+            BD_CORE_TRACE("Camera Location: {},{},{}", m_camera->getPosition().x, m_camera->getPosition().y, m_camera->getPosition().z);
 
             frameCount = 0;
             previousTime = currentTime;

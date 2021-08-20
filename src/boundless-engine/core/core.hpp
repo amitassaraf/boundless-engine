@@ -1,5 +1,9 @@
 #pragma once
 
+#define TILE_SIZE 512
+#define WORLD_SIZE 16
+#define WORLD_HEIGHT 1
+
 #include <memory>
 
 #define BIT(x) (1 << x)

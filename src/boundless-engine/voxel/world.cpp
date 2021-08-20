@@ -4,38 +4,17 @@
 
 #include "world.hpp"
 #include "FastNoise/FastNoise.h"
+#include<iostream>
 
-float normalize(float min, float max, float input) {
-    float average = (min + max) / 2.0f;
-    float range = (max - min) / 2.0f;
-    float normalized_x = (input - average) / range;
-    return (normalized_x + 1.0f) / 2.0f;
-}
-
-float noise[WORLD_SIZE * TILE_SIZE][WORLD_SIZE * TILE_SIZE];
-
-FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree( "GQAlAM3MzD7NzMw+AACAPwAAgD8XAAAAgL8AAIA/AACAvwAAgD8TAAAAgD8iAJqZeUDXo3A/FwAAAIC/AACAPwAAgL8AAIA/FQAAAAAACtcjvbgexT8XAAAAgL8AAIA/AACAvwAAgD8RAAMAAACamRk/EADNzEw/GQATADMzMz8NAAUAAAC4HiVACQAAKVxPPwAfhWs/AQQAAAAAAAAAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAuB6FPgDsUTg+AK5HYT4Aj8J1vg==" );
 
 namespace Boundless {
 
     World::World() {
         // Create an array of floats to store the noise output in
-        int size = TILE_SIZE * WORLD_SIZE;
-        std::vector<float> noiseOutput(size * size);
-
-        FastNoise::OutputMinMax minMax = fnGenerator->GenUniformGrid2D(noiseOutput.data(), 0, 0, size,  size, 0.001f, 1337);
-
-        int index = 0;
-        for (int z = 0; z < size; z++) {
-            for (int x = 0; x < size; x++) {
-                noise[x][z] = floor(normalize(minMax.min, minMax.max, noiseOutput[index++]) * (TILE_SIZE * WORLD_HEIGHT));
-            }
-        }
-
         for (int x = 0; x < WORLD_SIZE; x++) {
             for (int z = 0; z < WORLD_SIZE; z++) {
                 for (int y = 0; y < WORLD_HEIGHT; y++) {
-                    Ref<Tile> tile = std::make_shared<Tile>(x, y, z);
+                    Ref<Tile> tile = std::make_shared<Tile>(x, y, z,  "GQAlAM3MzD7NzMw+AACAPwAAgD8XAAAAgL8AAIA/AACAvwAAgD8TAAAAgD8iAJqZeUDXo3A/FwAAAIC/AACAPwAAgL8AAIA/FQAAAAAACtcjvbgexT8XAAAAgL8AAIA/AACAvwAAgD8RAAMAAACamRk/EADNzEw/GQATADMzMz8NAAUAAAC4HiVACQAAKVxPPwAfhWs/AQQAAAAAAAAAQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAuB6FPgDsUTg+AK5HYT4Aj8J1vg==" );
 
                     tile->initialize(Boundless::World::shouldDivide);
                     m_tiles.push_back(tile);
@@ -50,28 +29,28 @@ namespace Boundless {
         }
     }
 
-    int World::shouldDivide(const glm::vec3 &chunkOffset, uint16_t nodeSize) {
-        int above = 1;
-
+    int World::shouldDivide(const glm::vec3 &chunkOffset, uint16_t nodeSize, std::vector<std::vector<float> >& noise) {
         int step = 1;
 
         if (nodeSize > 64) {
             step = round(nodeSize / 10);
         }
 
+        float normalized = noise[0][0];
         for (int x = chunkOffset.x; x < chunkOffset.x + nodeSize; x += step) {
             for (int z = chunkOffset.z; z < chunkOffset.z + nodeSize; z += step) {
-                float normalized = noise[x][z];
+                normalized = noise[x][z];
                 if (nodeSize > 1.0f && normalized >= chunkOffset.y && normalized < chunkOffset.y + nodeSize) {
                     return 0;
-                } else if (normalized >= chunkOffset.y + nodeSize) {
-                    above = 1;
-                } else if (normalized < chunkOffset.y) {
-                    above = -1;
                 }
             }
         }
-        return above;
+
+        if (normalized < chunkOffset.y) {
+            return -1;
+        }
+
+        return 1;
     }
 
     World::~World() = default;

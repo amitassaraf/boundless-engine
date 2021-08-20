@@ -48,8 +48,9 @@ namespace Boundless {
 
     bool Octree::divideNode(uint64_t lodNode, const glm::vec3 &referenceOffset,
                             const std::uint16_t &referenceSize,
-                            const std::function<int(const glm::vec3 &, uint16_t)>& shouldDivide) {
-        int aboveBelowOrDivide = shouldDivide(referenceOffset, referenceSize);
+                            const std::function<int(const glm::vec3 &, uint16_t, std::vector<std::vector<float> >&)>& shouldDivide,
+                            std::vector<std::vector<float> >& noise) {
+        int aboveBelowOrDivide = shouldDivide(referenceOffset, referenceSize, noise);
         if (aboveBelowOrDivide == 0) {
 
             for (int i = 0; i < 8; i++) {
