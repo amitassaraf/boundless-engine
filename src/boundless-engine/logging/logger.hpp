@@ -2,6 +2,8 @@
 #ifndef BD_LOGGER_HPP_
 #define BD_LOGGER_HPP_
 
+#define FMT_HEADER_ONLY 1
+
 #include <memory>
 #include "spdlog/spdlog.h"
 

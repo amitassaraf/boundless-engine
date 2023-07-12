@@ -1,8 +1,8 @@
 #pragma once
 
 #define TILE_SIZE 512
-#define WORLD_SIZE 16
-#define WORLD_HEIGHT 4
+#define WORLD_SIZE 4
+#define WORLD_HEIGHT 2
 
 #include <memory>
 

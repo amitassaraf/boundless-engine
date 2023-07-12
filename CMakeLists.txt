@@ -1,5 +1,14 @@
 cmake_minimum_required(VERSION 3.1)
 
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -DCMAKE_OSX_ARCHITECTURES=x86_64")
+set(CMAKE_OSX_ARCHITECTURES x86_64)
+
+set( COMPILER_BIN /usr/bin/)
+set( CMAKE_C_COMPILER ${COMPILER_BIN}/clang CACHE PATH "clang" FORCE )
+set( CMAKE_CXX_COMPILER ${COMPILER_BIN}/clang++ CACHE PATH "clang++" FORCE )
+
+enable_language( C CXX )
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/entityx/cmake")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/third_party/bullet3")
 set (CMAKE_PREFIX_PATH lib_directory ${CMAKE_PREFIX_PATH})
@@ -102,10 +111,6 @@ find_package(OpenCL REQUIRED)
 find_package(OpenGL REQUIRED)
 include_directories( ${OPENCL_INCLUDE_DIR})    
 
-find_package(GameNetworkingSockets REQUIRED)
-if (GameNetworkingSockets_FOUND)
-    include_directories(${GameNetworkingSockets_INCLUDE_DIRS})
-endif()
 
 find_package(OpenAL REQUIRED)
 if(APPLE)
@@ -152,12 +157,12 @@ target_include_directories(BoundlessEngine PUBLIC ${CMAKE_SOURCE_DIR}/src/boundl
 
 if(APPLE)
     target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
-         ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} GLEW::GLEW glfw OpenCL::OpenCL 
-         "-framework OpenCL" spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${ENTITYX_LIBRARIES} ${Bullet_LIBRARIES} FastNoise2::FastNoise)
+         ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} GLEW::GLEW glfw OpenCL::OpenCL
+         "-framework OpenCL" spdlog::spdlog ${ENTITYX_LIBRARIES} ${Bullet_LIBRARIES} FastNoise2::FastNoise)
 else()
     target_link_libraries(BoundlessEngine LINK_PUBLIC ${GLM_LIBRARIES}
          ${GLFW3_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${OpenAL_LIBRARIES} GLEW::GLEW glfw OpenCL::OpenCL 
-         spdlog::spdlog ${GameNetworkingSockets_LIBRARIES} ${ENTITYX_LIBRARIES} ${Bullet_LIBRARIES} FastNoise2::FastNoise)
+         spdlog::spdlog ${ENTITYX_LIBRARIES} ${Bullet_LIBRARIES} FastNoise2::FastNoise)
 endif()
 # cotire(BoundlessEngine)
 

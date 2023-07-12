@@ -13,7 +13,7 @@
 #define TRUE 1
 #define FALSE 0
 
-// Leading zeros of 32 bit number
+// Leading zeros of 32 bit number taken from GNU implementation online
 int __clzsi2(int a) {
   uint x = (uint)a;
   int t = ((x & 0xFFFF0000) == 0) << 4;
@@ -31,7 +31,7 @@ int __clzsi2(int a) {
   return r + ((2 - x) & -((x & 2) == 0));
 }
 
-// leading zeros of 64 bit number
+// leading zeros of 64 bit number taken from GNU implementation online
 int __clzdi2(ulong value) {
   if (value >> 32)
   {
@@ -289,7 +289,7 @@ char checkIfSiblingIsSolid(__global ulong* octreeCodes, __global uchar* octreeSo
     return TRUE;
 }
 
-__kernel void cullFaces(__global ulong* octreeCodes, __global uchar* octreeSolids, int octreeSize, int totalNodes, __global uchar* masks) {
+  void cullFaces(__global ulong* octreeCodes, __global uchar* octreeSolids, int octreeSize, int totalNodes, __global uchar* masks) {
     int wgId = get_group_id(0);
     int wgSize = get_local_size(0);
     int itemId = get_local_id(0);

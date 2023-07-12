@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="LeagueOfDwarves"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\src\;CMake Files\src\league-of-dwarves\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\usr\;CMake Files\..\..\..\..\usr\local\;CMake Files\..\..\..\..\usr\local\lib\;CMake Files\..\..\..\..\usr\local\lib\cmake\;CMake Files\..\..\..\..\usr\local\lib\cmake\Boost-1.80.0\;CMake Files\..\..\..\..\usr\local\lib\cmake\boost_headers-1.80.0\;CMake Files\..\..\..\..\usr\local\lib\cmake\boost_system-1.80.0\;CMake Files\..\..\..\..\usr\local\lib\cmake\boost_thread-1.80.0\;CMake Files\..\..\..\..\usr\local\lib\cmake\boost_filesystem-1.80.0\;CMake Files\..\..\..\..\usr\local\lib\cmake\boost_atomic-1.80.0\;CMake Files\..\..\..\..\usr\local\lib\cmake\glfw3\;CMake Files\..\..\..\..\usr\local\lib\cmake\glm\;CMake Files\..\..\..\..\usr\local\lib\cmake\FastNoise2\;CMake Files\..\..\..\..\usr\local\lib\cmake\spdlog\;CMake Files\third_party\;CMake Files\third_party\entityx\;CMake Files\third_party\entityx\cmake\;CMake Files\doc\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/Users/amitassaraf/workspace/league_of_dwarves"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="BoundlessEngine">
+				<Option output="/Users/amitassaraf/workspace/league_of_dwarves/BoundlessEngine.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/amitassaraf/workspace/league_of_dwarves"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DBOOST_SYSTEM_NO_LIB"/>
+					<Add option="-DBOOST_SYSTEM_DYN_LINK"/>
+					<Add option="-DBOOST_THREAD_NO_LIB"/>
+					<Add option="-DBOOST_THREAD_DYN_LINK"/>
+					<Add option="-DBOOST_FILESYSTEM_NO_LIB"/>
+					<Add option="-DBOOST_FILESYSTEM_DYN_LINK"/>
+					<Add option="-DBOOST_ATOMIC_NO_LIB"/>
+					<Add option="-DBOOST_ATOMIC_DYN_LINK"/>
+					<Add option="-DSPDLOG_COMPILED_LIB"/>
+					<Add directory="/usr/local/lib"/>
+					<Add directory="/usr/local/opt/openal-soft/include"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/eventpp/include"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/SimplexNoise/src"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/OpenCL-Registry/api/2.1"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/FastNoise2/include"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/boost_threadpool/boost"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenCL.framework"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/14.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 BoundlessEngine"/>
+					<CompileFile command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="BoundlessEngine/fast">
+				<Option output="/Users/amitassaraf/workspace/league_of_dwarves/BoundlessEngine.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/amitassaraf/workspace/league_of_dwarves"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DBOOST_SYSTEM_NO_LIB"/>
+					<Add option="-DBOOST_SYSTEM_DYN_LINK"/>
+					<Add option="-DBOOST_THREAD_NO_LIB"/>
+					<Add option="-DBOOST_THREAD_DYN_LINK"/>
+					<Add option="-DBOOST_FILESYSTEM_NO_LIB"/>
+					<Add option="-DBOOST_FILESYSTEM_DYN_LINK"/>
+					<Add option="-DBOOST_ATOMIC_NO_LIB"/>
+					<Add option="-DBOOST_ATOMIC_DYN_LINK"/>
+					<Add option="-DSPDLOG_COMPILED_LIB"/>
+					<Add directory="/usr/local/lib"/>
+					<Add directory="/usr/local/opt/openal-soft/include"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/eventpp/include"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/SimplexNoise/src"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/OpenCL-Registry/api/2.1"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/FastNoise2/include"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/boost_threadpool/boost"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenCL.framework"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/14.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 BoundlessEngine/fast"/>
+					<CompileFile command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="LeagueOfDwarves">
+				<Option output="/Users/amitassaraf/workspace/league_of_dwarves/LeagueOfDwarves" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/amitassaraf/workspace/league_of_dwarves"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DBOOST_SYSTEM_NO_LIB"/>
+					<Add option="-DBOOST_SYSTEM_DYN_LINK"/>
+					<Add option="-DBOOST_THREAD_NO_LIB"/>
+					<Add option="-DBOOST_THREAD_DYN_LINK"/>
+					<Add option="-DBOOST_FILESYSTEM_NO_LIB"/>
+					<Add option="-DBOOST_FILESYSTEM_DYN_LINK"/>
+					<Add option="-DBOOST_ATOMIC_NO_LIB"/>
+					<Add option="-DBOOST_ATOMIC_DYN_LINK"/>
+					<Add option="-DSPDLOG_COMPILED_LIB"/>
+					<Add directory="/usr/local/lib"/>
+					<Add directory="/usr/local/opt/openal-soft/include"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/eventpp/include"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/SimplexNoise/src"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/OpenCL-Registry/api/2.1"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/FastNoise2/include"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/boost_threadpool/boost"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenCL.framework"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/14.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 LeagueOfDwarves"/>
+					<CompileFile command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="LeagueOfDwarves/fast">
+				<Option output="/Users/amitassaraf/workspace/league_of_dwarves/LeagueOfDwarves" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/amitassaraf/workspace/league_of_dwarves"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DBOOST_SYSTEM_NO_LIB"/>
+					<Add option="-DBOOST_SYSTEM_DYN_LINK"/>
+					<Add option="-DBOOST_THREAD_NO_LIB"/>
+					<Add option="-DBOOST_THREAD_DYN_LINK"/>
+					<Add option="-DBOOST_FILESYSTEM_NO_LIB"/>
+					<Add option="-DBOOST_FILESYSTEM_DYN_LINK"/>
+					<Add option="-DBOOST_ATOMIC_NO_LIB"/>
+					<Add option="-DBOOST_ATOMIC_DYN_LINK"/>
+					<Add option="-DSPDLOG_COMPILED_LIB"/>
+					<Add directory="/usr/local/lib"/>
+					<Add directory="/usr/local/opt/openal-soft/include"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/eventpp/include"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/SimplexNoise/src"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/OpenCL-Registry/api/2.1"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/FastNoise2/include"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/third_party/boost_threadpool/boost"/>
+					<Add directory="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenCL.framework"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/14.0.0/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 LeagueOfDwarves/fast"/>
+					<CompileFile command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/Users/amitassaraf/workspace/league_of_dwarves"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/Users/amitassaraf/workspace/league_of_dwarves"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="/Users/amitassaraf/workspace/league_of_dwarves"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 list_install_components"/>
+					<CompileFile command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="/Users/amitassaraf/workspace/league_of_dwarves"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 install"/>
+					<CompileFile command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="/Users/amitassaraf/workspace/league_of_dwarves"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 install/local"/>
+					<CompileFile command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option working_dir="/Users/amitassaraf/workspace/league_of_dwarves"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 install/strip"/>
+					<CompileFile command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="doc">
+				<Option working_dir="/Users/amitassaraf/workspace/league_of_dwarves/doc"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/doc/Makefile&quot;  VERBOSE=1 doc"/>
+					<CompileFile command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/doc/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/doc/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j10 -f &quot;/Users/amitassaraf/workspace/league_of_dwarves/doc/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/compute/buffer.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/compute/buffer.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/compute/compute_api.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/compute/compute_api.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/compute/compute_command_queue.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/compute/compute_command_queue.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/compute/compute_context.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/compute/compute_context.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/compute/compute_device.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/compute/compute_device.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/compute/compute_program.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/compute/compute_program.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/core/event_manager.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/core/event_manager.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/core/game.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/core/game.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/core/layer.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/core/layer.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/core/layer_stack.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/core/layer_stack.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/core/scene.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/core/scene.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/layers/fps_counter_layer.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/layers/fps_counter_layer.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/layers/perspective_camera.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/layers/perspective_camera.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/layers/window_layer.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/layers/window_layer.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/logging/logger.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/logging/logger.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opencl/opencl_buffer.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opencl/opencl_buffer.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opencl/opencl_command_queue.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opencl/opencl_command_queue.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opencl/opencl_context.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opencl/opencl_context.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opencl/opencl_device.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opencl/opencl_device.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opencl/opencl_program.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opencl/opencl_program.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opengl/opengl_2d_texture.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opengl/opengl_2d_texture.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opengl/opengl_buffer.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opengl/opengl_buffer.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opengl/opengl_context.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opengl/opengl_context.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opengl/opengl_renderer_api.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opengl/opengl_renderer_api.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opengl/opengl_shader.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opengl/opengl_shader.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opengl/opengl_vertex_array.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/platform/opengl/opengl_vertex_array.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/buffer.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/buffer.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/buffer_layout.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/buffer_layout.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/graphics_context.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/graphics_context.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/render_command.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/render_command.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/renderer.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/renderer.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/renderer_api.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/renderer_api.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/shader.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/shader.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/texture.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/texture.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/vertex_array.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/render/vertex_array.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/server/server.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/server/server.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/voxel/face_cull_tests.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/voxel/face_cull_tests.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/voxel/octree.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/voxel/octree.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/voxel/octree_node.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/voxel/octree_node.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/voxel/tile.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/voxel/tile.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/voxel/world.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/boundless-engine/voxel/world.hpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/league-of-dwarves/main.cpp">
+			<Option target="LeagueOfDwarves"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/third_party/SimplexNoise/src/SimplexNoise.cpp">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/third_party/SimplexNoise/src/SimplexNoise.h">
+			<Option target="BoundlessEngine"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/src/league-of-dwarves/config.hpp.in">
+			<Option virtualFolder="CMake Files\src\league-of-dwarves\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/BoostDetectToolset-1.80.0.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/Boost-1.80.0/BoostConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\Boost-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/Boost-1.80.0/BoostConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\Boost-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_headers-1.80.0/boost_headers-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_headers-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_headers-1.80.0/boost_headers-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_headers-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_system-1.80.0/boost_system-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_system-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_system-1.80.0/boost_system-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_system-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_system-1.80.0/libboost_system-variant-mt-shared.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_system-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_system-1.80.0/libboost_system-variant-mt-static.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_system-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_system-1.80.0/libboost_system-variant-shared.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_system-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_system-1.80.0/libboost_system-variant-static.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_system-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_thread-1.80.0/boost_thread-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_thread-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_thread-1.80.0/boost_thread-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_thread-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_thread-1.80.0/libboost_thread-variant-mt-shared.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_thread-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_thread-1.80.0/libboost_thread-variant-mt-static.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_thread-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_filesystem-1.80.0/boost_filesystem-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_filesystem-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_filesystem-1.80.0/boost_filesystem-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_filesystem-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_filesystem-1.80.0/libboost_filesystem-variant-mt-shared.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_filesystem-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_filesystem-1.80.0/libboost_filesystem-variant-mt-static.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_filesystem-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_filesystem-1.80.0/libboost_filesystem-variant-shared.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_filesystem-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_filesystem-1.80.0/libboost_filesystem-variant-static.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_filesystem-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_atomic-1.80.0/boost_atomic-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_atomic-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_atomic-1.80.0/boost_atomic-config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_atomic-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_atomic-1.80.0/libboost_atomic-variant-mt-shared.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_atomic-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/boost_atomic-1.80.0/libboost_atomic-variant-mt-static.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\boost_atomic-1.80.0\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/glfw3/GLFW3Config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\glfw3\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/glfw3/GLFW3ConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\glfw3\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/glfw3/glfw3Targets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\glfw3\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/glfw3/glfw3Targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\glfw3\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/glm/GLMConfig-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\glm\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/glm/GLMConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\glm\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/FastNoise2/FastNoise2Config.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\FastNoise2\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/FastNoise2/FastNoise2ConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\FastNoise2\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/FastNoise2/FastNoise2Targets-noconfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\FastNoise2\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/FastNoise2/FastNoise2Targets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\FastNoise2\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/spdlog/spdlogConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\spdlog\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/spdlog/spdlogConfigTargets-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\spdlog\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/spdlog/spdlogConfigTargets.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\spdlog\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/../../../../usr/local/lib/cmake/spdlog/spdlogConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\usr\local\lib\cmake\spdlog\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/third_party/entityx/cmake/Findentityx.cmake">
+			<Option virtualFolder="CMake Files\third_party\entityx\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/doc/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\doc\"/>
+		</Unit>
+		<Unit filename="/Users/amitassaraf/workspace/league_of_dwarves/doc/Doxyfile.in">
+			<Option virtualFolder="CMake Files\doc\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

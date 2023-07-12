@@ -14,7 +14,7 @@ namespace Boundless {
     }
 
     void EventManager::appendListener(EventType type, const Callback & callback) {
-        BD_CORE_TRACE("Added listener to Event Type: {}", type);
+//        BD_CORE_TRACE("Added listener to Event Type: {}", type);
         eventpp::EventQueue<int, void(const Ref<Boundless::Event>)>::appendListener(enumToInt(type), callback);
     }
 }
