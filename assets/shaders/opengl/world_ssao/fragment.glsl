@@ -10,7 +10,6 @@ uniform sampler2D noiseTexture;
 uniform vec3 samples[16];
 uniform vec2 screenDimensions[1];
 
-// parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 int kernelSize = 16;
 float radius = 3;
 float bias = 0.03;
