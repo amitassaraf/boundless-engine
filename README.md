@@ -5,6 +5,7 @@
 
 This time it includes world generation using custom and super fast noise algorithms, a world made up of custom octree implementation and more tricks to allow a 16 km squared environment (!), LOD algorithms to allows for the large environment, OpenCL implementations to speed up octrees generation and cull them on the GPU, with over 120 steady FPS.
 
+The magic happens in the face_cull algorithm and octree calculation to achieve the high FPS, see the `src/boundless-engine/cl` folder to understand more.
 
 ## Screenshots
 
