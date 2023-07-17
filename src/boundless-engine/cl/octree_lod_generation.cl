@@ -3,6 +3,8 @@ int BIT64_FRONT_BACK_FACE_BITS_TEST = 0x2492492492492492; // 0b01001001001001001
 int BIT64_TOP_BOTTOM_FACE_BITS_TEST = 0x4924924924924924; // 0b100100100100100100100100100100
 const sampler_t sampler=CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
+// This may look ugly, but infact this is an optimization to make this code run about 100x faster than
+// when using for loops / other methods. As this is called tens of thousands of times in this algorithm
 int calculateOffset(int mask, int starter, int base, int bitOffset) {
     return ((mask & starter) >> (2 - bitOffset) << base) // 0
     + ((mask & (starter) << 3) >> (4 - bitOffset) << base) // 1
